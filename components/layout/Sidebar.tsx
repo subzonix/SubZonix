@@ -75,8 +75,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen, collapsed }: { mobi
                                 transition={{ delay: 0.1 }}
                                 className="flex-1 overflow-hidden whitespace-nowrap"
                             >
-                                <div className="text-sm font-black tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">{appName}</div>
-                                <div className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">{role === 'owner' ? 'Owner Panel' : 'User Panel'}</div>
+                                <div className="text-lg font-black tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">{appName}</div>
                             </motion.div>
                         )}
                     </div>
