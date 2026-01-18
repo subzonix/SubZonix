@@ -1,0 +1,4 @@
+Activation Date,Client,Number,Tool Name,Duration,Expiry Date,Type,Plan,Email,Password,Profile Name,Profile PIN,Vendor,Cost,Sale,Profit
+2026-01-14,John Doe,+923001234567,Netflix Premium,1 Month,2026-02-14,Subscription,Premium,user@example.com,SecurePass123,Main Profile,1234,NetflixVendor,800,1200,400
+2026-01-13,Jane Smith,+923009876543,Disney+ Hotstar,3 Months,2026-04-13,Subscription,Pro,jane@example.com,Pass456!,Jane's Profile,5678,DisneyVendor,1500,2100,600
+2026-01-12,Ali Khan,+923007654321,YouTube Premium,1 Year,2027-01-12,Subscription,Go,ali@example.com,AliPass789,Ali Profile,9012,YouTubeVendor,3000,4500,1500
