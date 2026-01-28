@@ -58,10 +58,30 @@ export default function Sidebar({ mobileOpen, setMobileOpen, collapsed }: { mobi
                     mobileOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
-                <div className={clsx("py-6 border-b border-[hsl(var(--sidebar-border))] transition-all duration-300", collapsed ? "px-0 flex justify-center" : "px-5")}>
-                    <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <BrandLogo collapsed={collapsed} size="md" />
-                    </Link>
+                {/* Logo Area */}
+                <div className={clsx("py-6 border-b border-slate-800 transition-all duration-300", collapsed ? "px-0 flex justify-center" : "px-5")}>
+                    <div className="flex items-center gap-3">
+                        {appLogoUrl ? (
+                            <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0">
+                                <img src={appLogoUrl} alt="Logo" className="w-full h-full object-contain" />
+                            </div>
+                        ) : (
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-indigo-500/20">
+                                <span className="font-bold text-white uppercase italic text-lg">{appName?.[0]}</span>
+                            </div>
+                        )}
+                        {!collapsed && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.1 }}
+                                className="flex-1 overflow-hidden whitespace-nowrap"
+                            >
+                                <div className="text-sm font-black tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">{appName}</div>
+                                <div className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">{role === 'owner' ? 'Owner Panel' : 'User Panel'}</div>
+                            </motion.div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Navigation */}
