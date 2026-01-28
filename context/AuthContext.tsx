@@ -1,12 +1,13 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { MorphingSquare } from "@/components/ui/morphing-square";
 import { onAuthStateChanged, User, signOut as firebaseSignOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase"; // Added db import
 import { useRouter, usePathname } from "next/navigation";
-import { doc, getDoc, query, collection, where, getDocs } from "firebase/firestore"; // Added Firestore imports
+import { doc, getDoc, query, collection, where, getDocs, onSnapshot } from "firebase/firestore"; // Added Firestore imports
 import { useTheme } from "next-themes";
-import { PlanFeatures } from "@/types";
+import { PlanFeatures, StaffPermissions } from "@/types";
 
 interface AuthContextType {
     user: User | null;
@@ -21,6 +22,21 @@ interface AuthContextType {
     appName: string;
     appLogoUrl: string;
     accentColor: string;
+    appNamePart1?: string;
+    appNamePart2?: string;
+    colorPart1?: string;
+    colorPart2?: string;
+    themePreset: string;
+    supportEmail: string;
+    brandDisclaimer: string;
+    sidebarLight: string;
+    sidebarDark: string;
+    sidebarMode: "auto" | "light" | "dark";
+    setSidebarMode: (mode: "auto" | "light" | "dark") => void;
+    dataRetentionMonths?: number;
+    merchantId: string | null;
+    isStaff: boolean;
+    staffPermissions?: StaffPermissions;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -35,7 +51,22 @@ const AuthContext = createContext<AuthContextType>({
     planFeatures: undefined,
     appName: "Admin Console",
     appLogoUrl: "",
-    accentColor: "#4f46e5"
+    accentColor: "#4f46e5",
+    appNamePart1: "Subs",
+    appNamePart2: "Grow",
+    colorPart1: "#3b82f6",
+    colorPart2: "#10b981",
+    themePreset: "indigo",
+    supportEmail: "",
+    brandDisclaimer: "",
+    sidebarLight: "card",
+    sidebarDark: "card",
+    sidebarMode: "auto",
+    setSidebarMode: () => { },
+    dataRetentionMonths: undefined,
+    merchantId: null,
+    isStaff: false,
+    staffPermissions: undefined
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -49,28 +80,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [salesLimit, setSalesLimit] = useState<number | undefined>(undefined);
     const [currentSalesCount, setCurrentSalesCount] = useState<number | undefined>(undefined);
     const [planFeatures, setPlanFeatures] = useState<PlanFeatures | undefined>(undefined);
-    const [appName, setAppName] = useState("Admin Console");
+    const [appName, setAppName] = useState("SubsGrow");
     const [appLogoUrl, setAppLogoUrl] = useState("");
     const [accentColor, setAccentColor] = useState("#4f46e5");
+    const [themePreset, setThemePreset] = useState("indigo");
+    const [supportEmail, setSupportEmail] = useState("");
+    const [brandDisclaimer, setBrandDisclaimer] = useState("");
+    const [sidebarLight, setSidebarLight] = useState("card");
+    const [sidebarDark, setSidebarDark] = useState("card");
+    const [sidebarMode, setSidebarMode] = useState<"auto" | "light" | "dark">("auto");
+    const [appNamePart1, setAppNamePart1] = useState("Subs");
+    const [appNamePart2, setAppNamePart2] = useState("Grow");
+    const [colorPart1, setColorPart1] = useState("#3b82f6");
+    const [colorPart2, setColorPart2] = useState("#10b981");
+    const [dataRetentionMonths, setDataRetentionMonths] = useState<number | undefined>(undefined);
+    const [merchantId, setMerchantId] = useState<string | null>(null);
+    const [isStaff, setIsStaff] = useState(false);
+    const [staffPermissions, setStaffPermissions] = useState<StaffPermissions | undefined>(undefined);
+    const [appConfig, setAppConfig] = useState<any>(null); // Optimization
+
     const { setTheme } = useTheme();
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        const fetchAppConfig = async () => {
-            try {
-                const snap = await getDoc(doc(db, "settings", "app_config"));
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (data.appName) setAppName(data.appName);
-                    if (data.appLogoUrl) setAppLogoUrl(data.appLogoUrl);
-                    if (data.accentColor) setAccentColor(data.accentColor);
-                }
-            } catch (err) {
+        const unsub = onSnapshot(
+            doc(db, "settings", "app_config"),
+            (snap) => {
+                if (!snap.exists()) return;
+                const data = snap.data();
+                if (data.appName) setAppName(data.appName);
+                if (data.appLogoUrl) setAppLogoUrl(data.appLogoUrl);
+                if (data.accentColor) setAccentColor(data.accentColor);
+                if (data.appNamePart1) setAppNamePart1(data.appNamePart1);
+                if (data.appNamePart2) setAppNamePart2(data.appNamePart2);
+                if (data.colorPart1) setColorPart1(data.colorPart1);
+                if (data.colorPart2) setColorPart2(data.colorPart2);
+                if (data.themePreset) setThemePreset(data.themePreset);
+                if (data.supportEmail) setSupportEmail(data.supportEmail);
+                if (data.brandDisclaimer) setBrandDisclaimer(data.brandDisclaimer);
+                if (data.sidebarLight) setSidebarLight(data.sidebarLight);
+                if (data.sidebarDark) setSidebarDark(data.sidebarDark);
+            },
+            (err) => {
                 console.error("Error fetching app config:", err);
             }
-        };
-        fetchAppConfig();
+        );
 
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
@@ -92,61 +147,84 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     localStorage.setItem("loginTime", now.toString());
                 }
 
-                // --- Role & Status Check ---
+                // --- Staff & Role Check ---
                 let userRole: "owner" | "user" = "user";
                 let userStatus: "active" | "pending" | "paused" = "pending";
+                let effectiveUid = currentUser.uid;
+                let isStaffMember = false;
+                let permissions: StaffPermissions | undefined = undefined;
 
-                if (currentUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL) {
-                    userRole = "owner";
-                    userStatus = "active";
-                } else {
-                    try {
-                        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                try {
+                    // 1. Check if user is a staff member
+                    const staffDocRef = doc(db, "staff_accounts", currentUser.uid);
+                    const staffSnap = await getDoc(staffDocRef);
+
+                    if (staffSnap.exists()) {
+                        const staffData = staffSnap.data();
+                        isStaffMember = true;
+                        effectiveUid = staffData.ownerUid;
+                        permissions = staffData.permissions as StaffPermissions;
+                        setMerchantId(effectiveUid);
+                        setIsStaff(true);
+                        setStaffPermissions(permissions);
+
+                        // Staff is always active if they can login (controlled by owner deletion)
+                        userStatus = "active";
+                    } else {
+                        setMerchantId(currentUser.uid);
+                        setIsStaff(false);
+                        setStaffPermissions(undefined);
+                    }
+
+                    // 2. Fetch User/Owner Data (for Plan & Status)
+                    // If staff, we fetch the OWNER's data to get the plan limits and features
+                    if (currentUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL) {
+                        userRole = "owner";
+                        userStatus = "active";
+                    } else {
+                        const userDoc = await getDoc(doc(db, "users", effectiveUid));
                         if (userDoc.exists()) {
                             const data = userDoc.data();
+
+                            // Only set role from DB if NOT staff (staff role is virtual 'user' with permissions)
                             userRole = data.role || "user";
-                            // If user is owner in DB/Env, force active
                             if (userRole === "owner") userStatus = "active";
-                            else userStatus = data.status || "pending";
+                            else userStatus = data.status || "active";
 
                             setPlanName(data.planName);
                             setSalesLimit(data.salesLimit);
                             setCurrentSalesCount(data.currentSalesCount);
 
-                            // Fetch plan features if user has a plan
+                            // Fetch plan features
                             if (data.planName) {
-                                try {
-                                    // Query plans collection by name field
-                                    const plansQuery = query(
-                                        collection(db, "plans"),
-                                        where("name", "==", data.planName)
-                                    );
-                                    const plansSnap = await getDocs(plansQuery);
-                                    if (!plansSnap.empty) {
-                                        const planData = plansSnap.docs[0].data();
-                                        setPlanFeatures(planData.planFeatures || {
-                                            export: true,
-                                            pdf: true,
-                                            whatsappAlerts: true,
-                                            editReminders: true,
-                                            support: true,
-                                            exportPreference: true,
-                                            importData: true,
-                                            dateRangeFilter: true,
-                                        });
-                                    }
-                                } catch (err) {
-                                    console.error("Error fetching plan features:", err);
+                                const plansQuery = query(
+                                    collection(db, "plans"),
+                                    where("name", "==", data.planName)
+                                );
+                                const plansSnap = await getDocs(plansQuery);
+                                if (!plansSnap.empty) {
+                                    const planData = plansSnap.docs[0].data();
+                                    setPlanFeatures(planData.planFeatures || {
+                                        export: true, pdf: true, whatsappAlerts: true, editReminders: true,
+                                        support: true, exportPreference: true, importData: true, dateRangeFilter: true,
+                                        customBranding: true, mart: true
+                                    });
+                                    setDataRetentionMonths(planData.dataRetentionMonths ?? 0);
+                                } else {
+                                    setDataRetentionMonths(0);
                                 }
+                            } else {
+                                setDataRetentionMonths(0);
                             }
                         } else {
-                            // User doc doesn't exist yet (maybe very fresh register, or migrated user)
-                            // Treat as pending unless owner
-                            userStatus = "pending";
+                            // Doc doesn't exist (new user or staff without doc)
+                            if (!isStaffMember) {
+                                userStatus = "active";
+                            }
                         }
-                    } catch (error) {
-                        console.error("Error fetching user profile:", error);
                     }
+                } catch (error) {
+                    console.error("Error fetching profile:", error);
                 }
 
                 setRole(userRole);
@@ -161,37 +239,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                 // Owner Redirects
                 if (userRole === "owner") {
-                    // Owner accessing root or dashboard should go to owner panel
                     if (pathname === "/" || pathname === "/dashboard") {
                         router.push("/owner");
                     }
                 }
 
-                // User Redirects
+                // User/Staff Redirects
                 if (userRole !== "owner") {
-                    // Prevent access to owner pages
                     if (pathname.startsWith("/owner") || pathname.startsWith("/admin")) {
                         router.push("/dashboard");
                     }
-
-                    // Handle status-based redirects
+                    // Status redirects... (Staff is always active so this is fine)
                     if (userStatus === "pending") {
-                        // Pending users can only access verification-pending page and public homepage
                         if (!pathname.startsWith("/verification-pending") && pathname !== "/" && !pathname.startsWith("/login")) {
                             router.push("/verification-pending");
                         }
                     } else if (userStatus === "paused") {
-                        // Paused users can only access access-paused page and public homepage
                         if (!pathname.startsWith("/access-paused") && pathname !== "/" && !pathname.startsWith("/login")) {
                             router.push("/access-paused");
                         }
                     } else if (userStatus === "active") {
-                        // Active users: redirect from status pages to dashboard
-                        if (pathname.startsWith("/verification-pending") || pathname.startsWith("/access-paused")) {
-                            router.push("/dashboard");
-                        }
-                        // Active users: redirect from public homepage to dashboard (only if not intentionally visiting)
-                        if (pathname === "/") {
+                        if (pathname.startsWith("/verification-pending") || pathname.startsWith("/access-paused") || pathname === "/") {
                             router.push("/dashboard");
                         }
                     }
@@ -202,12 +270,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(null);
                 setRole(null);
                 setStatus(null);
+                setMerchantId(null);
+                setIsStaff(false);
+                setStaffPermissions(undefined);
                 setPlanName(undefined);
                 setSalesLimit(undefined);
                 setCurrentSalesCount(undefined);
                 setPlanFeatures(undefined);
-                // Don't redirect to login if already on public homepage, login page, or public shop
-                if (!pathname.startsWith("/login") && pathname !== "/" && !pathname.startsWith("/shop")) {
+                if (!pathname.startsWith("/login") &&
+                    pathname !== "/" &&
+                    !pathname.startsWith("/shop") &&
+                    !pathname.startsWith("/how-it-works") &&
+                    !pathname.startsWith("/about")
+                ) {
                     router.push("/login");
                 }
             }
@@ -227,6 +302,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }, 60000);
 
         return () => {
+            unsub();
             unsubscribe();
             clearInterval(interval);
         };
@@ -246,10 +322,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         router.push("/login");
     };
 
+    useEffect(() => {
+        const loadUiPrefs = async () => {
+            if (!merchantId) return;
+            try {
+                const snap = await getDoc(doc(db, "users", merchantId, "settings", "general"));
+                if (snap.exists()) {
+                    const data = snap.data() as any;
+                    const mode = (data.sidebarMode as any) || "auto";
+                    if (mode === "auto" || mode === "light" || mode === "dark") {
+                        setSidebarMode(mode);
+                    }
+                }
+            } catch {
+            }
+        };
+        loadUiPrefs();
+    }, [merchantId]);
+
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950">
-                <div className="text-slate-500 animate-pulse">Loading {appName}...</div>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-950">
+                <MorphingSquare message="Loading..." className="bg-indigo-600" />
             </div>
         );
     }
@@ -257,7 +351,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return (
         <AuthContext.Provider value={{
             user, loading, logout, role, status, planName, salesLimit, currentSalesCount, planFeatures,
-            appName, appLogoUrl, accentColor
+            appName, appLogoUrl, accentColor, appNamePart1, appNamePart2, colorPart1, colorPart2, themePreset, supportEmail, brandDisclaimer, sidebarLight, sidebarDark, sidebarMode, setSidebarMode, dataRetentionMonths, merchantId, isStaff, staffPermissions
         }}>
             {children}
         </AuthContext.Provider>

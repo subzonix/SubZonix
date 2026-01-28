@@ -94,7 +94,7 @@ export function CalendarDateRangePicker({
                         className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="absolute top-full right-0 mt-2 z-50 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-2xl p-3 lg:min-w-[520px]">
+                    <div className="absolute top-full right-0 mt-2 z-50 bg-white dark:bg-slate-900 border border-[var(--border)] rounded-xl shadow-2xl p-3 lg:min-w-[520px]">
                         <div className="space-y-3">
                             <DayPicker
                                 mode="range"
@@ -113,13 +113,13 @@ export function CalendarDateRangePicker({
                             <div className="flex gap-2 pt-3 border-t border-[var(--border)]">
                                 <button
                                     onClick={handleReset}
-                                    className="btn-delete-cdrp flex-1"
+                                    className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
                                 >
                                     Reset
                                 </button>
                                 <button
                                     onClick={handleApply}
-                                    className="btn-save-cdrp  flex-1 "
+                                    className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                                 >
                                     Apply Filter
                                 </button>

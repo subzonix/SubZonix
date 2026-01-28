@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaKey, FaUserPlus, FaRightToBracket, FaCheck, FaPaperPlane, FaShop } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
+import ThemeToggle from "@/components/landing/ThemeToggle";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
     const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
@@ -17,23 +19,7 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const [companyName, setCompanyName] = useState("");
-    const [globalAppName, setGlobalAppName] = useState("Tapn Tools");
-
-    useEffect(() => {
-        const fetchConfig = async () => {
-            try {
-                const { doc, getDoc } = await import("firebase/firestore");
-                const { db } = await import("@/lib/firebase");
-                const snap = await getDoc(doc(db, "settings", "app_config"));
-                if (snap.exists() && snap.data().appName) {
-                    setGlobalAppName(snap.data().appName);
-                }
-            } catch (err) {
-                console.error("Error loading config:", err);
-            }
-        };
-        fetchConfig();
-    }, []);
+    const { appName, appLogoUrl, accentColor } = useAuth();
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,7 +56,7 @@ export default function LoginPage() {
 
                         // Re-initialize Settings
                         await setDoc(doc(db, "users", user.uid, "settings", "general"), {
-                            companyName: globalAppName,
+                            companyName: appName || "SubsGrow",
                             updatedAt: Date.now()
                         }, { merge: true });
                     }
@@ -91,11 +77,11 @@ export default function LoginPage() {
                                 status: "active",
                                 createdAt: Date.now(),
                                 profile: { name: "Owner", email: email, plan: "premium", createdAt: Date.now() },
-                                companyName: globalAppName
+                                companyName: appName || "SubsGrow"
                             });
 
                             await setDoc(doc(db, "users", user.uid, "settings", "general"), {
-                                companyName: globalAppName,
+                                companyName: appName || "SubsGrow",
                                 updatedAt: Date.now()
                             }, { merge: true });
 
@@ -145,34 +131,42 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#667eea] to-[#764ba2] p-4">
-            <div className="w-full max-w-md bg-slate-900/90 border border-slate-700 rounded-3xl shadow-2xl p-8 relative overflow-hidden backdrop-blur-md">
-                {/* Background Decor */}
-                <div className="absolute -top-16 -right-16 w-32 h-32 bg-[#6366f1]/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4 relative overflow-hidden transition-colors duration-500">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(99,102,241,0.18),transparent_55%),radial-gradient(circle_at_80%_75%,rgba(15,23,42,0.06),transparent_55%)] dark:bg-[radial-gradient(circle_at_25%_20%,rgba(99,102,241,0.20),transparent_55%),radial-gradient(circle_at_80%_75%,rgba(255,255,255,0.06),transparent_55%)]" />
+            <div className="absolute top-6 right-6 z-20">
+                <ThemeToggle />
+            </div>
 
-                {/* Logo */}
+            <div className="w-full max-w-md bg-card border border-border rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/50 p-8 relative overflow-hidden backdrop-blur-sm z-10 transition-colors duration-500">
+                <div className="absolute -top-20 -right-20 w-48 h-48 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl" />
+
                 <div className="relative z-10">
-                    <div className="w-20 h-20 rounded-2xl bg-slate-800 flex items-center justify-center overflow-hidden shadow-xl mx-auto mb-4 border-2 border-[#6366f1]/50">
-                        {/* Placeholder Logo if image missing */}
-                        <div className="text-2xl font-bold text-white">{globalAppName[0] || "T"}</div>
+                    <div className="w-20 h-20 rounded-2xl bg-indigo-50 dark:bg-white/5 flex items-center justify-center overflow-hidden shadow-xl mx-auto mb-4 border border-indigo-200 dark:border-white/10 text-indigo-600 dark:text-indigo-300">
+                        {appLogoUrl ? (
+                            <img src={appLogoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
+                        ) : (
+                            <div className="text-2xl font-black" style={{ color: accentColor || undefined }}>
+                                {(appName?.[0] || "T").toUpperCase()}
+                            </div>
+                        )}
                     </div>
-                    <h1 className="text-center text-2xl font-semibold text-slate-50">{globalAppName}</h1>
-                    <p className="text-center text-xs text-slate-400 mb-6">AI-Powered Cloud Sales Console</p>
+                    <h1 className="text-center text-2xl font-semibold text-foreground">{appName || "SubsGrow"}</h1>
+                    <p className="text-center text-xs text-muted-foreground mb-6">AI-Powered Cloud Sales Console</p>
 
-                    {error && <div className="mb-4 bg-red-500/20 text-red-100 p-3 rounded-lg text-xs border border-red-500/50">{error}</div>}
-                    {success && <div className="mb-4 bg-emerald-500/20 text-emerald-100 p-3 rounded-lg text-xs border border-emerald-500/50">{success}</div>}
+                    {error && <div className="mb-4 bg-destructive/10 text-destructive p-3 rounded-lg text-xs border border-destructive/20">{error}</div>}
+                    {success && <div className="mb-4 bg-primary/10 text-primary p-3 rounded-lg text-xs border border-primary/20">{success}</div>}
 
                     <form onSubmit={handleAuth} className="space-y-4">
                         {/* Company Name - Register Only */}
                         {mode === "register" && (
                             <div>
-                                <label className="block text-slate-300 text-[11px] mb-1">Company Name</label>
+                                <label className="block text-muted-foreground text-[11px] mb-1 font-medium">Company Name</label>
                                 <div className="relative">
-                                    <FaShop className="absolute left-3 top-3 text-slate-500 text-xs" />
+                                    <FaShop className="absolute left-3 top-3 text-muted-foreground text-xs" />
                                     <input
                                         type="text"
                                         required
-                                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition"
+                                        className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                                         placeholder="My Awesome Tools"
                                         value={companyName}
                                         onChange={(e) => setCompanyName(e.target.value)}
@@ -183,15 +177,15 @@ export default function LoginPage() {
 
                         {/* Email Field - All Modes */}
                         <div>
-                            <label className="block text-slate-300 text-[11px] mb-1">
+                            <label className="block text-muted-foreground text-[11px] mb-1 font-medium">
                                 {mode === "register" ? "New Admin Email" : mode === "forgot" ? "Recovery Email" : "Admin Email"}
                             </label>
                             <div className="relative">
-                                <FaEnvelope className="absolute left-3 top-3 text-slate-500 text-xs" />
+                                <FaEnvelope className="absolute left-3 top-3 text-muted-foreground text-xs" />
                                 <input
                                     type="email"
                                     required
-                                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition"
+                                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                                     placeholder="you@company.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -202,18 +196,18 @@ export default function LoginPage() {
                         {/* Password Field - Login & Register */}
                         {mode !== "forgot" && (
                             <div>
-                                <label className="block text-slate-300 text-[11px] mb-1">Password</label>
+                                <label className="block text-muted-foreground text-[11px] mb-1 font-medium">Password</label>
                                 <div className="relative">
-                                    <FaLock className="absolute left-3 top-3 text-slate-500 text-xs" />
+                                    <FaLock className="absolute left-3 top-3 text-muted-foreground text-xs" />
                                     <input
                                         type={showPass ? "text" : "password"}
                                         required
-                                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition"
+                                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                                         placeholder="••••••••"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
-                                    <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-3 text-slate-500 hover:text-slate-300">
+                                    <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors">
                                         {showPass ? <FaEyeSlash className="text-xs" /> : <FaEye className="text-xs" />}
                                     </button>
                                 </div>
@@ -223,13 +217,13 @@ export default function LoginPage() {
                         {/* Confirm Password - Register Only */}
                         {mode === "register" && (
                             <div>
-                                <label className="block text-slate-300 text-[11px] mb-1">Confirm Password</label>
+                                <label className="block text-muted-foreground text-[11px] mb-1 font-medium">Confirm Password</label>
                                 <div className="relative">
-                                    <FaLock className="absolute left-3 top-3 text-slate-500 text-xs" />
+                                    <FaLock className="absolute left-3 top-3 text-muted-foreground text-xs" />
                                     <input
                                         type="password"
                                         required
-                                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition"
+                                        className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                                         value={confirmPass}
                                         onChange={(e) => setConfirmPass(e.target.value)}
                                     />
@@ -241,10 +235,10 @@ export default function LoginPage() {
                         {mode === "login" && (
                             <div className="flex items-center justify-between text-xs">
                                 <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" className="rounded border-slate-700 bg-slate-800 accent-indigo-500" />
-                                    <span className="text-slate-300 hover:text-white transition">Remember me</span>
+                                    <input type="checkbox" className="rounded border-border bg-background accent-indigo-600 dark:accent-indigo-400" />
+                                    <span className="icon-check">Remember me</span>
                                 </label>
-                                <button type="button" onClick={() => setMode("forgot")} className="text-indigo-400 hover:underline hover:text-indigo-300 text-[11px] font-semibold transition">
+                                <button type="button" onClick={() => setMode("forgot")} className="icon-edit">
                                     Forgot password?
                                 </button>
                             </div>
@@ -254,8 +248,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full mt-1 text-white text-xs font-semibold py-2.5 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:brightness-110 hover:-translate-y-0.5 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
-                     ${mode === "forgot" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-gradient-to-r from-[#4f46e5] to-[#6366f1]"}`}
+                            className="w-full mt-1 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold py-2.5 rounded-2xl shadow-lg shadow-primary/15 flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <span>Processing...</span>
@@ -270,13 +263,13 @@ export default function LoginPage() {
                     </form>
 
                     {/* Mode Switcher */}
-                    <div className="mt-6 border-t border-slate-700 pt-3 text-center">
+                    <div className="mt-6 border-t border-border pt-3 text-center">
                         {mode === "login" ? (
-                            <button onClick={() => setMode("register")} className="text-[11px] text-indigo-400 font-bold hover:underline hover:text-indigo-300 transition">
+                            <button onClick={() => setMode("register")} className="icon-save">
                                 Need an account? Register
                             </button>
                         ) : (
-                            <button onClick={() => setMode("login")} className="text-[11px] text-slate-300 hover:text-white transition">
+                            <button onClick={() => setMode("login")} className="icon-save">
                                 Back to Login
                             </button>
                         )}

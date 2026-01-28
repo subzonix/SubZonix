@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, addDoc, deleteDoc, doc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { FaBell, FaPaperPlane, FaTrash, FaClock, FaArrowsLeftRight, FaStop } from "react-icons/fa6";
+import { FaBell, FaPaperPlane, FaTrash, FaClock, FaArrowsLeftRight, FaStop, FaArrowRight, FaShieldHalved } from "react-icons/fa6";
 import { useToast } from "@/context/ToastContext";
+import { useRouter } from "next/navigation";
 
 interface UserProfile {
     id: string;
@@ -36,6 +37,7 @@ export default function NotificationsPage() {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const { showToast, confirm } = useToast();
+    const router = useRouter();
 
     useEffect(() => {
         // Fetch users for dropdown
@@ -168,32 +170,46 @@ export default function NotificationsPage() {
 
     return (
         <div className="space-y-6 pb-20">
-            <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <FaBell className="text-amber-500" /> Notifications Manager
             </h1>
 
+            {notifications.filter(n => n.type === 'plan_request' || (n as any).isPublicRequest).length > 0 && (
+                <div className="bg-gradient-to-r from-purple-500/10 via-purple-500/5 to-transparent border-l-4 border-purple-500 p-4 rounded-r-2xl animate-in fade-in slide-in-from-left-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white animate-pulse">
+                            <FaShieldHalved className="text-xs" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-black text-purple-400 uppercase tracking-wider">New Plan Requests</div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">There are users waiting for plan upgrades or access.</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Creator */}
-            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-lg">
-                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-lg shadow-black/5 dark:shadow-black/40">
+                <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
                     <FaPaperPlane /> Create Notification
                 </h2>
                 <form onSubmit={handleSendNotification} className="flex flex-col gap-4">
                     <input
                         type="text"
                         placeholder="Message content..."
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none"
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:ring-2 focus:ring-amber-500 outline-none transition-colors"
                         value={notifMessage}
                         onChange={e => setNotifMessage(e.target.value)}
                     />
 
-                    <div className="flex flex-wrap gap-4 items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                    <div className="flex flex-wrap gap-4 items-center bg-slate-50/60 dark:bg-white/5 p-3 rounded-xl border border-border">
                         {/* Type */}
                         <div className="flex items-center gap-2">
-                            <label className="text-xs text-slate-400 font-bold uppercase">Type:</label>
+                            <label className="text-xs text-muted-foreground font-bold uppercase">Type:</label>
                             <select
                                 value={notifType}
                                 onChange={e => setNotifType(e.target.value as any)}
-                                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none focus:border-amber-500"
+                                className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:border-amber-500 transition-colors"
                             >
                                 <option value="info">Info (Blue)</option>
                                 <option value="warning">Warning (Amber)</option>
@@ -203,11 +219,11 @@ export default function NotificationsPage() {
 
                         {/* Target */}
                         <div className="flex items-center gap-2">
-                            <label className="text-xs text-slate-400 font-bold uppercase">Target:</label>
+                            <label className="text-xs text-muted-foreground font-bold uppercase">Target:</label>
                             <select
                                 value={notifTarget}
                                 onChange={e => setNotifTarget(e.target.value as any)}
-                                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none focus:border-amber-500"
+                                className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:border-amber-500 transition-colors"
                             >
                                 <option value="global">Global (All Users)</option>
                                 <option value="user">Specific User</option>
@@ -216,7 +232,7 @@ export default function NotificationsPage() {
                                 <select
                                     value={selectedUserForNotif}
                                     onChange={e => setSelectedUserForNotif(e.target.value)}
-                                    className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 max-w-[150px]"
+                                    className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground max-w-[150px] transition-colors"
                                 >
                                     <option value="">Select User...</option>
                                     {users.filter(u => u.role !== "owner").map(u => (
@@ -228,11 +244,11 @@ export default function NotificationsPage() {
 
                         {/* Duration */}
                         <div className="flex items-center gap-2">
-                            <label className="text-xs text-slate-400 font-bold uppercase flex items-center gap-1"><FaClock /> Duration:</label>
+                            <label className="text-xs text-muted-foreground font-bold uppercase flex items-center gap-1"><FaClock /> Duration:</label>
                             <select
                                 value={durationHours}
                                 onChange={e => setDurationHours(Number(e.target.value))}
-                                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 outline-none focus:border-amber-500"
+                                className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:border-amber-500 transition-colors"
                             >
                                 <option value={1}>1 Hour</option>
                                 <option value={6}>6 Hours</option>
@@ -245,19 +261,19 @@ export default function NotificationsPage() {
 
                         {/* Behavior */}
                         <div className="flex items-center gap-2">
-                            <label className="text-xs text-slate-400 font-bold uppercase">Behavior:</label>
-                            <div className="flex p-0.5 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+                            <label className="text-xs text-muted-foreground font-bold uppercase">Behavior:</label>
+                            <div className="flex p-0.5 rounded-lg bg-muted/60 border border-border overflow-hidden">
                                 <button
                                     type="button"
                                     onClick={() => setNotifBehavior("moving")}
-                                    className={`flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-md transition-all ${notifBehavior === "moving" ? "bg-amber-500 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"}`}
+                                    className={`flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-md transition-all ${notifBehavior === "moving" ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20" : "text-muted-foreground hover:text-foreground"}`}
                                 >
                                     <FaArrowsLeftRight className="text-[8px]" /> Moving
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setNotifBehavior("fixed")}
-                                    className={`flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-md transition-all ${notifBehavior === "fixed" ? "bg-slate-700 text-white shadow-lg" : "text-slate-500 hover:text-slate-300"}`}
+                                    className={`flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-md transition-all ${notifBehavior === "fixed" ? "bg-card text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"}`}
                                 >
                                     <FaStop className="text-[8px]" /> Fixed
                                 </button>
@@ -288,7 +304,7 @@ export default function NotificationsPage() {
                                     type="checkbox"
                                     checked={selectedIds.length === notifications.length && notifications.length > 0}
                                     onChange={toggleSelectAll}
-                                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-amber-500/20"
+                                    className="w-4 h-4 rounded border-border bg-background text-amber-500 focus:ring-amber-500/20"
                                 />
                                 <span className="text-[10px] text-slate-500 font-bold uppercase group-hover:text-slate-400 transition-colors">Select All</span>
                             </label>
@@ -306,7 +322,7 @@ export default function NotificationsPage() {
                         {notifications.length > 0 && (
                             <button
                                 onClick={handleDeleteAll}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 text-slate-400 border border-slate-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all active:scale-95"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-border rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all active:scale-95"
                             >
                                 <FaTrash className="text-[8px]" /> Delete All
                             </button>
@@ -323,9 +339,9 @@ export default function NotificationsPage() {
 
                     if (activeNotifications.length === 0) {
                         return (
-                            <div className="text-center py-20 bg-slate-900/50 rounded-3xl border border-dashed border-slate-800/50">
-                                <FaBell className="text-4xl text-slate-800 mx-auto mb-3" />
-                                <p className="text-slate-600 font-bold uppercase tracking-widest text-[10px]">No active notifications</p>
+                            <div className="text-center py-20 bg-card/50 rounded-3xl border border-dashed border-border">
+                                <FaBell className="text-4xl text-muted-foreground mx-auto mb-3 opacity-60" />
+                                <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">No active notifications</p>
                             </div>
                         );
                     }
@@ -339,7 +355,7 @@ export default function NotificationsPage() {
                                         <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                                         Plan Requests ({planRequests.length})
                                     </h4>
-                                    <div className="divide-y divide-slate-800 bg-slate-900/40 border border-slate-800/50 rounded-2xl overflow-hidden shadow-sm">
+                                    <div className="divide-y divide-border bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
                                         {planRequests.map(n => renderNotificationCard(n))}
                                     </div>
                                 </div>
@@ -352,7 +368,7 @@ export default function NotificationsPage() {
                                         <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
                                         System Notifications ({systemNotifications.length})
                                     </h4>
-                                    <div className="divide-y divide-slate-800 bg-slate-900/40 border border-slate-800/50 rounded-2xl overflow-hidden shadow-sm">
+                                    <div className="divide-y divide-border bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
                                         {systemNotifications.map(n => renderNotificationCard(n))}
                                     </div>
                                 </div>
@@ -368,18 +384,18 @@ export default function NotificationsPage() {
         const isExpired = n.expiresAt && Date.now() > n.expiresAt;
         const isSelected = selectedIds.includes(n.id);
         return (
-            <div key={n.id} className={`p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-800/20 transition-colors group ${isSelected ? 'bg-amber-500/5' : ''}`}>
+            <div key={n.id} className={`p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group ${isSelected ? 'bg-amber-500/5' : ''}`}>
                 <div className="flex items-center gap-4 flex-1">
                     <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleSelectOne(n.id)}
-                        className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-amber-500/20"
+                        className="w-4 h-4 rounded border-border bg-background text-amber-500 focus:ring-amber-500/20"
                     />
                     <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)] ${n.type === 'alert' ? 'bg-red-500 shadow-red-500/20' : n.type === 'warning' ? 'bg-amber-500 shadow-amber-500/20' : 'bg-indigo-500 shadow-indigo-500/20'}`} />
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="text-sm text-slate-200 font-bold tracking-tight">{n.message}</div>
+                            <div className="text-sm text-foreground font-bold tracking-tight">{n.message}</div>
                             {/* Show badge for public requests */}
                             {(n as any).isPublicRequest && (
                                 <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-md text-[9px] font-black uppercase tracking-wider">
@@ -389,19 +405,30 @@ export default function NotificationsPage() {
                         </div>
                         {/* Show user details for public requests */}
                         {(n as any).isPublicRequest && (
-                            <div className="text-xs text-slate-400 mb-2 space-y-1">
-                                <div><span className="font-bold text-slate-500">Name:</span> {(n as any).name}</div>
-                                <div><span className="font-bold text-slate-500">Email:</span> {(n as any).email}</div>
-                                <div><span className="font-bold text-slate-500">WhatsApp:</span> {(n as any).whatsapp}</div>
-                                {(n as any).planName && <div><span className="font-bold text-slate-500">Requested Plan:</span> {(n as any).planName}</div>}
+                            <div className="text-xs text-muted-foreground mb-2 space-y-1">
+                                <div><span className="font-bold text-slate-700 dark:text-slate-300">Name:</span> {(n as any).name}</div>
+                                <div><span className="font-bold text-slate-700 dark:text-slate-300">Email:</span> {(n as any).email}</div>
+                                <div><span className="font-bold text-slate-700 dark:text-slate-300">WhatsApp:</span> {(n as any).whatsapp}</div>
+                                {(n as any).planName && <div><span className="font-bold text-slate-700 dark:text-slate-300">Requested Plan:</span> {(n as any).planName}</div>}
                             </div>
                         )}
-                        <div className="flex flex-wrap gap-x-4 gap-y-2 text-[9px] text-slate-500 mt-1 font-bold uppercase tracking-tight">
+                        {/* Action Buttons */}
+                        {(n.type === 'plan_request' || (n as any).isPublicRequest) && (
+                            <div className="flex gap-2 mt-3">
+                                <button
+                                    onClick={() => router.push(`/owner/users?userId=${n.userId || ''}&plan=${(n as any).planName || ''}`)}
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all active:scale-95 shadow-lg shadow-indigo-600/20"
+                                >
+                                    Give Access <FaArrowRight className="text-[8px]" />
+                                </button>
+                            </div>
+                        )}
+                        <div className="flex flex-wrap gap-x-4 gap-y-2 text-[9px] text-muted-foreground mt-1 font-bold uppercase tracking-tight">
                             <span className="flex items-center gap-1 opacity-60"><FaClock className="text-[8px]" /> {new Date(n.createdAt).toLocaleString()}</span>
                             {n.expiresAt && <span className={isExpired ? "text-red-500" : "opacity-60"}>Expires: {new Date(n.expiresAt).toLocaleString()}</span>}
-                            <span className="bg-slate-800/80 text-slate-400 px-2 py-0.5 rounded-lg border border-slate-700/50">{n.target}</span>
+                            <span className="bg-muted/60 text-muted-foreground px-2 py-0.5 rounded-lg border border-border">{n.target}</span>
                             {n.behavior && (
-                                <span className={`px-2 py-0.5 rounded-lg border flex items-center gap-1 ${n.behavior === 'fixed' ? 'bg-slate-800/80 text-slate-400 border-slate-700/50' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                                <span className={`px-2 py-0.5 rounded-lg border flex items-center gap-1 ${n.behavior === 'fixed' ? 'bg-muted/60 text-muted-foreground border-border' : 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20'}`}>
                                     {n.behavior === 'fixed' ? <FaStop className="text-[7px]" /> : <FaArrowsLeftRight className="text-[7px]" />}
                                     {n.behavior || 'moving'}
                                 </span>
@@ -409,7 +436,7 @@ export default function NotificationsPage() {
                         </div>
                     </div>
                 </div>
-                <button onClick={() => handleDelete(n.id)} className="text-slate-600 hover:text-red-500 transition-all p-2 hover:bg-red-500/10 rounded-xl group-hover:opacity-100 opacity-0 md:opacity-100">
+                <button onClick={() => handleDelete(n.id)} className="text-muted-foreground hover:text-red-500 transition-all p-2 hover:bg-red-500/10 rounded-xl group-hover:opacity-100 opacity-0 md:opacity-100">
                     <FaTrash className="text-sm" />
                 </button>
             </div>

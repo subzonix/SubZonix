@@ -95,7 +95,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                     <div
                         key={toast.id}
                         className={`
-              pointer-events-auto flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border 
+              pointer-events-auto flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl 
               animate-in slide-in-from-right-10 duration-300
               ${toast.type === 'success' ? 'bg-emerald-600 border-emerald-500 text-white' :
                                 toast.type === 'error' ? 'bg-rose-600 border-rose-500 text-white' :
@@ -117,7 +117,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {/* Confirm Modal */}
             {confirmState && (
                 <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-[var(--border)]">
                             <h3 className="text-lg font-black text-[var(--foreground)] tracking-tight">{confirmState.options.title}</h3>
                         </div>
@@ -152,7 +152,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {/* Alert Modal */}
             {alertState && (
                 <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-[var(--border)] flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

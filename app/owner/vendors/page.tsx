@@ -57,13 +57,13 @@ export default function OwnerVendorsPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <FaAddressBook className="text-indigo-500" /> Vendor Directory
             </h1>
 
             {/* User Selector */}
-            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-lg">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-lg shadow-black/5 dark:shadow-black/40">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
                     Select User to View Vendors
                 </label>
                 <div className="relative">
@@ -71,7 +71,7 @@ export default function OwnerVendorsPage() {
                     <select
                         value={selectedUserId}
                         onChange={(e) => setSelectedUserId(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer"
+                        className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-foreground focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer transition-colors"
                     >
                         <option value="">-- Choose User --</option>
                         {users.map(u => (
@@ -90,7 +90,7 @@ export default function OwnerVendorsPage() {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="col-span-full py-20 text-center text-slate-600 border border-dashed border-slate-800 rounded-3xl"
+                                className="col-span-full py-20 text-center text-muted-foreground border border-dashed border-border rounded-3xl bg-card/50"
                             >
                                 <FaAddressBook className="text-4xl mx-auto mb-4 opacity-10" />
                                 <p>No vendors found for this user.</p>
@@ -103,19 +103,19 @@ export default function OwnerVendorsPage() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.05 }}
                                 >
-                                    <Card className="h-full border border-slate-800/50 hover:border-indigo-500/30 transition-all group">
+                                    <Card className="h-full border border-border hover:border-indigo-500/30 transition-all group">
                                         <div className="space-y-4">
                                             <div>
-                                                <h3 className="font-bold text-lg text-slate-100 group-hover:text-indigo-400 transition-colors">
+                                                <h3 className="font-bold text-lg text-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
                                                     {vendor.name}
                                                 </h3>
-                                                <p className="text-xs text-slate-500 font-mono mt-1">
+                                                <p className="text-xs text-muted-foreground font-mono mt-1">
                                                     {vendor.phone || "No Contact"}
                                                 </p>
                                             </div>
 
                                             {vendor.relatedTools && vendor.relatedTools.length > 0 && (
-                                                <div className="pt-4 border-t border-slate-800/50">
+                                                <div className="pt-4 border-t border-border">
                                                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-2">
                                                         <FaWrench className="text-[8px]" /> Related Tools
                                                     </p>
@@ -139,7 +139,7 @@ export default function OwnerVendorsPage() {
                     </AnimatePresence>
                 </div>
             ) : (
-                <div className="text-center py-20 text-slate-600 bg-slate-900/50 rounded-3xl border border-dashed border-slate-800">
+                <div className="text-center py-20 text-muted-foreground bg-card/50 rounded-3xl border border-dashed border-border">
                     <FaUser className="text-4xl mx-auto mb-4 opacity-20" />
                     <p>Please select a user to view their vendor list.</p>
                 </div>

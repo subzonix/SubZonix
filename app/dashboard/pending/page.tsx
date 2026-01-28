@@ -11,32 +11,25 @@ import PlanFeatureGuard from "@/components/PlanFeatureGuard";
 
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
+import { useSales } from "@/context/SalesContext";
+import { useMemo } from "react";
 
 export default function PendingPage() {
-    const [sales, setSales] = useState<Sale[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { sales: allSales, loading } = useSales();
+    const sales = useMemo(() => allSales.filter(s => s.client.status === "Pending" || s.client.status === "Partial"), [allSales]);
     const [settings, setSettings] = useState<any>(null);
     const [view, setView] = useState<"card" | "table">("table");
-    const { user } = useAuth();
+    const { merchantId } = useAuth();
     const { showToast, confirm } = useToast();
 
     useEffect(() => {
         const fetchSettings = async () => {
-            if (!user) return;
-            const snap = await getDoc(doc(db, "users", user.uid, "settings", "general"));
+            if (!merchantId) return;
+            const snap = await getDoc(doc(db, "users", merchantId, "settings", "general"));
             if (snap.exists()) setSettings(snap.data());
         };
         fetchSettings();
-
-        if (!user) return;
-        const q = query(collection(db, "users", user.uid, "salesHistory"));
-        const unsub = onSnapshot(q, (snap) => {
-            const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Sale[];
-            setSales(data.filter(s => s.client.status === "Pending" || s.client.status === "Partial"));
-            setLoading(false);
-        });
-        return () => unsub();
-    }, [user, settings]); // Settings added to deps to ensure msg template updates if settings load late
+    }, [merchantId]);
 
     const markClear = async (id: string) => {
         const ok = await confirm({
@@ -48,8 +41,8 @@ export default function PendingPage() {
 
         if (ok) {
             try {
-                if (!user) return;
-                await updateDoc(doc(db, "users", user.uid, "salesHistory", id), {
+                if (!merchantId) return;
+                await updateDoc(doc(db, "users", merchantId, "salesHistory", id), {
                     "client.status": "Clear",
                     "finance.pendingAmount": 0
                 });
@@ -72,7 +65,7 @@ export default function PendingPage() {
         const emails = s.items.map(i => i.email || "N/A").join(", ");
         const firstExpiry = s.items[0]?.eDate ? formatDate(s.items[0].eDate) : "N/A";
 
-        let template = settings?.pendingTemplate || "*Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*.\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n* *Pending Amount: [PendingAmount]*\n\nExpiry Date : [ExpiryDate]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> *Sent by [Company Name]*\n_© Powered by TapnTools_";
+        let template = settings?.pendingTemplate || `*Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*.\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n* *Pending Amount: [PendingAmount]*\n\nExpiry Date : [ExpiryDate]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> *Sent by [Company Name]*\n_© Powered by ${useAuth().appName || "SubsGrow"}_`;
 
         let msg = template
             .replace(/\[Client\]/g, s.client.name)
@@ -84,7 +77,7 @@ export default function PendingPage() {
             .replace(/\[Bank Name\]/g, settings?.bankName || "user not set yet")
             .replace(/\[Holder Name\]/g, settings?.accountHolder || "user not set yet")
             .replace(/\[Account No\]/g, settings?.iban || settings?.accountNumber || "user not set yet")
-            .replace(/\[Company Name\]/g, settings?.companyName || "Tapn Tools");
+            .replace(/\[Company Name\]/g, settings?.companyName || "SubsGrow");
 
         window.open(`https://wa.me/${cleanPhone(s.client.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
     };

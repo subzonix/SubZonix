@@ -1,6 +1,6 @@
 "use client";
 
-import { FaBars, FaMoon, FaSun, FaUser, FaRightFromBracket, FaChevronDown, FaGem } from "react-icons/fa6";
+import { FaBars, FaMoon, FaSun, FaUser, FaRightFromBracket, FaChevronDown, FaGem, FaArrowUp, FaMessage } from "react-icons/fa6";
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -9,6 +9,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import clsx from "clsx";
+import Link from "next/link";
 import NotificationBanner from "@/components/admin/NotificationBanner";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -17,16 +18,16 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const [appName, setAppName] = useState("Tapn Tools");
+    const [appName, setAppName] = useState("SubsGrow");
     const profileRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
-    const { user, planName } = useAuth();
+    const { user, planName, salesLimit, currentSalesCount } = useAuth();
 
     useEffect(() => {
         setMounted(true);
         const loadAppName = async () => {
             const snap = await getDoc(doc(db, "settings", "app_config"));
-            if (snap.exists()) setAppName(snap.data().appName || "Tapn Tools");
+            if (snap.exists()) setAppName(snap.data().appName || "SubsGrow");
         };
         loadAppName();
 
@@ -48,7 +49,6 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
         if (pathname.includes("inventory")) return "Inventory Management";
         if (pathname.includes("analytics")) return "Advanced Analytics";
         if (pathname.includes("settings")) return "Settings";
-        if (pathname.includes("reminders")) return "Reminders & Templates";
         if (pathname.startsWith("/owner")) return "Owner Dashboard";
         return "Dashboard Overview";
     };
@@ -65,12 +65,12 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
     const toggleTheme = () => setTheme(isDark ? "light" : "dark");
     const handleLogout = () => signOut(auth);
 
-    const showSaveReminder = pathname.includes('/settings') || pathname.includes('/reminders');
+    const showSaveReminder = pathname.includes('/settings');
 
     return (
         <div className="flex flex-col">
             {!hideNotifications && <NotificationBanner />}
-            <header className="flex items-center justify-between px-6 py-3 bg-[var(--card)]/80 backdrop-blur-xl border-b border-[var(--border)] z-30 transition-all duration-300">
+            <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-[var(--card)] dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300">
                 <div className="flex items-center gap-3">
                     <button onClick={onMenuClick} className="md:hidden text-slate-600 dark:text-slate-200 text-xl hover:text-indigo-500 transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                         <FaBars />
@@ -157,7 +157,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                         </button>
 
                         {showProfileMenu && (
-                            <div className="absolute right-0 mt-2 w-60 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                            <div className="absolute right-0 mt-2 w-60 bg-white dark:bg-slate-900 border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                                 <div className="p-4 border-b border-[var(--border)] bg-slate-50/50 dark:bg-slate-800/20">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Signed in as</p>
                                     <p className="text-xs font-semibold text-[var(--foreground)] truncate">{user?.email}</p>
@@ -168,7 +168,36 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                                         </div>
                                     )}
                                 </div>
-                                <div className="p-2">
+                                <div className="p-4 border-b border-[var(--border)] bg-slate-50/50 dark:bg-slate-800/20">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Usage Analytics</p>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center text-[10px]">
+                                            <span className="font-bold text-slate-500">Sales Usage</span>
+                                            <span className="font-black text-indigo-500">{currentSalesCount || 0} / {salesLimit || "∞"}</span>
+                                        </div>
+                                        <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div
+                                                className={clsx(
+                                                    "h-full transition-all duration-500 ease-out",
+                                                    (salesLimit && currentSalesCount && (currentSalesCount / salesLimit) > 0.9) ? "bg-rose-500" : "bg-indigo-500"
+                                                )}
+                                                style={{ width: `${salesLimit ? Math.min(100, ((currentSalesCount || 0) / salesLimit) * 100) : 0}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-2 space-y-1">
+                                    <Link
+                                        href="/dashboard/plans"
+                                        onClick={() => setShowProfileMenu(false)}
+                                        className="w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl transition"
+                                    >
+                                        <div className="w-7 h-7 flex items-center justify-center bg-amber-100 dark:bg-amber-500/20 rounded-lg">
+                                            <FaArrowUp className="text-[11px]" />
+                                        </div>
+                                        Upgrade Plan
+                                    </Link>
+                                    <div className="h-px bg-[var(--border)] my-1 mx-2" />
                                     <button
                                         onClick={handleLogout}
                                         className="w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition"

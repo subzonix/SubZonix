@@ -71,7 +71,7 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
-            <div className="relative w-full max-w-4xl max-h-full bg-[var(--card)] border border-[var(--border)] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-4xl max-h-full bg-white dark:bg-slate-900 border border-[var(--border)] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/10">
                     <div>
@@ -132,11 +132,11 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
                                 <div className="space-y-3">
                                     <div className="flex justify-between">
                                         <span className="text-xs text-slate-500">Supplier Name:</span>
-                                        <span className="text-xs font-bold text-[var(--foreground)]">{sale.vendor.name}</span>
+                                        <span className="text-xs font-bold text-[var(--foreground)]">{sale.vendor?.name || "N/A"}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-xs text-slate-500">Dues Status:</span>
-                                        <span className={clsx("text-xs font-bold", sale.vendor.status === "Paid" ? "text-emerald-500" : "text-rose-500")}>Vendor: {sale.vendor.status}</span>
+                                        <span className={clsx("text-xs font-bold", sale.vendor?.status === "Paid" ? "text-emerald-500" : "text-rose-500")}>Vendor: {sale.vendor?.status || "N/A"}</span>
                                     </div>
                                 </div>
                             </div>

@@ -22,12 +22,12 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
         }
     }, [user, role, loading, router]);
 
-    if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Loading Owner Panel...</div>;
+    if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading Owner Panel...</div>;
     if (role !== "owner") return null;
 
     return (
         <ToastProvider>
-            <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex overflow-hidden">
+            <div className="min-h-screen bg-background text-foreground flex overflow-hidden">
                 {/* Sidebar */}
                 <OwnerSidebar
                     mobileOpen={mobileOpen}

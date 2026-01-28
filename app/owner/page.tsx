@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { collection, query, onSnapshot, updateDoc, doc, deleteDoc, getDocs, where, writeBatch } from "firebase/firestore";
+import { collection, query, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { FaUserCheck, FaUserSlash, FaClockRotateLeft, FaMagnifyingGlass, FaTrash, FaDatabase, FaTriangleExclamation, FaGem, FaCalendar, FaChartPie, FaChartLine, FaCalendarDay, FaUserClock, FaShop } from "react-icons/fa6";
-import UserHistoryModal from "@/components/admin/UserHistoryModal";
+import { FaChartLine, FaCalendarDay, FaUserClock, FaShop } from "react-icons/fa6";
 import { useToast } from "@/context/ToastContext";
-import { Card, Button, Input } from "@/components/ui/Shared";
 import clsx from "clsx";
 import { Sale, ToolItem } from "@/types";
 import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
+import { formatDateSafe } from "@/lib/utils";
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -50,12 +49,6 @@ interface UserProfile {
     salesLimit?: number;
     currentSalesCount?: number;
     planExpiry?: number;
-}
-
-interface Plan {
-    id: string;
-    name: string;
-    salesLimit: number;
 }
 
 export default function OwnerDashboardPage() {
@@ -116,7 +109,8 @@ export default function OwnerDashboardPage() {
     // Dashboard Logic
     const filteredSales = useMemo(() => {
         return sales.filter(s => {
-            const date = new Date(s.createdAt).toISOString().slice(0, 10);
+            const date = formatDateSafe(s.createdAt);
+            if (!date) return false;
             return date >= appliedFilter.from && date <= appliedFilter.to;
         });
     }, [sales, appliedFilter]);
@@ -304,35 +298,35 @@ export default function OwnerDashboardPage() {
     };
 
     if (isLoading) {
-        return <div className="p-8 text-center text-slate-500 animate-pulse">Loading Dashboard...</div>;
+        return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Dashboard...</div>;
     }
 
     return (
         <div className="space-y-6 pb-20">
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                 {/* User Selection */}
-                <div className="flex items-center gap-4 bg-slate-900 p-4 rounded-2xl border border-slate-700/50">
+                <div className="flex items-center gap-4 bg-card p-4 rounded-2xl border border-border">
                     <div className="flex-1">
-                        <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 block">Select User</label>
+                        <label className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1 block">Select User</label>
                         <select
                             value={dashboardUser}
                             onChange={(e) => setDashboardUser(e.target.value)}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="w-full bg-secondary border border-border rounded-xl px-4 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary outline-none"
                         >
                             <option value="">Select a user...</option>
                             {users.map(u => (
                                 <option key={u.id} value={u.id}>
-                                    {u.email} {u.companyName ? `(${u.companyName})` : ""} - {u.role}
+                                    {u.companyName ? `${u.companyName} (${u.email})` : u.email} - {u.role}
                                 </option>
                             ))}
                         </select>
                     </div>
                     {dashboardUser && (
                         <div className="flex-1">
-                            <label className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 block">Plan Info</label>
-                            <div className="text-sm font-medium text-slate-200">
+                            <label className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1 block">Plan Info</label>
+                            <div className="text-sm font-medium text-foreground">
                                 {users.find(u => u.id === dashboardUser)?.planName || "No Plan"}
-                                <span className="text-slate-500 text-xs ml-2">
+                                <span className="text-muted-foreground text-xs ml-2">
                                     ({users.find(u => u.id === dashboardUser)?.currentSalesCount || 0}/{users.find(u => u.id === dashboardUser)?.salesLimit || "∞"})
                                 </span>
                             </div>
@@ -341,12 +335,12 @@ export default function OwnerDashboardPage() {
                 </div>
 
                 {salesLoading ? (
-                    <div className="p-8 text-center text-slate-500 animate-pulse">Fetching User Data...</div>
+                    <div className="p-8 text-center text-muted-foreground animate-pulse">Fetching User Data...</div>
                 ) : (
                     <>
                         {/* Dashboard Content */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <h2 className="text-xl font-bold text-slate-100">Overview</h2>
+                            <h2 className="text-xl font-bold text-foreground">Overview</h2>
                             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                                 <CalendarDateRangePicker
                                     from={fromDate}
@@ -355,9 +349,9 @@ export default function OwnerDashboardPage() {
                                     onToChange={setToDate}
                                     onApply={handleApplyFilter}
                                 />
-                                <div className="flex p-1.5 rounded-xl border border-slate-700/50 self-end sm:self-auto bg-slate-900">
-                                    <button onClick={() => setViewMode("stats")} className={clsx("p-2 px-4 rounded-lg text-xs font-bold transition", viewMode === "stats" ? "bg-indigo-600 text-white" : "text-slate-400")}>Transactions</button>
-                                    <button onClick={() => setViewMode("charts")} className={clsx("p-2 px-4 rounded-lg text-xs font-bold transition", viewMode === "charts" ? "bg-indigo-600 text-white" : "text-slate-400")}>Charts</button>
+                                <div className="flex p-1.5 rounded-xl border border-border self-end sm:self-auto bg-secondary">
+                                    <button onClick={() => setViewMode("stats")} className={clsx("p-2 px-4 rounded-lg text-xs font-bold transition", viewMode === "stats" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>Transactions</button>
+                                    <button onClick={() => setViewMode("charts")} className={clsx("p-2 px-4 rounded-lg text-xs font-bold transition", viewMode === "charts" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>Charts</button>
                                 </div>
                             </div>
                         </div>
@@ -371,16 +365,16 @@ export default function OwnerDashboardPage() {
                         </div>
 
                         {viewMode === "stats" ? (
-                            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-5 shadow-sm overflow-hidden">
+                            <div className="bg-card border border-border rounded-2xl p-5 shadow-sm overflow-hidden">
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
-                                        <h2 className="text-sm font-semibold text-slate-200">Transactions In Range</h2>
-                                        <div className="text-[11px] text-slate-500 ">Showing results from {appliedFilter.from} to {appliedFilter.to}</div>
+                                        <h2 className="text-sm font-semibold text-foreground">Transactions In Range</h2>
+                                        <div className="text-[11px] text-muted-foreground ">Showing results from {appliedFilter.from} to {appliedFilter.to}</div>
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-[11px] text-left text-slate-300">
-                                        <thead className="bg-slate-800/80 text-[10px] uppercase text-slate-400">
+                                    <table className="w-full text-[11px] text-left text-muted-foreground">
+                                        <thead className="bg-secondary text-[10px] uppercase text-muted-foreground">
                                             <tr>
                                                 <th className="px-3 py-2 rounded-l-lg">Time</th>
                                                 <th className="px-3 py-2">Client / Vendor</th>
@@ -389,24 +383,24 @@ export default function OwnerDashboardPage() {
                                                 <th className="px-3 py-2 rounded-r-lg text-right">Net Profit</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-800">
+                                        <tbody className="divide-y divide-border">
                                             {recentSales.length === 0 ? (
-                                                <tr><td colSpan={5} className="px-3 py-4 text-center text-slate-500">No transactions recorded for this period.</td></tr>
+                                                <tr><td colSpan={5} className="px-3 py-4 text-center text-muted-foreground">No transactions recorded for this period.</td></tr>
                                             ) : (
                                                 recentSales.map((s: Sale, idx: number) => (
-                                                    <tr key={s.id || idx} className="hover:bg-slate-800/30 transition cursor-default">
-                                                        <td className="px-3 py-3 font-mono text-slate-400 text-[10px]">
-                                                            <div className="font-bold text-slate-400 uppercase">{new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: '2-digit' })}</div>
+                                                    <tr key={s.id || idx} className="hover:bg-secondary/50 transition cursor-default">
+                                                        <td className="px-3 py-3 font-mono text-muted-foreground text-[10px]">
+                                                            <div className="font-bold text-foreground uppercase">{new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: '2-digit' })}</div>
                                                             <div>{new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
                                                         </td>
                                                         <td className="px-3 py-3">
-                                                            <div className="font-black text-sm text-slate-200">{s.client.name}</div>
-                                                            <div className="text-[10px] text-slate-500">Via: {s.vendor.name}</div>
+                                                            <div className="font-black text-sm text-foreground">{s.client?.name || "Unknown"}</div>
+                                                            <div className="text-[10px] text-muted-foreground">Via: {s.vendor?.name || "N/A"}</div>
                                                         </td>
                                                         <td className="px-3 py-3">
                                                             <div className="flex flex-wrap gap-1">
                                                                 {s.items.map((i: ToolItem, k: number) => (
-                                                                    <span key={k} className="text-xs font-black text-blue-400">
+                                                                    <span key={k} className="text-xs font-black text-blue-500 dark:text-blue-400">
                                                                         {i.name}{k < s.items.length - 1 ? ", " : ""}
                                                                     </span>
                                                                 ))}
@@ -414,11 +408,11 @@ export default function OwnerDashboardPage() {
                                                         </td>
                                                         <td className="px-3 py-3">
                                                             <div className="space-y-1">
-                                                                <div className={clsx("text-[10px] font-black uppercase tracking-wider", s.client.status === "Pending" ? "text-rose-500" : s.client.status === "Partial" ? "text-blue-500" : "text-emerald-500")}>
-                                                                    C: {s.client.status}
+                                                                <div className={clsx("text-[10px] font-black uppercase tracking-wider", s.client?.status === "Pending" ? "text-destructive" : s.client?.status === "Partial" ? "text-blue-500" : "text-emerald-500")}>
+                                                                    C: {s.client?.status || "Success"}
                                                                 </div>
-                                                                <div className={clsx("text-[9px] font-bold uppercase", s.vendor.status === "Paid" ? "text-slate-500" : "text-rose-500")}>
-                                                                    V: {s.vendor.status}
+                                                                <div className={clsx("text-[9px] font-bold uppercase", s.vendor?.status === "Paid" ? "text-muted-foreground" : "text-destructive")}>
+                                                                    V: {s.vendor?.status || "N/A"}
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -434,29 +428,29 @@ export default function OwnerDashboardPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
-                                <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-sm min-h-[350px] md:col-span-2">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Financial Overview</h3>
+                                <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[350px] md:col-span-2">
+                                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Financial Overview</h3>
                                     <div className="h-72 w-full">{chartData && <RevenueChart data={chartData.combined} />}</div>
                                 </div>
-                                <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-sm min-h-[300px]">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Revenue Trend</h3>
+                                <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+                                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Revenue Trend</h3>
                                     <div className="h-64 w-full">{chartData && <RevenueChart data={chartData.revenue} />}</div>
                                 </div>
-                                <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-sm min-h-[300px]">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Profit Trend</h3>
+                                <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+                                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Profit Trend</h3>
                                     <div className="h-64 w-full">{chartData && <RevenueChart data={chartData.profit} />}</div>
                                 </div>
-                                <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-sm min-h-[300px]">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Top Vendors</h3>
+                                <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+                                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Top Vendors</h3>
                                     <div className="h-64 w-full">{chartData && <VendorChart data={chartData.vendors} />}</div>
                                 </div>
-                                <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-6 shadow-sm min-h-[300px] grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[300px] grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Top Tools</h3>
+                                        <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4 text-center">Top Tools</h3>
                                         <div className="flex items-center justify-center h-48">{chartData && <ItemsChart data={chartData.items} />}</div>
                                     </div>
                                     <div>
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Vendor Dues</h3>
+                                        <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4 text-center">Vendor Dues</h3>
                                         <div className="flex items-center justify-center h-48">{chartData && <ItemsChart data={chartData.dues} />}</div>
                                     </div>
                                 </div>
@@ -470,28 +464,54 @@ export default function OwnerDashboardPage() {
 }
 
 function StatCard({ title, value, color, icon: Icon, isCurrency = true }: any) {
-    const colors: any = {
-        emerald: "from-emerald-500 to-emerald-600 text-emerald-100",
-        indigo: "from-[#4f46e5] to-[#6366f1] text-indigo-100",
-        amber: "from-amber-500 to-amber-600 text-amber-100",
-        rose: "from-rose-500 to-rose-600 text-rose-100",
-        blue: "from-blue-500 to-blue-600 text-blue-100",
+    const styles: any = {
+        emerald: {
+            container: "bg-emerald-50 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/25",
+            icon: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+            value: "text-emerald-800 dark:text-emerald-200",
+            watermark: "text-emerald-600/20 dark:text-emerald-400/12",
+        },
+        indigo: {
+            container: "bg-indigo-50 dark:bg-indigo-500/15 border-indigo-200 dark:border-indigo-500/25",
+            icon: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300",
+            value: "text-indigo-800 dark:text-indigo-200",
+            watermark: "text-indigo-600/20 dark:text-indigo-400/12",
+        },
+        amber: {
+            container: "bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/25",
+            icon: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+            value: "text-amber-800 dark:text-amber-200",
+            watermark: "text-amber-600/20 dark:text-amber-400/12",
+        },
+        rose: {
+            container: "bg-rose-50 dark:bg-rose-500/15 border-rose-200 dark:border-rose-500/25",
+            icon: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+            value: "text-rose-800 dark:text-rose-200",
+            watermark: "text-rose-600/20 dark:text-rose-400/12",
+        },
+        blue: {
+            container: "bg-sky-50 dark:bg-sky-500/15 border-sky-200 dark:border-sky-500/25",
+            icon: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+            value: "text-sky-800 dark:text-sky-200",
+            watermark: "text-sky-600/20 dark:text-sky-400/12",
+        },
     };
+    const s = styles[color] ?? styles.indigo;
 
     return (
-        <div className={`p-4 rounded-2xl bg-gradient-to-br ${colors[color]} text-white shadow-lg relative overflow-hidden group`}>
+        <div className={`p-4 rounded-2xl border shadow-sm relative overflow-hidden group hover:shadow-md transition-all ${s.container}`}>
             <div className="relative z-10 flex justify-between items-start">
                 <div>
-                    <div className={`text-[10px] mb-1 opacity-90 font-bold uppercase tracking-wider`}>{title}</div>
-                    <div className="text-xl font-black tracking-tight">
+                    <div className="text-[10px] mb-1 text-muted-foreground font-bold uppercase tracking-wider">{title}</div>
+                    <div className={`text-xl font-black tracking-tight ${s.value}`}>
                         {isCurrency ? "Rs. " : ""}{(value === null || value === undefined || Number.isNaN(value)) ? "0" : value.toLocaleString()}
                     </div>
                 </div>
-                <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-                    <Icon className="text-sm text-white" />
+                <div className={`p-2 rounded-lg ${s.icon}`}>
+                    <Icon className="text-sm" />
                 </div>
             </div>
-            <Icon className="absolute -bottom-4 -right-4 text-6xl opacity-10 rotate-12 group-hover:scale-110 transition-transform" />
+            <Icon className={`absolute -bottom-4 -right-4 text-6xl rotate-12 group-hover:scale-110 transition-transform ${s.watermark}`} />
         </div>
     );
 }

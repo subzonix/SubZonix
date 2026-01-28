@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import { Sale, Client, ToolItem } from '@/types';
+import { isValidDate } from './utils';
 
 export interface CSVRow {
     'Activation Date'?: string;
@@ -46,6 +47,11 @@ export function parseCSVToSales(csvText: string): { success: boolean; sales: Par
 
                 if (!clientName || !clientPhone || !activationDate) {
                     errors.push(`Row ${idx + 2}: Missing required fields (Client, Number, or Activation Date)`);
+                    return;
+                }
+
+                if (!isValidDate(activationDate)) {
+                    errors.push(`Row ${idx + 2}: Invalid Activation Date format ("${activationDate}")`);
                     return;
                 }
 
@@ -99,6 +105,7 @@ export function parseCSVToSales(csvText: string): { success: boolean; sales: Par
             sales.push({
                 client: saleData.client,
                 items: saleData.items,
+                vendor: { name: saleData.vendor, phone: '', status: 'Paid' },
                 finance: {
                     totalCost,
                     totalSell,

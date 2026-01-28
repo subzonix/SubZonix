@@ -27,16 +27,16 @@ export const useInventory = () => useContext(InventoryContext);
 export const InventoryProvider = ({ children }: { children: React.ReactNode }) => {
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useAuth();
+    const { user, merchantId } = useAuth();
 
     useEffect(() => {
-        if (!user) {
+        if (!merchantId) {
             setItems([]);
             setLoading(false);
             return;
         }
 
-        const q = query(collection(db, "users", user.uid, "inventory"));
+        const q = query(collection(db, "users", merchantId, "inventory"));
         const unsubscribe = onSnapshot(q, (snap) => {
             const data = snap.docs.map(d => {
                 const itemData = d.data() as any;
@@ -53,29 +53,30 @@ export const InventoryProvider = ({ children }: { children: React.ReactNode }) =
             setLoading(false);
         });
         return () => unsubscribe();
-    }, [user]);
+    }, [merchantId]);
 
     const addItem = async (item: InventoryItem) => {
-        if (!user) return;
+        if (!user || !merchantId) return;
         const { name, type, cost, sell, plan } = item;
-        await addDoc(collection(db, "users", user.uid, "inventory"), {
+        await addDoc(collection(db, "users", merchantId, "inventory"), {
             name,
             type,
             cost,
             sell,
             plan: plan || "",
-            userId: user.uid
+            userId: user.uid,
+            ownerUid: merchantId // Optional tracking
         });
     };
 
     const updateItem = async (id: string, item: Partial<InventoryItem>) => {
-        if (!user) return;
-        await updateDoc(doc(db, "users", user.uid, "inventory", id), item);
+        if (!merchantId) return;
+        await updateDoc(doc(db, "users", merchantId, "inventory", id), item);
     };
 
     const deleteItem = async (id: string) => {
-        if (!user) return;
-        await deleteDoc(doc(db, "users", user.uid, "inventory", id));
+        if (!merchantId) return;
+        await deleteDoc(doc(db, "users", merchantId, "inventory", id));
     };
 
     return (

@@ -39,7 +39,7 @@ export default function SupportPage() {
         try {
             await addDoc(collection(db, "support_queries"), {
                 userId: user.uid,
-                userEmail: user.email,
+                userEmail: user?.email || "Unknown",
                 query: query.trim(),
                 status: "unread",
                 createdAt: serverTimestamp(),
@@ -147,7 +147,7 @@ export default function SupportPage() {
                             </p>
                             {appConfig?.ownerWhatsApp ? (
                                 <a
-                                    href={`https://wa.me/${appConfig.ownerWhatsApp.replace(/\+/g, '').replace(/\s/g, '')}?text=${encodeURIComponent("Hi, I need assistance with Tapn Tools.")}`}
+                                    href={`https://wa.me/${appConfig.ownerWhatsApp.replace(/\+/g, '').replace(/\s/g, '')}?text=${encodeURIComponent(`Hi, I need assistance with ${appConfig?.appName || "SubsGrow"}.`)}`}
                                     target="_blank"
                                     className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all active:scale-95 w-full justify-center"
                                 >

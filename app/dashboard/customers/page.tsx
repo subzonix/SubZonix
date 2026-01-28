@@ -229,12 +229,14 @@ export default function CustomersPage() {
                                 ))}
                             </div>
                             {filter === "custom" && (
+                                <div className="w-full flex justify-end sm:w-auto sm:ml-auto">
                                 <CalendarDateRangePicker
                                     from={fromDate}
                                     to={toDate}
                                     onFromChange={setFromDate}
                                     onToChange={setToDate}
                                 />
+                            </div>
                             )}
                         </PlanFeatureGuard>
                     </div>

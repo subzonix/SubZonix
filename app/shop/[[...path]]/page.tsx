@@ -5,32 +5,33 @@ import { useParams } from "next/navigation";
 import { doc, getDoc, collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
-  FaShop,
-  FaCartShopping,
-  FaPlus,
-  FaMinus,
-  FaXmark,
-  FaCircleCheck,
-  FaBuilding,
-  FaWhatsapp,
-  FaEnvelope,
-  FaUser,
-  FaCircleInfo,
-  FaArrowRight,
-  FaHouse,
-  FaCopy,
-  FaCheck,
-  FaArrowLeft,
-  FaPaperPlane,
-  FaHashtag,
-  FaGlobe,
-  FaBuildingColumns,
-  FaBagShopping,
-  FaShield,
+    FaShop,
+    FaCartShopping,
+    FaPlus,
+    FaMinus,
+    FaXmark,
+    FaCircleCheck,
+    FaBuilding,
+    FaWhatsapp,
+    FaEnvelope,
+    FaUser,
+    FaCircleInfo,
+    FaArrowRight,
+    FaHouse,
+    FaCopy,
+    FaCheck,
+    FaArrowLeft,
+    FaPaperPlane,
+    FaHashtag,
+    FaGlobe,
+    FaBuildingColumns,
+    FaBagShopping,
+    FaShield,
 } from "react-icons/fa6";
 
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
+import { MorphingSquare } from "@/components/ui/morphing-square";
 
 interface MerchantSettings {
     companyName: string;
@@ -217,7 +218,7 @@ export default function PublicShopPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                <MorphingSquare message="Loading Shop..." />
             </div>
         );
     }
@@ -523,179 +524,179 @@ export default function PublicShopPage() {
 
                 {orderSuccess && (
                     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 backdrop-blur-xl">
-    <div className="absolute inset-0 bg-black/20"></div>
-    
-    <motion.div
-        initial={{ y: 20, opacity: 0, scale: 0.98 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ 
-            type: "spring", 
-            damping: 25, 
-            stiffness: 300,
-            mass: 0.8 
-        }}
-        className="relative w-full max-w-md max-h-[90vh] bg-gradient-to-br from-white via-gray-50 to-white rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-violet-900/40 border border-white/30"
-    >
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-indigo-400 to-violet-400"></div>
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-violet-300/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-emerald-300/10 rounded-full blur-3xl"></div>
+                        <div className="absolute inset-0 bg-black/20"></div>
 
-        {/* Scrollable content container */}
-        <div className="overflow-y-auto max-h-[calc(90vh-2rem)] min-w-90% custom-scrollbar">
-            <div className="p-6 md:p-10">
-                {/* Success Icon */}
-                <div className="relative mb-8">
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/30 to-cyan-400/30 blur-2xl rounded-full"></div>
-                    <div className="relative">
-                        <FaCircleCheck className="text-6xl md:text-7xl text-emerald-500 drop-shadow-lg animate-soft-bounce" />
-                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
-                            <FaCheck className="text-xs text-emerald-500" />
-                        </div>
-                    </div>
-                </div>
+                        <motion.div
+                            initial={{ y: 20, opacity: 0, scale: 0.98 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            transition={{
+                                type: "spring",
+                                damping: 25,
+                                stiffness: 300,
+                                mass: 0.8
+                            }}
+                            className="relative w-full max-w-md max-h-[90vh] bg-gradient-to-br from-white via-gray-50 to-white rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-violet-900/40 border border-white/30"
+                        >
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-indigo-400 to-violet-400"></div>
+                            <div className="absolute -top-20 -right-20 w-40 h-40 bg-violet-300/10 rounded-full blur-3xl"></div>
+                            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-emerald-300/10 rounded-full blur-3xl"></div>
 
-                {/* Title & Description */}
-                <div className="mb-10">
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-cyan-50 text-emerald-700 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full mb-5 border border-emerald-100 shadow-sm">
-                        <span className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full animate-pulse"></span>
-                        Payment Required
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-4 leading-tight">
-                        Order Requested
-                        <span className="block text-xl text-emerald-600 font-semibold mt-1">Successfully!</span>
-                    </h2>
-                    <p className="text-gray-500 text-sm md:text-base font-medium max-w-sm mx-auto leading-relaxed">
-                        Your request has been sent to the merchant. Complete payment to receive credentials instantly.
-                    </p>
-                </div>
+                            {/* Scrollable content container */}
+                            <div className="overflow-y-auto max-h-[calc(90vh-2rem)] min-w-90% custom-scrollbar">
+                                <div className="p-6 md:p-10">
+                                    {/* Success Icon */}
+                                    <div className="relative mb-8">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/30 to-cyan-400/30 blur-2xl rounded-full"></div>
+                                        <div className="relative">
+                                            <FaCircleCheck className="text-6xl md:text-7xl text-emerald-500 drop-shadow-lg animate-soft-bounce" />
+                                            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
+                                                <FaCheck className="text-xs text-emerald-500" />
+                                            </div>
+                                        </div>
+                                    </div>
 
-                {/* Payment Info Card */}
-                <div className="bg-gradient-to-br from-gray-50/80 to-white rounded-2xl md:rounded-3xl p-6 md:p-8 text-left mb-10 border border-gray-200/80 shadow-lg shadow-gray-200/30 backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-xl shadow-sm">
-                                <FaBuilding className="text-indigo-600 text-base" />
-                            </div>
-                            <div>
-                                <h4 className="text-xs text-gray-700 font-bold uppercase tracking-wider">
-                                    Merchant Payment Details
-                                </h4>
-                                <p className="text-[10px] text-gray-400 font-medium mt-0.5">Secure & Verified</p>
-                            </div>
-                        </div>
-                        <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">
-                            COPY
-                        </span>
-                    </div>
+                                    {/* Title & Description */}
+                                    <div className="mb-10">
+                                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-cyan-50 text-emerald-700 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full mb-5 border border-emerald-100 shadow-sm">
+                                            <span className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full animate-pulse"></span>
+                                            Payment Required
+                                        </div>
+                                        <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-4 leading-tight">
+                                            Order Requested
+                                            <span className="block text-xl text-emerald-600 font-semibold mt-1">Successfully!</span>
+                                        </h2>
+                                        <p className="text-gray-500 text-sm md:text-base font-medium max-w-sm mx-auto leading-relaxed">
+                                            Your request has been sent to the merchant. Complete payment to receive credentials instantly.
+                                        </p>
+                                    </div>
 
-                    <div className="space-y-4">
-                        {/* Bank Name */}
-                        <div className="group hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/50">
-                            <div className="flex justify-between items-center">
-                                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
-                                    <FaBuildingColumns className="text-xs text-gray-400" />
-                                    Bank Name
-                                </span>
-                                <span className="text-sm font-bold text-gray-900 truncate max-w-[180px] px-3 py-1.5 bg-gray-100/50 rounded-lg">
-                                    {merchant.bankName || "N/A"}
-                                </span>
-                            </div>
-                        </div>
+                                    {/* Payment Info Card */}
+                                    <div className="bg-gradient-to-br from-gray-50/80 to-white rounded-2xl md:rounded-3xl p-6 md:p-8 text-left mb-10 border border-gray-200/80 shadow-lg shadow-gray-200/30 backdrop-blur-sm">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2.5 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-xl shadow-sm">
+                                                    <FaBuilding className="text-indigo-600 text-base" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs text-gray-700 font-bold uppercase tracking-wider">
+                                                        Merchant Payment Details
+                                                    </h4>
+                                                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">Secure & Verified</p>
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100">
+                                                COPY
+                                            </span>
+                                        </div>
 
-                        {/* Account Number */}
-                        <div className="group hover:bg-gradient-to-r hover:from-indigo-50/30 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-indigo-200/50">
-                            <div className="flex justify-between items-center">
-                                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
-                                    <FaHashtag className="text-xs text-gray-400" />
-                                    Account No.
-                                </span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-base font-mono font-black text-indigo-700 bg-gradient-to-r from-indigo-50 to-violet-50 px-4 py-2 rounded-xl border border-indigo-100 shadow-sm">
-                                        {merchant.accountNumber || "N/A"}
-                                    </span>
-                                    <button className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-gray-400 hover:text-indigo-600 hover:scale-110 p-2">
-                                        <FaCopy className="text-sm" />
-                                    </button>
+                                        <div className="space-y-4">
+                                            {/* Bank Name */}
+                                            <div className="group hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/50">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
+                                                        <FaBuildingColumns className="text-xs text-gray-400" />
+                                                        Bank Name
+                                                    </span>
+                                                    <span className="text-sm font-bold text-gray-900 truncate max-w-[180px] px-3 py-1.5 bg-gray-100/50 rounded-lg">
+                                                        {merchant.bankName || "N/A"}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Account Number */}
+                                            <div className="group hover:bg-gradient-to-r hover:from-indigo-50/30 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-indigo-200/50">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
+                                                        <FaHashtag className="text-xs text-gray-400" />
+                                                        Account No.
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-base font-mono font-black text-indigo-700 bg-gradient-to-r from-indigo-50 to-violet-50 px-4 py-2 rounded-xl border border-indigo-100 shadow-sm">
+                                                            {merchant.accountNumber || "N/A"}
+                                                        </span>
+                                                        <button className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-gray-400 hover:text-indigo-600 hover:scale-110 p-2">
+                                                            <FaCopy className="text-sm" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* IBAN */}
+                                            <div className="group hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/50">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
+                                                        <FaGlobe className="text-xs text-gray-400" />
+                                                        IBAN
+                                                    </span>
+                                                    <span className="text-xs font-mono font-semibold text-gray-700 bg-gray-100/50 px-3 py-2 rounded-lg border border-gray-200">
+                                                        {merchant.iban || "N/A"}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Account Holder */}
+                                            <div className="group hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/50">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
+                                                        <FaUser className="text-xs text-gray-400" />
+                                                        Account Holder
+                                                    </span>
+                                                    <span className="text-sm font-bold text-gray-900 bg-gradient-to-r from-gray-50 to-white px-3 py-2 rounded-lg border border-gray-200">
+                                                        {merchant.accountHolder || "N/A"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="space-y-4 px-1">
+                                        {merchant.companyPhone && (
+                                            <a
+                                                href={`https://wa.me/${merchant.companyPhone.replace(/\+/g, '').replace(/\s/g, '')}?text=Payment%20Screenshot%20Attached%20for%20Order`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="group block w-full py-4 bg-gradient-to-r from-[#25D366] via-emerald-500 to-[#25D366] text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20"
+                                            >
+                                                <div className="relative">
+                                                    <FaWhatsapp className="text-xl" />
+                                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full"></div>
+                                                </div>
+                                                <span>Send Payment Proof</span>
+                                                <FaPaperPlane className="text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                                            </a>
+                                        )}
+
+                                        <button
+                                            onClick={() => setOrderSuccess(false)}
+                                            className="group w-full py-4 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-300 text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:shadow-xl hover:shadow-gray-900/30 transition-all duration-300 transform hover:-translate-y-0.5 border border-gray-800 flex items-center justify-center gap-2"
+                                        >
+                                            <FaArrowLeft className="text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                                            <span>Continue Shopping</span>
+                                            <FaBagShopping className="text-xs ml-1" />
+                                        </button>
+
+                                        {/* Helper Text */}
+                                        <div className="pt-6 border-t border-gray-100">
+                                            <p className="text-[11px] text-gray-400 font-medium text-center">
+                                                <FaShield className="inline mr-1.5 text-gray-300" />
+                                                Secure payment • 15 min delivery • 24/7 support
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* IBAN */}
-                        <div className="group hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/50">
-                            <div className="flex justify-between items-center">
-                                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
-                                    <FaGlobe className="text-xs text-gray-400" />
-                                    IBAN
-                                </span>
-                                <span className="text-xs font-mono font-semibold text-gray-700 bg-gray-100/50 px-3 py-2 rounded-lg border border-gray-200">
-                                    {merchant.iban || "N/A"}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Account Holder */}
-                        <div className="group hover:bg-gradient-to-r hover:from-gray-50/50 hover:to-white p-3.5 rounded-xl transition-all duration-200 border border-transparent hover:border-gray-200/50">
-                            <div className="flex justify-between items-center">
-                                <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide flex items-center gap-2">
-                                    <FaUser className="text-xs text-gray-400" />
-                                    Account Holder
-                                </span>
-                                <span className="text-sm font-bold text-gray-900 bg-gradient-to-r from-gray-50 to-white px-3 py-2 rounded-lg border border-gray-200">
-                                    {merchant.accountHolder || "N/A"}
-                                </span>
-                            </div>
-                        </div>
+                            {/* Close button */}
+                            <button
+                                onClick={() => setOrderSuccess(false)}
+                                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 rounded-full transition-all duration-200 z-10"
+                            >
+                                <FaXmark className="text-sm" />
+                            </button>
+                        </motion.div>
                     </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="space-y-4 px-1">
-                    {merchant.companyPhone && (
-                        <a
-                            href={`https://wa.me/${merchant.companyPhone.replace(/\+/g, '').replace(/\s/g, '')}?text=Payment%20Screenshot%20Attached%20for%20Order`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="group block w-full py-4 bg-gradient-to-r from-[#25D366] via-emerald-500 to-[#25D366] text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 transform hover:-translate-y-0.5 flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20"
-                        >
-                            <div className="relative">
-                                <FaWhatsapp className="text-xl" />
-                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                            <span>Send Payment Proof</span>
-                            <FaPaperPlane className="text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                        </a>
-                    )}
-
-                    <button
-                        onClick={() => setOrderSuccess(false)}
-                        className="group w-full py-4 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-300 text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:shadow-xl hover:shadow-gray-900/30 transition-all duration-300 transform hover:-translate-y-0.5 border border-gray-800 flex items-center justify-center gap-2"
-                    >
-                        <FaArrowLeft className="text-xs opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                        <span>Continue Shopping</span>
-                        <FaBagShopping className="text-xs ml-1" />
-                    </button>
-
-                    {/* Helper Text */}
-                    <div className="pt-6 border-t border-gray-100">
-                        <p className="text-[11px] text-gray-400 font-medium text-center">
-                            <FaShield className="inline mr-1.5 text-gray-300" />
-                            Secure payment • 15 min delivery • 24/7 support
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* Close button */}
-        <button
-            onClick={() => setOrderSuccess(false)}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700 rounded-full transition-all duration-200 z-10"
-        >
-            <FaXmark className="text-sm" />
-        </button>
-    </motion.div>
-</div>
                 )}
             </AnimatePresence>
         </div>

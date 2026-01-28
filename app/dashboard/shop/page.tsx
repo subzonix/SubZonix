@@ -89,7 +89,7 @@ export default function ShopManagementPage() {
                 where("userId", "==", user!.uid),
                 where("type", "==", "shop_order"),
                 orderBy("createdAt", "desc"),
-                limit(10)
+                limit(5)
             );
             const snap = await getDocs(q);
             setRecentOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -185,24 +185,24 @@ export default function ShopManagementPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-black text-[var(--foreground)] uppercase tracking-tight italic">Mart Management</h2>
+                    <h2 className="text-2xl font-black text-foreground uppercase tracking-tight italic">Mart Management</h2>
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Manage your public products and orders</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Link
-                        href={companyName ? `/shop/${slugify(companyName)}` : "#"}
-                        onClick={(e) => {
+                    <Button
+                        onClick={() => {
                             if (!companyName) {
-                                e.preventDefault();
                                 showToast("Please set company name in settings first", "error");
+                                return;
                             }
+                            window.open(`/shop/${slugify(companyName)}`, "_blank");
                         }}
-                        target="_blank"
-                        className="btn-whatsapp"
+                        className={clsx(!companyName && "opacity-60")}
+                        variant="secondary"
                     >
                         <FaLink /> View My Shop
-                    </Link>
-                    <Button onClick={() => handleOpenModal()} variant="secondary" className="btn-save">
+                    </Button>
+                    <Button onClick={() => handleOpenModal()} variant="primary">
                         <FaPlus className="mr-2" /> Add Product
                     </Button>
                 </div>
@@ -256,15 +256,16 @@ export default function ShopManagementPage() {
                                             {item.description || "Premium tool with full support and guarantee."}
                                         </p>
                                         <div className="flex justify-end gap-2 pt-2">
-                                            <button
+                                            <Button
                                                 onClick={() => handleOpenModal(item)}
-                                                className="btn-edit"
+                                                variant="secondary"
+                                                className="text-[10px] px-3 py-1.5 min-h-9 font-black uppercase tracking-wider"
                                             >
                                                 <FaPencil className="inline mr-1.5" /> Edit
-                                            </button>
+                                            </Button>
                                             <button
                                                 onClick={() => handleDelete(item.id)}
-                                                className="btn-delete"
+                                                className="icon-delete"
                                             >
                                                 <FaTrash className="text-xs" />
                                             </button>
@@ -351,9 +352,9 @@ export default function ShopManagementPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <Card className="w-full max-w-lg bg-[var(--card)] border-[var(--border)] shadow-2xl relative overflow-hidden">
-                        <div className="p-6 border-b border-[var(--border)] bg-slate-50/50 dark:bg-slate-800/10">
-                            <h3 className="text-xl font-black text-[var(--foreground)] uppercase italic tracking-tight">
+                    <Card className="w-full max-w-lg bg-card border-border shadow-2xl relative overflow-hidden">
+                        <div className="p-6 border-b border-border bg-slate-50/50 dark:bg-slate-800/10">
+                            <h3 className="text-xl font-black text-foreground uppercase italic tracking-tight">
                                 {editingItem ? "Edit Product" : "Add New Product"}
                             </h3>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Configure your public shop item</p>

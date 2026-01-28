@@ -11,6 +11,8 @@ import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import clsx from "clsx";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
+import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
+import { format, subDays, addDays } from "date-fns";
 
 export default function ExpiryPage() {
     const [sales, setSales] = useState<Sale[]>([]);
@@ -18,15 +20,19 @@ export default function ExpiryPage() {
     const [settings, setSettings] = useState<any>(null);
     const [appConfig, setAppConfig] = useState<any>(null);
     const [expiryDate, setExpiryDate] = useState(new Date().toISOString().slice(0, 10));
+    const [dateRange, setDateRange] = useState({
+        from: new Date().toISOString().slice(0, 10),
+        to: new Date().toISOString().slice(0, 10)
+    });
     const [viewMode, setViewMode] = useState<"table" | "card">("table");
-    const { user } = useAuth();
+    const { user, merchantId } = useAuth();
     const { showToast } = useToast();
 
     useEffect(() => {
         const loadSettings = async () => {
-            if (!user) return;
+            if (!merchantId) return;
             // Load User Settings for Company Name
-            const userSettingsSnap = await getDoc(doc(db, "users", user.uid, "settings", "general"));
+            const userSettingsSnap = await getDoc(doc(db, "users", merchantId, "settings", "general"));
             if (userSettingsSnap.exists()) setSettings(userSettingsSnap.data());
 
             // Load Global App Config for App Name
@@ -35,15 +41,15 @@ export default function ExpiryPage() {
         };
         loadSettings();
 
-        if (!user) return;
-        const q = query(collection(db, "users", user.uid, "salesHistory"));
+        if (!merchantId) return;
+        const q = query(collection(db, "users", merchantId, "salesHistory"));
         const unsub = onSnapshot(q, (snap) => {
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Sale[];
             setSales(data);
             setLoading(false);
         });
         return () => unsub();
-    }, [user]);
+    }, [user, merchantId]);
 
     // Helper to get all items with indices
     const allItems = useMemo(() => {
@@ -101,7 +107,7 @@ export default function ExpiryPage() {
         const isExpired = daysLeft < 0;
         const statusText = isExpired ? "expired" : "expiring";
 
-        let template = settings?.reminderTemplate || "*Membership Reminder*\n\nDear *[Client]*,\n\nThe following memberships are [Status] on [Date].[DayLabel]\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n\nExpiry Date : [Date]\n\nTo continue uninterrupted access, kindly confirm your renewals.\n\n> *Sent by [Company Name]*\n_© Powered by TapnTools_";
+        let template = settings?.reminderTemplate || `*Membership Reminder*\n\nDear *[Client]*,\n\nThe following memberships are [Status] on [Date].[DayLabel]\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n\nExpiry Date : [Date]\n\nTo continue uninterrupted access, kindly confirm your renewals.\n\n> *Sent by [Company Name]*\n_© Powered by ${appConfig?.appName || "SubsGrow"}_`;
 
         let msg = template
             .replace(/\[Client\]/g, item.clientName)
@@ -110,7 +116,7 @@ export default function ExpiryPage() {
             .replace(/\[DayLabel\]/g, dayLabel ? ` (${dayLabel})` : "")
             .replace(/\[Tool Name\]/g, item.name)
             .replace(/\[Email\]/g, item.email || "N/A")
-            .replace(/\[Company Name\]/g, settings?.companyName || "Tapn Tools");
+            .replace(/\[Company Name\]/g, settings?.companyName || "SubsGrow");
 
         window.open(`https://wa.me/${cleanPhone(item.clientPhone)}?text=${encodeURIComponent(msg)}`, '_blank');
         showToast("WhatsApp opened for reminder", "info");
@@ -119,7 +125,7 @@ export default function ExpiryPage() {
         try {
             if (!user) return;
             // We need to fetch the latest doc to prevent race conditions on array
-            const saleRef = doc(db, "users", user.uid, "salesHistory", item.clientId);
+            const saleRef = doc(db, "users", merchantId!, "salesHistory", item.clientId);
             const saleSnap = await getDoc(saleRef);
 
             if (saleSnap.exists()) {
@@ -149,40 +155,25 @@ export default function ExpiryPage() {
         return (
             <div className="space-y-4">
                 {/* Section Header */}
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+                <div className="bg-card dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className={clsx("w-10 h-10 rounded-xl flex items-center justify-center shadow-sm", colorClass)}>
                             <Icon className="text-lg" />
                         </div>
                         <div>
-                            <h2 className="text-base font-black text-[var(--foreground)] tracking-tight">{title}</h2>
+                            <h2 className="text-sm font-black text-[var(--foreground)] tracking-tight uppercase">{title}</h2>
                             <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{items.length} records found</p>
                         </div>
                     </div>
-                    {title.includes("Selected Date") && (
-                        <PlanFeatureGuard
-                            feature="dateRangeFilter"
-                            fallback={
-                                <div className="flex items-center gap-3 w-full sm:w-auto opacity-50 cursor-not-allowed" title="Upgrade plan to change date">
-                                    <input
-                                        type="date"
-                                        value={expiryDate}
-                                        disabled
-                                        className="w-full sm:w-auto bg-slate-100 dark:bg-slate-800 text-[11px] px-3 py-2 rounded-xl border border-transparent outline-none text-[var(--foreground)] font-medium"
-                                    />
-                                    <FaLock className="text-slate-400 text-xs" />
-                                </div>
-                            }
-                        >
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                <input
-                                    type="date"
-                                    value={expiryDate}
-                                    onChange={(e) => setExpiryDate(e.target.value)}
-                                    className="w-full sm:w-auto bg-slate-100 dark:bg-slate-800 text-[11px] px-3 py-2 rounded-xl border border-transparent focus:border-indigo-500 transition-all outline-none text-[var(--foreground)] font-medium"
-                                />
-                            </div>
-                        </PlanFeatureGuard>
+                    {title.includes("Range") && (
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <CalendarDateRangePicker
+                                from={dateRange.from}
+                                to={dateRange.to}
+                                onFromChange={(v) => setDateRange(prev => ({ ...prev, from: v }))}
+                                onToChange={(v) => setDateRange(prev => ({ ...prev, to: v }))}
+                            />
+                        </div>
                     )}
                 </div>
 
@@ -202,7 +193,7 @@ export default function ExpiryPage() {
                             const isUrgent = isExpired || (item.remindersSent || 0) === 0;
 
                             return (
-                                <div key={i} className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group">
+                                <div key={i} className="bg-card dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-black text-xs border border-[var(--border)]">
@@ -252,8 +243,7 @@ export default function ExpiryPage() {
                                     >
                                         <Button
                                             onClick={() => sendReminder(item)}
-                                            variant="outline"
-                                            className=" btn-whatsapp w-full flex items-center justify-center gap-2 py-2.5  text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all cursor-pointer border border-emerald-100 dark:border-emerald-800"
+                                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer border-none"
                                         >
                                             <FaWhatsapp className="text-sm" /> Send Reminder
                                         </Button>
@@ -264,10 +254,10 @@ export default function ExpiryPage() {
                     </div>
                 ) : (
                     /* Table View */
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-sm">
+                    <div className="bg-card dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
                         <div className="overflow-x-auto max-h-[500px] custom-scrollbar max-w-[85vw] sm:max-w-full mx-auto">
                             <table className="w-full text-left text-[11px]">
-                                <thead className="bg-slate-100 dark:bg-slate-800/50 text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
+                                <thead className="bg-slate-100 dark:bg-slate-800/80 text-slate-500 font-bold uppercase tracking-wider sticky top-0 z-10 backdrop-blur-md">
                                     <tr>
                                         <th className="px-6 py-4">Customer Details</th>
                                         <th className="px-6 py-4">Tool Information</th>
@@ -334,7 +324,7 @@ export default function ExpiryPage() {
     };
 
     return (
-        <div className="space-y-8 pb-20">
+        <div className="space-y-8">
             {/* Header Controls */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-lg font-black text-[var(--foreground)] uppercase tracking-widest flex items-center gap-2">
@@ -357,9 +347,27 @@ export default function ExpiryPage() {
                 </div>
             </div >
 
-            {renderSection(dailyItems, "Selected Date Expiry", FaTriangleExclamation, "bg-rose-50 dark:bg-rose-900/20 text-rose-500")}
-            {renderSection(previousThreeDaysItems, "Expired in previous 3 days", FaClock, "bg-rose-100 dark:bg-rose-900/40 text-rose-600")}
-            {renderSection(upcomingItems, "Upcoming Expirations (Others)", FaClock, "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500")}
+            {renderSection(
+                allItems.filter(i => i.eDate >= dateRange.from && i.eDate <= dateRange.to).sort((a, b) => a.eDate.localeCompare(b.eDate)),
+                "Results in Selected Range",
+                FaCircleInfo,
+                "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500"
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {renderSection(
+                    previousThreeDaysItems,
+                    "Expired (Last 3 Days)",
+                    FaClock,
+                    "bg-rose-50 dark:bg-rose-950/40 text-rose-500"
+                )}
+                {renderSection(
+                    upcomingItems,
+                    "Upcoming (Next 4 Days)",
+                    FaClock,
+                    "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500"
+                )}
+            </div>
         </div >
     );
 }

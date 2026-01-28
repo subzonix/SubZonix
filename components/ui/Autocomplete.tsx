@@ -52,7 +52,7 @@ export default function Autocomplete({
                 className={readOnly ? "cursor-not-allowed" : ""}
             />
             {showSuggestions && value && filtered.length > 0 && !readOnly && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-xl max-h-48 overflow-y-auto">
                     {filtered.map((item, idx) => (
                         <div
                             key={idx}

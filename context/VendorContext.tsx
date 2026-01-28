@@ -29,16 +29,16 @@ export const useVendors = () => useContext(VendorContext);
 export const VendorProvider = ({ children }: { children: React.ReactNode }) => {
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useAuth();
+    const { user, merchantId } = useAuth();
 
     useEffect(() => {
-        if (!user) {
+        if (!merchantId) {
             setVendors([]);
             setLoading(false);
             return;
         }
 
-        const q = query(collection(db, "users", user.uid, "vendors"));
+        const q = query(collection(db, "users", merchantId, "vendors"));
         const unsubscribe = onSnapshot(q, (snap) => {
             const data = snap.docs.map(d => ({
                 id: d.id,
@@ -48,21 +48,21 @@ export const VendorProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
         });
         return () => unsubscribe();
-    }, [user]);
+    }, [merchantId]);
 
     const addVendor = async (vendor: Omit<Vendor, "id">) => {
-        if (!user) return;
-        await addDoc(collection(db, "users", user.uid, "vendors"), { ...vendor, userId: user.uid });
+        if (!merchantId) return;
+        await addDoc(collection(db, "users", merchantId, "vendors"), { ...vendor, userId: merchantId });
     };
 
     const updateVendor = async (id: string, vendor: Partial<Vendor>) => {
-        if (!user) return;
-        await updateDoc(doc(db, "users", user.uid, "vendors", id), vendor);
+        if (!merchantId) return;
+        await updateDoc(doc(db, "users", merchantId, "vendors", id), vendor);
     };
 
     const deleteVendor = async (id: string) => {
-        if (!user) return;
-        await deleteDoc(doc(db, "users", user.uid, "vendors", id));
+        if (!merchantId) return;
+        await deleteDoc(doc(db, "users", merchantId, "vendors", id));
     };
 
     const getVendorByPhone = (phone: string) => {

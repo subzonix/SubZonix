@@ -19,9 +19,16 @@ export default function OwnerSettingsPage() {
         accountNumber: "",
         iban: "",
         accountHolder: "",
-        appName: "Tapn Tools",
+        appName: "SubsGrow",
+        appNamePart1: "",
+        appNamePart2: "",
+        colorPart1: "#3b82f6",
+        colorPart2: "#10b981",
         appLogoUrl: "",
-        accentColor: "#4f46e5"
+        accentColor: "#4f46e5",
+        themePreset: "indigo",
+        sidebarLight: "card",
+        sidebarDark: "card"
     });
 
     useEffect(() => {
@@ -33,6 +40,15 @@ export default function OwnerSettingsPage() {
         };
         load();
     }, []);
+
+    // Sync appName with dynamic parts whenever they change
+    useEffect(() => {
+        const part1 = settings.appNamePart1 || "";
+        const part2 = settings.appNamePart2 || "";
+        if (part1 || part2) {
+            setSettings(prev => ({ ...prev, appName: `${part1}${part2}` }));
+        }
+    }, [settings.appNamePart1, settings.appNamePart2]);
 
     const handleSave = async () => {
         setLoading(true);
@@ -72,9 +88,9 @@ export default function OwnerSettingsPage() {
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-2xl border border-border shadow-xl shadow-black/5 dark:shadow-black/40">
                 <div>
-                    <h2 className="text-xl font-black text-white uppercase italic tracking-widest">General App Configuration</h2>
+                    <h2 className="text-xl font-black text-foreground uppercase italic tracking-widest">General App Configuration</h2>
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Global settings for all users</p>
                 </div>
                 <Button
@@ -89,20 +105,20 @@ export default function OwnerSettingsPage() {
             <div className="grid md:grid-cols-2 gap-8">
                 {/* Branding Section */}
                 <div className="space-y-6">
-                    <Card className="p-6 bg-slate-900/50 border-slate-800">
-                        <h3 className="text-sm font-black text-slate-400 mb-6 flex items-center gap-2 uppercase tracking-widest">
+                    <Card className="p-6 bg-card border-border">
+                        <h3 className="text-sm font-black text-muted-foreground mb-6 flex items-center gap-2 uppercase tracking-widest">
                             <FaPalette className="text-indigo-500" /> App Branding
                         </h3>
                         <div className="space-y-5">
                             <div className="flex flex-col items-center mb-6">
                                 <div className="relative group mb-4">
-                                    <div className="w-24 h-24 rounded-3xl bg-slate-800 border-2 border-dashed border-slate-700 flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-500">
+                                    <div className="w-24 h-24 rounded-3xl bg-muted/60 border-2 border-dashed border-border flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-500/40">
                                         {settings.appLogoUrl ? (
                                             <img src={settings.appLogoUrl} alt="App Logo" className="w-full h-full object-contain p-2" />
                                         ) : (
                                             <FaBuilding className="text-3xl text-slate-700" />
                                         )}
-                                        <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer">
+                                        <div className="absolute inset-0 bg-black/20 dark:bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm cursor-pointer">
                                             <label className="cursor-pointer">
                                                 <FaUpload className="text-white text-xl" />
                                                 <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
@@ -118,13 +134,104 @@ export default function OwnerSettingsPage() {
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center">App Logo (Sidebar/Header)</p>
                             </div>
 
+                            <div>
+                                <label className="block text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest">Dashboard Brand Preview</label>
+                                <div className="p-6 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-6">
+                                    <div className="flex items-center gap-2 select-none group">
+                                        <div className="relative shrink-0 w-8 h-8 md:w-12 md:h-12 overflow-hidden">
+                                            {settings.appLogoUrl ? (
+                                                <img src={settings.appLogoUrl} alt="Logo Preview" className="w-full h-full object-contain" />
+                                            ) : (
+                                                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md">
+                                                    <rect x="10" y="50" width="12" height="35" rx="2" fill="url(#p1GradPreview)" className="opacity-90" />
+                                                    <rect x="28" y="35" width="12" height="50" rx="2" fill="url(#p2GradPreview)" className="opacity-90" />
+                                                    <rect x="46" y="25" width="12" height="60" rx="2" fill="url(#p2GradPreview)" className="opacity-90" />
+
+                                                    <path
+                                                        d="M5 80 C 15 85, 45 85, 75 45 L 85 55 L 90 30 L 65 35 L 75 45"
+                                                        fill="none"
+                                                        stroke="url(#p2GradPreview)"
+                                                        strokeWidth="8"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        className="drop-shadow-sm"
+                                                    />
+                                                    <path
+                                                        d="M5 80 C 15 90, 45 95, 85 40"
+                                                        fill="none"
+                                                        stroke="url(#p1GradPreview)"
+                                                        strokeWidth="8"
+                                                        strokeLinecap="round"
+                                                        className="opacity-50"
+                                                    />
+
+                                                    <defs>
+                                                        <linearGradient id="p1GradPreview" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                            <stop offset="0%" stopColor={settings.colorPart1 || "#3b82f6"} />
+                                                            <stop offset="100%" stopColor={settings.colorPart1 || "#3b82f6"} stopOpacity={0.8} />
+                                                        </linearGradient>
+                                                        <linearGradient id="p2GradPreview" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                            <stop offset="0%" stopColor={settings.colorPart2 || "#10b981"} />
+                                                            <stop offset="100%" stopColor={settings.colorPart2 || "#10b981"} stopOpacity={0.8} />
+                                                        </linearGradient>
+                                                    </defs>
+                                                </svg>
+                                            )}
+                                        </div>
+                                        <div className="font-black tracking-tighter italic flex items-center leading-none text-2xl md:text-4xl"
+                                            style={{
+                                                fontFamily: "'Inter', sans-serif",
+                                                textShadow: "1px 1px 0px rgba(0,0,0,0.1), 2px 2px 0px rgba(0,0,0,0.05)"
+                                            }}>
+                                            <span style={{ color: settings.colorPart1 || "#3b82f6" }}>
+                                                {settings.appNamePart1 || "Subs"}
+                                            </span>
+                                            <span style={{ color: settings.colorPart2 || "#10b981" }}>
+                                                {settings.appNamePart2 || "Grow"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <Input
-                                label="App Dashboard Name"
-                                placeholder="e.g. Tapn Tools"
+                                label="App Dashboard Name (Fallback)"
+                                placeholder="e.g. SubsGrow"
                                 value={settings.appName}
                                 onChange={(e) => setSettings({ ...settings, appName: e.target.value })}
                                 icon={FaBuilding}
                             />
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Input
+                                    label="Name Part 1 (e.g. Subs)"
+                                    placeholder="Subs"
+                                    value={settings.appNamePart1}
+                                    onChange={(e) => setSettings({ ...settings, appNamePart1: e.target.value })}
+                                />
+                                <Input
+                                    label="Color Part 1"
+                                    type="color"
+                                    value={settings.colorPart1}
+                                    onChange={(e) => setSettings({ ...settings, colorPart1: e.target.value })}
+                                    className="h-11"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Input
+                                    label="Name Part 2 (e.g. Grow)"
+                                    placeholder="Grow"
+                                    value={settings.appNamePart2}
+                                    onChange={(e) => setSettings({ ...settings, appNamePart2: e.target.value })}
+                                />
+                                <Input
+                                    label="Color Part 2"
+                                    type="color"
+                                    value={settings.colorPart2}
+                                    onChange={(e) => setSettings({ ...settings, colorPart2: e.target.value })}
+                                    className="h-11"
+                                />
+                            </div>
 
                             <Input
                                 label="Logo URL (Optional)"
@@ -141,14 +248,77 @@ export default function OwnerSettingsPage() {
                                 onChange={(e) => setSettings({ ...settings, accentColor: e.target.value })}
                                 icon={FaPalette}
                             />
+
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Theme Preset</label>
+                                    <select
+                                        value={settings.themePreset}
+                                        onChange={(e) => {
+                                            const preset = e.target.value;
+                                            const presetColors: Record<string, string> = {
+                                                indigo: "#4f46e5",
+                                                emerald: "#10b981",
+                                                rose: "#e11d48",
+                                                amber: "#f59e0b",
+                                                slate: "#0f172a"
+                                            };
+                                            setSettings(prev => ({
+                                                ...prev,
+                                                themePreset: preset,
+                                                accentColor: presetColors[preset] ?? prev.accentColor
+                                            }));
+                                        }}
+                                        className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition-all font-medium"
+                                    >
+                                        <option value="indigo">Indigo (Default)</option>
+                                        <option value="emerald">Emerald</option>
+                                        <option value="rose">Rose</option>
+                                        <option value="amber">Amber</option>
+                                        <option value="slate">Slate</option>
+                                    </select>
+                                    <p className="text-[9px] text-slate-500 mt-1">Preset updates the accent color; you can still override with a custom hex.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Sidebar (Light Mode)</label>
+                                        <select
+                                            value={settings.sidebarLight}
+                                            onChange={(e) => setSettings(prev => ({ ...prev, sidebarLight: e.target.value }))}
+                                            className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition-all font-medium"
+                                        >
+                                            <option value="card">Card</option>
+                                            <option value="background">Background</option>
+                                            <option value="white">White</option>
+                                            <option value="slate">Slate</option>
+                                            <option value="black">Black</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Sidebar (Dark Mode)</label>
+                                        <select
+                                            value={settings.sidebarDark}
+                                            onChange={(e) => setSettings(prev => ({ ...prev, sidebarDark: e.target.value }))}
+                                            className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition-all font-medium"
+                                        >
+                                            <option value="card">Card</option>
+                                            <option value="background">Background</option>
+                                            <option value="slate">Slate</option>
+                                            <option value="black">Black</option>
+                                            <option value="white">White</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </Card>
                 </div>
 
                 {/* Contact & Account Section */}
                 <div className="space-y-6">
-                    <Card className="p-6 bg-slate-900/50 border-slate-800">
-                        <h3 className="text-sm font-black text-slate-400 mb-6 flex items-center gap-2 uppercase tracking-widest">
+                    <Card className="p-6 bg-card border-border">
+                        <h3 className="text-sm font-black text-muted-foreground mb-6 flex items-center gap-2 uppercase tracking-widest">
                             <FaWhatsapp className="text-emerald-500" /> Owner Contact Info
                         </h3>
                         <div className="space-y-5">
@@ -167,8 +337,8 @@ export default function OwnerSettingsPage() {
                         </div>
                     </Card>
 
-                    <Card className="p-6 bg-slate-900/50 border-slate-800">
-                        <h3 className="text-sm font-black text-slate-400 mb-6 flex items-center gap-2 uppercase tracking-widest">
+                    <Card className="p-6 bg-card border-border">
+                        <h3 className="text-sm font-black text-muted-foreground mb-6 flex items-center gap-2 uppercase tracking-widest">
                             <FaBuilding className="text-amber-500" /> Admin/Owner Account Details
                         </h3>
                         <div className="space-y-4">

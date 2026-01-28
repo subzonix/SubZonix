@@ -8,6 +8,7 @@ import { useToast } from "@/context/ToastContext";
 import { FaHeadset, FaCheck, FaTrash, FaClock, FaUser, FaEnvelope, FaMessage } from "react-icons/fa6";
 import clsx from "clsx";
 import { format } from "date-fns";
+import { MorphingSquare } from "@/components/ui/morphing-square";
 
 interface SupportQuery {
     id: string;
@@ -23,6 +24,7 @@ export default function OwnerSupportPage() {
     const [queries, setQueries] = useState<SupportQuery[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "unread" | "resolved">("all");
+    const unreadCount = queries.filter(q => q.status === "unread").length;
 
     useEffect(() => {
         const q = query(collection(db, "support_queries"), orderBy("createdAt", "desc"));
@@ -69,8 +71,7 @@ export default function OwnerSupportPage() {
     if (loading) {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Loading Queries...</p>
+                <MorphingSquare message="Loading Queries..." />
             </div>
         );
     }
@@ -100,6 +101,20 @@ export default function OwnerSupportPage() {
                     ))}
                 </div>
             </div>
+
+            {unreadCount > 0 && (
+                <div className="bg-gradient-to-r from-indigo-500/10 via-indigo-500/5 to-transparent border-l-4 border-indigo-500 p-4 rounded-r-2xl animate-in fade-in slide-in-from-left-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white animate-pulse">
+                            <FaMessage className="text-xs" />
+                        </div>
+                        <div>
+                            <div className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Unread Queries Detected</div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">There are {unreadCount} new messages waiting for your response.</div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid gap-4">
                 {filteredQueries.length === 0 ? (

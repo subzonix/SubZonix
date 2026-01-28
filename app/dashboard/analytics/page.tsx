@@ -295,7 +295,7 @@ export default function AnalyticsPage() {
                 {/* Header Section */}
                 <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
                     <div>
-                        <h2 className="text-xl font-bold text-[var(--foreground)]">Business Analytics</h2>
+                        <h2 className="text-xl font-bold text-foreground">Business Analytics</h2>
                         <p className="text-xs text-slate-500">Insights into your sales, customers, and inventory performance.</p>
                     </div>
                     <div className="flex flex-col px-2 py-2 sm:flex-row items-center gap-3 w-full xl:w-auto">
@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
                             feature="dateRangeFilter"
                             fallback={
                                 <div className="flex items-center gap-2 opacity-60 cursor-not-allowed" title="Upgrade plan to filter by date">
-                                    <div className="flex flex-wrap gap-1 p-2 rounded-lg border border-[var(--border)] w-full sm:w-auto bg-[var(--card)] justify-center sm:justify-start">
+                                    <div className="flex flex-wrap gap-1 p-2 rounded-lg border border-border w-full sm:w-auto bg-card justify-center sm:justify-start">
                                         <button disabled className="px-2 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-bold uppercase">This Month</button>
                                         <button disabled className="px-2 py-1.5 text-slate-400 text-[10px] font-bold uppercase">Last Month</button>
                                     </div>
@@ -311,7 +311,7 @@ export default function AnalyticsPage() {
                                 </div>
                             }
                         >
-                            <div className="flex flex-wrap gap-1 p-2 rounded-lg border border-[var(--border)] w-full sm:w-auto bg-[var(--card)] justify-center sm:justify-start">
+                            <div className="flex flex-wrap gap-1 p-2 rounded-lg border border-border w-full sm:w-auto bg-card justify-center sm:justify-start">
                                 {["thisMonth", "lastMonth", "thisYear", "all", "custom"].map(f => (
                                     <button
                                         key={f}
@@ -339,23 +339,23 @@ export default function AnalyticsPage() {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Card className="p-4 border-l-4 border-l-indigo-500">
+                    <Card className="p-4 border-l-4 border-l-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/20">
                         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Orders</p>
                         <p className="text-xl sm:text-2xl font-black text-slate-700 dark:text-indigo-500 mt-1">{summaryMetrics.totalSales}</p>
                     </Card>
-                    <Card className="p-4 border-l-4 border-l-emerald-500">
+                    <Card className="p-4 border-l-4 border-l-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20">
                         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Profit</p>
                         <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                             PKR {summaryMetrics.totalProfit.toLocaleString()}
                         </p>
                     </Card>
-                    <Card className="p-4 border-l-4 border-l-amber-500">
+                    <Card className="p-4 border-l-4 border-l-amber-500 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20">
                         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Avg. Order Value</p>
                         <p className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
                             PKR {Math.round(summaryMetrics.avgOrderValue).toLocaleString()}
                         </p>
                     </Card>
-                    <Card className="p-4 border-l-4 border-l-purple-500">
+                    <Card className="p-4 border-l-4 border-l-purple-500 bg-purple-50 dark:bg-purple-500/10 border-purple-200 dark:border-purple-500/20">
                         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Busiest Day</p>
                         <p className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
                             {summaryMetrics.busiestDay[0]}

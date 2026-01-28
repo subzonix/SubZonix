@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, limit, orderBy } from "firebase/firestore";
+import Link from "next/link";
+import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, limit, orderBy, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ToolItem, Sale, InventoryItem, Client } from "@/types";
 import { Button, Input, Select, Card } from "@/components/ui/Shared";
 import Autocomplete from "@/components/ui/Autocomplete";
 import ToolInput from "./ToolInput";
-import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft } from "react-icons/fa6";
+import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen } from "react-icons/fa6";
 import { cleanPhone, generateInvoicePDF } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useInventory } from "@/context/InventoryContext";
@@ -24,49 +25,47 @@ export default function SaleForm() {
     const { items: inventoryItems } = useInventory();
     const { vendors } = useVendors();
     const { showToast } = useToast();
-    const { user } = useAuth();
+    const { user, merchantId, isStaff, appName } = useAuth(); // use merchantId, isStaff and appName
 
     const [loading, setLoading] = useState(false);
     const [clientName, setClientName] = useState("");
     const [clientPhone, setClientPhone] = useState("");
     const [clientEmail, setClientEmail] = useState("");
-    const [selectedVendorId, setSelectedVendorId] = useState("");
+    const [clientStatus, setClientStatus] = useState<"Clear" | "Pending" | "Partial">("Clear");
     const [vendorName, setVendorName] = useState("");
     const [vendorPhone, setVendorPhone] = useState("");
-    const [clientStatus, setClientStatus] = useState<"Clear" | "Pending" | "Partial">("Clear");
     const [vendorStatus, setVendorStatus] = useState<"Paid" | "Unpaid" | "Credit">("Paid");
-    const [pendingAmount, setPendingAmount] = useState<number | "">("");
-    const [instructions, setInstructions] = useState("No Instructions");
+    const [pendingAmount, setPendingAmount] = useState(0);
+    const [instructions, setInstructions] = useState("");
+    const [tools, setTools] = useState<ToolItem[]>([]);
     const [existingClients, setExistingClients] = useState<Client[]>([]);
+    const [companyInfo, setCompanyInfo] = useState<any>(null);
     const [showClientSearch, setShowClientSearch] = useState(false);
+    const [selectedVendorId, setSelectedVendorId] = useState("");
     const [errors, setErrors] = useState<string[]>([]);
-    const [companyInfo, setCompanyInfo] = useState<any>({ companyName: "", logoUrl: "", accountNumber: "", iban: "", bankName: "", accountHolder: "", reminderTemplate: "", instructions: {} });
-
-    const INSTRUCTION_TEMPLATES = useMemo(() => {
-        return companyInfo.instructions || {
-            "Shared": "This is a shared account. Please do not change password or profile settings.",
-            "Mail Access": "Full mail access provided. You can change the password after login.",
-            "Private": "This is a private account. Only you have access to this subscription."
-        };
-    }, [companyInfo]);
 
     const today = new Date().toISOString().slice(0, 10);
-    const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const nextMonth = new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().slice(0, 10);
 
-    const [tools, setTools] = useState<ToolItem[]>([
-        { name: "", type: "Shared", pDate: today, eDate: nextMonth, sell: 0, cost: 0, plan: "" }
-    ]);
+
+
+    // ...
+
+
 
     // Load Sale if editing
     useEffect(() => {
         if (editId) {
             const load = async () => {
-                if (!user) return;
-                const snap = await getDoc(doc(db, "users", user.uid, "salesHistory", editId));
+                if (!merchantId) return; // use merchantId
+                const snap = await getDoc(doc(db, "users", merchantId, "salesHistory", editId)); // use merchantId
                 if (snap.exists()) {
+                    // ...
                     const data = snap.data() as Sale;
                     if (data.client) {
+                        // ...
                         setClientName(data.client.name || "");
+                        // ...
                         setClientPhone(data.client.phone || "");
                         setClientEmail(data.client.email || "");
                         setClientStatus(data.client.status || "Clear");
@@ -74,7 +73,7 @@ export default function SaleForm() {
                     if (data.vendor) {
                         setVendorName(data.vendor.name || "");
                         setVendorPhone(data.vendor.phone || "");
-                        setVendorStatus(data.vendor.status || "Paid");
+                        setVendorStatus(data.vendor.status as any || "Paid");
                     }
                     if (data.finance) {
                         setPendingAmount(data.finance.pendingAmount);
@@ -89,21 +88,21 @@ export default function SaleForm() {
             };
             load();
         }
-    }, [editId]);
+    }, [editId, merchantId]); // deps
 
     // Fetch existing clients for autocomplete and Settings
     useEffect(() => {
         const loadSettings = async () => {
-            if (!user) return;
-            const snap = await getDoc(doc(db, "users", user.uid, "settings", "general"));
+            if (!merchantId) return;
+            const snap = await getDoc(doc(db, "users", merchantId, "settings", "general"));
             if (snap.exists()) setCompanyInfo(snap.data() as any);
         };
         loadSettings();
 
         const fetchClients = async () => {
-            if (!user) return;
+            if (!merchantId) return;
             const q = query(
-                collection(db, "users", user.uid, "salesHistory"),
+                collection(db, "users", merchantId, "salesHistory"),
                 orderBy("createdAt", "desc"),
                 limit(50)
             ); const snap = await getDocs(q);
@@ -261,32 +260,115 @@ export default function SaleForm() {
         }
 
         setErrors(errs);
-        return errs.length === 0;
+        return errs;
     };
 
     const handleSave = async (action: "save" | "whatsapp" | "pdf") => {
-        if (!validate()) return;
-        if (!user) {
-            showToast("You must be logged in to save.", "error");
+        const newErrors = validate();
+        if (newErrors.length > 0) {
+            showToast("Please fill all required fields", "warning");
+            return;
+        }
+        if (!merchantId) {
+            showToast("You must be logged in/staff to save.", "error");
             return;
         }
         setLoading(true);
         try {
+            const allSalesSnap = await getDocs(collection(db, "users", merchantId, "salesHistory"));
+            const allSales = allSalesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Sale));
+
+            // Map to track sales that need recalculation/update
+            const salesToUpdate = new Map<string, Sale>();
+
+            // Calculate shared costs for current tools
+            const finalTools = tools.map((tool, toolIdx) => {
+                if ((tool.type !== 'Shared' && tool.type !== 'Screen') || !tool.email || !tool.pass) {
+                    return tool;
+                }
+
+                // Find all matches (current tools + historical)
+                const histMatches: { saleId: string, itemIdx: number }[] = [];
+                allSales.forEach(s => {
+                    if (s.id === editId) return; // Skip the current sale being edited (it will be replaced)
+                    s.items.forEach((item, idx) => {
+                        if ((item.type === 'Shared' || item.type === 'Screen') &&
+                            item.name && tool.name &&
+                            item.name.toLowerCase().trim() === tool.name.toLowerCase().trim() &&
+                            (item.plan || '').toLowerCase().trim() === (tool.plan || '').toLowerCase().trim() &&
+                            item.email && tool.email &&
+                            item.email.toLowerCase().trim() === tool.email.toLowerCase().trim() &&
+                            item.pass && tool.pass &&
+                            item.pass.toLowerCase().trim() === tool.pass.toLowerCase().trim()) {
+                            histMatches.push({ saleId: s.id!, itemIdx: idx });
+                        }
+                    });
+                });
+
+                const currentMatches = tools.filter(t =>
+                    (t.type === 'Shared' || t.type === 'Screen') &&
+                    t.name && tool.name &&
+                    t.name.toLowerCase().trim() === tool.name.toLowerCase().trim() &&
+                    (t.plan || '').toLowerCase().trim() === (tool.plan || '').toLowerCase().trim() &&
+                    t.email && tool.email &&
+                    t.email.toLowerCase().trim() === tool.email.toLowerCase().trim() &&
+                    t.pass && tool.pass &&
+                    t.pass.toLowerCase().trim() === tool.pass.toLowerCase().trim()
+                ).length;
+
+                const totalShares = histMatches.length + currentMatches;
+
+                // Get original cost from inventory
+                const invItem = inventoryItems.find(i => i.name.toLowerCase().trim() === tool.name.toLowerCase().trim());
+                const originalCost = invItem ? (Number(invItem.cost) || 0) : (Number(tool.cost) || 0);
+                const unitCost = originalCost / (totalShares || 1);
+
+                // Add historical sales to update list
+                histMatches.forEach(m => {
+                    const sale = salesToUpdate.get(m.saleId) || allSales.find(as => as.id === m.saleId);
+                    if (sale) {
+                        sale.items[m.itemIdx].cost = unitCost;
+                        sale.items[m.itemIdx].shares = totalShares;
+                        salesToUpdate.set(m.saleId, sale);
+                    }
+                });
+
+                return { ...tool, cost: unitCost, shares: totalShares };
+            });
+
+            // Recalculate Finance for Current Sale
+            const finalTotalCost = finalTools.reduce((acc, t) => acc + (Number(t.cost) || 0), 0);
+            const finalTotalProfit = totalSell - finalTotalCost;
+
             let createdAt = Date.now();
 
             const saleData: any = {
                 client: { name: clientName, phone: clientPhone, status: clientStatus, email: clientEmail },
                 vendor: { name: vendorName, phone: vendorPhone, status: vendorStatus },
-                items: tools,
-                finance: { totalSell, totalCost, totalProfit, pendingAmount: Number(pendingAmount) || 0 },
+                items: finalTools,
+                finance: { totalSell, totalCost: finalTotalCost, totalProfit: finalTotalProfit, pendingAmount: Number(pendingAmount) || 0 },
                 instructions,
                 createdAt
             };
 
+            // Update matched historical sales
+            if (salesToUpdate.size > 0) {
+                const batch = writeBatch(db);
+                for (const [sId, sData] of salesToUpdate.entries()) {
+                    const sCost = sData.items.reduce((acc, t) => acc + (Number(t.cost) || 0), 0);
+                    const sProfit = Number(sData.finance.totalSell || 0) - sCost;
+                    batch.update(doc(db, "users", merchantId, "salesHistory", sId), {
+                        items: sData.items,
+                        finance: { ...sData.finance, totalCost: sCost, totalProfit: sProfit }
+                    });
+                }
+                await batch.commit();
+            }
+
             if (editId) {
-                await updateDoc(doc(db, "users", user.uid, "salesHistory", editId), saleData);
+                await updateDoc(doc(db, "users", merchantId, "salesHistory", editId), saleData);
             } else {
-                await addDoc(collection(db, "users", user.uid, "salesHistory"), { ...saleData, userId: user.uid });
+                await addDoc(collection(db, "users", merchantId, "salesHistory"), { ...saleData, userId: user?.uid, createdByStaff: !!(user && user.uid !== merchantId) });
             }
 
             if (action === "pdf") {
@@ -357,6 +439,9 @@ export default function SaleForm() {
                     msg += `\n\n*Note:* ${instructions}`;
                 }
 
+                // Add Mandatory Branding Footer
+                msg += `\n\n> *Sent by ${companyInfo.companyName || "Tapn Tools"}*\n_© Powered by ${appName || "TapnTools"}_`;
+
                 window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(msg)}`, '_blank');
                 showToast("WhatsApp opened for receipt", "info");
             }
@@ -364,9 +449,9 @@ export default function SaleForm() {
             showToast("Transaction saved successfully", "success");
 
             // Increment Sales Count and Enforce Limit
-            if (user && !editId) {
+            if (merchantId && !editId) {
                 try {
-                    const userRef = doc(db, "users", user.uid);
+                    const userRef = doc(db, "users", merchantId);
                     const userSnapshot = await getDoc(userRef);
                     if (userSnapshot.exists()) {
                         const userData = userSnapshot.data();
@@ -378,7 +463,7 @@ export default function SaleForm() {
                         // Check if limit reached
                         if (newCount >= limit) {
                             updateData.status = "paused";
-                            logAction(user.uid, "Account Paused", `User reached sales limit of ${limit}. Account auto-paused.`);
+                            logAction(merchantId, "Account Paused", `User reached sales limit. Account auto-paused.`);
                         }
 
                         await updateDoc(userRef, updateData);
@@ -389,12 +474,12 @@ export default function SaleForm() {
             }
 
             // Log the action
-            if (user) {
+            if (merchantId && user) {
                 const toolNames = tools.map(t => t.name).join(", ");
-                logAction(user.uid, editId ? "Sale Updated" : "Sale Added", `${editId ? 'Updated' : 'Added'} sale for ${clientName}. Tools: ${toolNames}. Total: ${totalSell}`);
+                logAction(merchantId, editId ? "Sale Updated" : "Sale Added", `${editId ? 'Updated' : 'Added'} sale for ${clientName}. Tools: ${toolNames}. Total: ${totalSell} by ${user.email || 'Staff'}`);
             }
 
-            if (!editId) router.push("/history");
+            if (!editId) router.push("/dashboard/history");
 
         } catch (e: any) {
             showToast("Error saving: " + e.message, "error");
@@ -403,19 +488,22 @@ export default function SaleForm() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-32">
             {errors.length > 0 && (
-                <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 p-4 rounded-xl flex gap-3 animate-in slide-in-from-top duration-300">
-                    <FaCircleExclamation className="mt-1" />
-                    <div>
-                        <p className="font-bold text-sm">Please correct the following errors:</p>
-                        <ul className="text-xs list-disc list-inside">
-                            {errors.map((e, i) => <li key={i}>{e}</li>)}
-                        </ul>
+                <Card className="border-rose-200 bg-rose-50 dark:bg-rose-900/10 mb-6 font-bold">
+                    <div className="flex items-start gap-3">
+                        <FaCircleExclamation className="text-rose-500 mt-1" />
+                        <div>
+                            <h4 className="text-sm font-bold text-rose-800 dark:text-rose-300">Please fix the following:</h4>
+                            <ul className="text-xs text-rose-700 dark:text-rose-400 mt-1 list-disc list-inside">
+                                {errors.map((e, i) => (
+                                    <li key={i}>{e}</li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
-                </div>
+                </Card>
             )}
-
             <div className="grid md:grid-cols-2 gap-4">
                 <Card className="space-y-4 relative">
                     <div className="flex justify-between">
@@ -426,11 +514,11 @@ export default function SaleForm() {
                     </div>
 
                     {showClientSearch && (
-                        <div className="absolute top-10 right-4 z-10 w-64 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="absolute top-10 right-4 z-50 w-64 bg-card border border-border rounded-xl shadow-xl shadow-black/10 dark:shadow-black/50 overflow-hidden animate-in fade-in zoom-in duration-200">
                             <div className="bg-slate-50 dark:bg-slate-800/50 p-2 text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
                                 <FaClockRotateLeft className="text-indigo-500" /> Recent 5 Customers
                             </div>
-                            <div className="divide-y divide-[var(--border)]">
+                            <div className="divide-y divide-border">
                                 {lastFiveClients.length === 0 ? (
                                     <div className="p-4 text-center text-xs text-slate-400">No recent clients found</div>
                                 ) : (
@@ -513,12 +601,12 @@ export default function SaleForm() {
                             key={idx}
                             index={idx}
                             data={tool}
-                            onChange={(field, val) => updateTool(idx, field as any, val)}
+                            onChange={(field, val) => updateTool(idx, field, val)}
                             onRemove={() => removeTool(idx)}
                             onAdd={addTool}
                             showRemove={tools.length > 1}
                             inventoryItems={inventoryItems}
-                            suggestions={inventoryItems} // Pass inventory as suggestions for tool name
+                            isStaff={isStaff}
                         />
                     ))}
                 </div>
@@ -540,24 +628,27 @@ export default function SaleForm() {
                         <option value="Paid">I have Paid Full</option>
                         <option value="Unpaid">I have Not Paid Yet</option>
                     </Select>
-                    <div className="bg-rose-50 dark:bg-rose-900/10 p-4 rounded-xl border border-rose-100 dark:border-rose-800">
-                        <div className="flex justify-between text-xs text-rose-700 dark:text-rose-400">
-                            <span>Vendor Debt (Cost Price)</span>
-                            <span className="font-bold">Rs. {vendorStatus !== "Paid" ? totalCost : 0}</span>
+                    {!isStaff && (
+                        <div className="bg-rose-50 dark:bg-rose-900/10 p-4 rounded-xl border border-rose-100 dark:border-rose-800">
+                            <div className="flex justify-between text-xs text-rose-700 dark:text-rose-400">
+                                <span>Vendor Debt (Cost Price)</span>
+                                <span className="font-bold">Rs. {vendorStatus !== "Paid" ? totalCost : 0}</span>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </Card>
             </div>
 
             {/* Instructions selected via dropdown only */}
-            <Card className="mb-24">
+            <Card className="mb-32">
                 <Select
                     label="Quick Instructions"
-                    value={Object.keys(INSTRUCTION_TEMPLATES).find(k => instructions.startsWith(INSTRUCTION_TEMPLATES[k])) || ""}
+                    value={Object.keys(companyInfo?.instructions || {}).find(k => instructions.startsWith(companyInfo?.instructions?.[k] || "")) || ""}
                     onChange={(e) => {
                         const val = e.target.value;
-                        if (val && INSTRUCTION_TEMPLATES[val]) {
-                            const template = INSTRUCTION_TEMPLATES[val];
+                        const templates = companyInfo?.instructions || {};
+                        if (val && templates[val]) {
+                            const template = templates[val];
                             const companyFooter = `\n${companyInfo.companyName || "Tapn Tools"} and powered by TapnTools`;
                             setInstructions(template + companyFooter);
                         } else {
@@ -566,13 +657,22 @@ export default function SaleForm() {
                     }}
                 >
                     <option value="">No Instructions</option>
-                    {Object.keys(INSTRUCTION_TEMPLATES).map(k => (
-                        <option key={k} value={k}>{k}</option>
-                    ))}
+                    {Object.keys(companyInfo?.instructions || {}).length > 0 ? (
+                        Object.keys(companyInfo?.instructions || {}).map(k => (
+                            <option key={k} value={k}>{k}</option>
+                        ))
+                    ) : (
+                        <option value="" disabled>No templates found (Add in Reminders)</option>
+                    )}
                 </Select>
+                <div className="flex justify-end mt-1">
+                    <Link href="/dashboard/reminders" className="text-[10px] text-indigo-500 hover:text-indigo-600 flex items-center gap-1 font-bold">
+                        <FaPen className="text-[8px]" /> Edit Templates
+                    </Link>
+                </div>
                 {instructions !== "No Instructions" && (
-                    <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-[var(--border)] text-[var(--foreground)]">
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium whitespace-pre-wrap">{instructions}</p>
+                    <div className="mt-4 p-4  rounded-xl border border-dashed border-indigo-400 text-indigo-500">
+                        <p className="text-[11px] font-medium whitespace-pre-wrap">{instructions}</p>
                     </div>
                 )}
             </Card>
@@ -582,8 +682,8 @@ export default function SaleForm() {
             <div
                 className="
                     fixed bottom-0 left-0 right-0 z-40
-                    bg-[var(--card)]
-                    border-t border-[var(--border)]
+                    bg-card
+                    border-t border-border
                     md:pl-64
                     transition-colors
                 "
@@ -594,31 +694,35 @@ export default function SaleForm() {
                         {/* Summary Stats */}
                         <div className="flex flex-wrap gap-3 text-sm">
                             <div className="px-3 py-1.5 rounded-lg  border border-slate-200  dark:border-slate-700">
-                                <div className="text-[10px] text-slate-600">
+                                <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                                     Total Sell
                                 </div>
-                                <div className="font-semibold text-slate-900 dark:text-slate-600">
+                                <div className="font-black text-foreground">
                                     {totalSell}
                                 </div>
                             </div>
 
-                            <div className="px-3 py-1.5 rounded-lg  border border-slate-200   dark:border-slate-700">
-                                <div className="text-[10px] text-slate-600 ">
-                                    Total Cost
-                                </div>
-                                <div className="font-semibold text-slate-900 dark:text-slate-600">
-                                    {totalCost}
-                                </div>
-                            </div>
+                            {!isStaff && (
+                                <>
+                                    <div className="px-3 py-1.5 rounded-lg  border border-slate-200   dark:border-slate-700">
+                                        <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                                            Total Cost
+                                        </div>
+                                        <div className="font-black text-foreground">
+                                            {totalCost}
+                                        </div>
+                                    </div>
 
-                            <div className="px-4 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30">
-                                <div className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase font-black tracking-widest">
-                                    Total Profit
-                                </div>
-                                <div className="font-bold text-lg text-emerald-700 dark:text-emerald-400">
-                                    Rs. {totalProfit}
-                                </div>
-                            </div>
+                                    <div className="px-4 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30">
+                                        <div className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase font-black tracking-widest">
+                                            Total Profit
+                                        </div>
+                                        <div className="font-bold text-lg text-emerald-700 dark:text-emerald-400">
+                                            Rs. {totalProfit}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Actions */}
@@ -663,7 +767,7 @@ export default function SaleForm() {
                                     <span title="Upgrade plan for PDF generation" className="cursor-not-allowed">
                                         <Button
                                             disabled
-                                            variant="success"
+                                            variant="secondary"
                                             className="btn-pdf opacity-50"
                                         >
                                             <FaFilePdf /> PDF (Locked)

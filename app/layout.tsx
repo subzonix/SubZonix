@@ -9,7 +9,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Tapn Tools | Admin Console",
+  title: "SubsGrow | Admin Console",
   description: "Secure Cloud Sales Console",
 };
 
@@ -28,3 +28,4 @@ export default function RootLayout({
     </html>
   );
 }
+// Force recompile

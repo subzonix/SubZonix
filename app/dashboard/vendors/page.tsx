@@ -17,7 +17,7 @@ export default function VendorsPage() {
     const { vendors, loading, addVendor, updateVendor, deleteVendor } = useVendors();
     const { sales } = useSales();
     const { items: inventory } = useInventory();
-    const { user } = useAuth();
+    const { user, merchantId } = useAuth();
     const { showToast, confirm } = useToast();
 
     const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -27,12 +27,21 @@ export default function VendorsPage() {
     const [newVendor, setNewVendor] = useState<{ name: string, phone: string, relatedTools: string[] }>({ name: "", phone: "", relatedTools: [] });
     const [toolInput, setToolInput] = useState("");
     const [selectedToolId, setSelectedToolId] = useState("");
+
     const [isCustomTool, setIsCustomTool] = useState(false);
+    const [editToolInput, setEditToolInput] = useState("");
 
     const handleAdd = async () => {
         if (!newVendor.name || !newVendor.phone) return showToast("Name and Phone are required", "error");
-        await addVendor({ ...newVendor, status: "Paid", isMe: false });
+
+        let finalTools = [...newVendor.relatedTools];
+        if (toolInput.trim() && !finalTools.includes(toolInput.trim())) {
+            finalTools.push(toolInput.trim());
+        }
+
+        await addVendor({ ...newVendor, relatedTools: finalTools, status: "Paid", isMe: false });
         setNewVendor({ name: "", phone: "", relatedTools: [] });
+        setToolInput("");
         showToast("Vendor added successfully", "success");
     };
 
@@ -46,10 +55,10 @@ export default function VendorsPage() {
 
         if (ok) {
             try {
-                if (!user) return;
+                if (!merchantId) return;
                 const batch = writeBatch(db);
                 vendors.forEach(v => {
-                    const vRef = doc(db, "users", user.uid, "vendors", v.id!);
+                    const vRef = doc(db, "users", merchantId, "vendors", v.id!);
                     batch.update(vRef, { isMe: v.id === vendorId });
                 });
                 await batch.commit();
@@ -62,8 +71,14 @@ export default function VendorsPage() {
 
     const handleUpdate = async () => {
         if (isEditing) {
-            await updateVendor(isEditing, editForm);
+            let finalTools = [...(editForm.relatedTools || [])];
+            if (editToolInput.trim() && !finalTools.includes(editToolInput.trim())) {
+                finalTools.push(editToolInput.trim());
+            }
+
+            await updateVendor(isEditing, { ...editForm, relatedTools: finalTools });
             setIsEditing(null);
+            setEditToolInput("");
             showToast("Vendor updated", "success");
         }
     };
@@ -96,8 +111,8 @@ export default function VendorsPage() {
 
     const handleMarkPaid = async (saleId: string) => {
         try {
-            if (!user) return;
-            await updateDoc(doc(db, "users", user.uid, "salesHistory", saleId), {
+            if (!merchantId) return;
+            await updateDoc(doc(db, "users", merchantId, "salesHistory", saleId), {
                 "vendor.status": "Paid"
             });
             showToast("Payment status updated", "success");
@@ -287,16 +302,18 @@ export default function VendorsPage() {
                                                             ))}
                                                         </select>
                                                         <input
+                                                            value={editToolInput}
+                                                            onChange={(e) => setEditToolInput(e.target.value)}
                                                             placeholder="Type custom & Enter..."
                                                             className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-700 bg-transparent text-[var(--foreground)] text-[10px] focus:outline-none"
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter') {
                                                                     e.preventDefault();
-                                                                    const val = e.currentTarget.value.trim();
+                                                                    const val = editToolInput.trim();
                                                                     if (val && !editForm.relatedTools?.includes(val)) {
                                                                         setEditForm(prev => ({ ...prev, relatedTools: [...(prev.relatedTools || []), val] }));
                                                                     }
-                                                                    e.currentTarget.value = "";
+                                                                    setEditToolInput("");
                                                                 }
                                                             }}
                                                         />
@@ -475,16 +492,18 @@ export default function VendorsPage() {
                                                                     ))}
                                                                 </select>
                                                                 <input
+                                                                    value={editToolInput}
+                                                                    onChange={(e) => setEditToolInput(e.target.value)}
                                                                     placeholder="Add custom & Enter..."
                                                                     className="px-2 py-1 text-[9px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded outline-none w-full"
                                                                     onKeyDown={(e) => {
                                                                         if (e.key === 'Enter') {
                                                                             e.preventDefault();
-                                                                            const val = e.currentTarget.value.trim();
+                                                                            const val = editToolInput.trim();
                                                                             if (val && !editForm.relatedTools?.includes(val)) {
                                                                                 setEditForm(prev => ({ ...prev, relatedTools: [...(prev.relatedTools || []), val] }));
                                                                             }
-                                                                            e.currentTarget.value = "";
+                                                                            setEditToolInput("");
                                                                         }
                                                                     }}
                                                                 />
@@ -538,10 +557,10 @@ export default function VendorsPage() {
                                                                             });
                                                                             if (ok) {
                                                                                 try {
-                                                                                    if (!user) return;
+                                                                                    if (!merchantId) return;
                                                                                     const batch = writeBatch(db);
                                                                                     unpaidSales.forEach(s => {
-                                                                                        const ref = doc(db, "users", user.uid, "salesHistory", s.id!);
+                                                                                        const ref = doc(db, "users", merchantId, "salesHistory", s.id!);
                                                                                         batch.update(ref, { "vendor.status": "Paid" });
                                                                                     });
                                                                                     await batch.commit();

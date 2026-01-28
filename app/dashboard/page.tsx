@@ -1,21 +1,63 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useSales } from "@/context/SalesContext";
+import { useAuth } from "@/context/AuthContext";
+import { auth, db } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 import { FaChartLine, FaCalendarDay, FaUserClock, FaShop } from "react-icons/fa6";
 import clsx from "clsx";
 import { Sale, ToolItem } from "@/types";
 import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
+import { formatDateSafe } from "@/lib/utils";
 
 export default function DashboardPage() {
     const { sales, loading } = useSales();
+    const { user, isStaff, staffPermissions } = useAuth();
+    const [recentMartOrders, setRecentMartOrders] = useState<any[]>([]);
+    const [martLoading, setMartLoading] = useState(true);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (isStaff) {
+            // Staff are not allowed on the main dashboard overview
+            if (staffPermissions?.sales?.write) router.push("/dashboard/new-sale");
+            else if (staffPermissions?.inventory?.read) router.push("/dashboard/inventory");
+            else if (staffPermissions?.customers?.read) router.push("/dashboard/customers");
+            else if (staffPermissions?.sales?.read) router.push("/dashboard/expiry"); // fallback if can read sales
+            else router.push("/dashboard/settings");
+            return;
+        }
+
+        // Fetch Recent Mart Orders
+        if (user) {
+            import("firebase/firestore").then(({ collection, query, where, orderBy, limit, getDocs }) => {
+                const q = query(
+                    collection(db, "notifications"),
+                    where("userId", "==", user.uid),
+                    where("type", "==", "shop_order"),
+                    orderBy("createdAt", "desc"),
+                    limit(5)
+                );
+                getDocs(q).then((snap) => {
+                    setRecentMartOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                    setMartLoading(false);
+                }).catch(err => {
+                    console.error("Error fetching mart orders:", err);
+                    setMartLoading(false);
+                });
+            });
+        }
+    }, [isStaff, staffPermissions, router, user]);
+
     const [fromDate, setFromDate] = useState(new Date().toISOString().slice(0, 10));
     const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10));
     const [appliedFilter, setAppliedFilter] = useState({ from: fromDate, to: toDate });
 
     const filteredSales = useMemo(() => {
         return sales.filter(s => {
-            const date = new Date(s.createdAt).toISOString().slice(0, 10);
+            const date = formatDateSafe(s.createdAt);
+            if (!date) return false;
             return date >= appliedFilter.from && date <= appliedFilter.to;
         });
     }, [sales, appliedFilter]);
@@ -216,7 +258,7 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
                 <div className="flex items-center gap-6">
                     <div>
-                        <h1 className="text-xl font-bold text-[var(--foreground)]">Business Overview</h1>
+                        <h1 className="text-xl font-bold text-foreground">Business Overview</h1>
                         <p className="text-xs text-slate-500">Track performance and activities</p>
                     </div>
                 </div>
@@ -296,18 +338,20 @@ export default function DashboardPage() {
                 <StatCard title="Vendor Dues" value={stats.vendorDues} color="rose" icon={FaShop} />
             </div>
 
+            {/* Mart Orders Widget */}
+
             {/* Content Area */}
             {viewMode === "stats" ? (
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm transition-colors overflow-hidden">
+                <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-5 shadow-sm transition-colors overflow-hidden">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h2 className="text-sm font-semibold text-[var(--foreground)]">Transactions In Range</h2>
+                            <h2 className="text-sm font-semibold text-foreground">Transactions In Range</h2>
                             <div className="text-[11px] text-slate-500 ">Showing results from {appliedFilter.from} to {appliedFilter.to}</div>
                         </div>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-[11px] text-left text-[var(--foreground)]">
+                        <table className="w-full text-[11px] text-left text-foreground">
                             <thead className="bg-slate-100 dark:bg-slate-800/80 text-[10px] uppercase text-slate-400">
                                 <tr>
                                     <th className="px-3 py-2 rounded-l-lg">Time</th>
@@ -317,7 +361,7 @@ export default function DashboardPage() {
                                     <th className="px-3 py-2 rounded-r-lg text-right">Net Profit</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--border)]">
+                            <tbody className="divide-y divide-border">
                                 {loading ? (
                                     <tr><td colSpan={5} className="px-3 py-4 text-center text-slate-400 animate-pulse">Fetching records...</td></tr>
                                 ) : recentSales.length === 0 ? (
@@ -330,8 +374,8 @@ export default function DashboardPage() {
                                                 <div>{new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
                                             </td>
                                             <td className="px-3 py-3">
-                                                <div className="font-black text-sm text-[var(--foreground)]">{s.client?.name}</div>
-                                                <div className="text-[10px] text-slate-400">Via: {s.vendor?.name}</div>
+                                                <div className="font-black text-sm text-foreground">{s.client?.name || "Unknown"}</div>
+                                                <div className="text-[10px] text-slate-400">Via: {s.vendor?.name || "N/A"}</div>
                                             </td>
                                             <td className="px-3 py-3">
                                                 <div className="flex flex-wrap gap-1">
@@ -353,9 +397,9 @@ export default function DashboardPage() {
                                                     </div>
                                                     <div className={clsx(
                                                         "text-[9px] font-bold uppercase",
-                                                        s.vendor.status === "Paid" ? "text-slate-400" : "text-rose-500"
+                                                        s.vendor?.status === "Paid" ? "text-slate-400" : "text-rose-500"
                                                     )}>
-                                                        V: {s.vendor.status}
+                                                        V: {s.vendor?.status || "N/A"}
                                                     </div>
                                                 </div>
                                             </td>
@@ -372,7 +416,7 @@ export default function DashboardPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
                     {/* Multi-line Financial Chart */}
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm min-h-[350px] md:col-span-2">
+                    <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[350px] md:col-span-2">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Financial Overview</h3>
                             <div className="flex flex-wrap gap-4">
@@ -396,7 +440,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Separate Revenue Chart */}
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm min-h-[300px]">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Revenue Trend</h3>
                         <div className="h-64 w-full">
                             {chartData && <RevenueChart data={chartData.revenue} />}
@@ -404,21 +448,21 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Separate Profit Chart */}
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm min-h-[300px]">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Profit Trend</h3>
                         <div className="h-64 w-full">
                             {chartData && <RevenueChart data={chartData.profit} />}
                         </div>
                     </div>
 
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm min-h-[300px]">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Top Vendors (Revenue)</h3>
                         <div className="h-64 w-full">
                             {chartData && <VendorChart data={chartData.vendors} />}
                         </div>
                     </div>
 
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm min-h-[300px] grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px] grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Top Tools</h3>
                             <div className="flex items-center justify-center h-48">
@@ -441,28 +485,54 @@ export default function DashboardPage() {
 // Sub-components
 
 function StatCard({ title, value, color, icon: Icon, isCurrency = true }: any) {
-    const colors: any = {
-        emerald: "from-emerald-500 to-emerald-600 text-emerald-100",
-        indigo: "from-[#4f46e5] to-[#6366f1] text-indigo-100",
-        amber: "from-amber-500 to-amber-600 text-amber-100",
-        rose: "from-rose-500 to-rose-600 text-rose-100",
-        blue: "from-blue-500 to-blue-600 text-blue-100",
+    const styles: any = {
+        emerald: {
+            container: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/30 shadow-emerald-500/5",
+            icon: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+            value: "text-emerald-800 dark:text-emerald-50",
+            watermark: "text-emerald-600/10 dark:text-emerald-400/10",
+        },
+        indigo: {
+            container: "bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-500/30 shadow-indigo-500/5",
+            icon: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400",
+            value: "text-indigo-800 dark:text-indigo-50",
+            watermark: "text-indigo-600/10 dark:text-indigo-400/10",
+        },
+        amber: {
+            container: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-500/30 shadow-amber-500/5",
+            icon: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+            value: "text-amber-800 dark:text-amber-50",
+            watermark: "text-amber-600/10 dark:text-amber-400/10",
+        },
+        rose: {
+            container: "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/30 shadow-rose-500/5",
+            icon: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
+            value: "text-rose-800 dark:text-rose-50",
+            watermark: "text-rose-600/10 dark:text-rose-400/10",
+        },
+        blue: {
+            container: "bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-500/30 shadow-sky-500/5",
+            icon: "bg-sky-500/15 text-sky-700 dark:text-sky-400",
+            value: "text-sky-800 dark:text-sky-50",
+            watermark: "text-sky-600/10 dark:text-sky-400/10",
+        },
     };
+    const s = styles[color] ?? styles.indigo;
 
     return (
-        <div className={`p-4 rounded-2xl bg-gradient-to-br ${colors[color]} text-white shadow-lg relative overflow-hidden group`}>
+        <div className={`p-4 rounded-2xl border shadow-sm relative overflow-hidden group hover:shadow-md transition-all ${s.container}`}>
             <div className="relative z-10 flex justify-between items-start">
                 <div>
-                    <div className={`text-[10px] mb-1 opacity-90 font-bold uppercase tracking-wider`}>{title}</div>
-                    <div className="text-xl font-black tracking-tight">
+                    <div className="text-[10px] mb-1 text-muted-foreground font-bold uppercase tracking-wider">{title}</div>
+                    <div className={`text-xl font-black tracking-tight ${s.value}`}>
                         {isCurrency ? "Rs. " : ""}{(value === null || value === undefined || Number.isNaN(value)) ? "0" : value.toLocaleString()}
                     </div>
                 </div>
-                <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-                    <Icon className="text-sm text-white" />
+                <div className={`p-2 rounded-lg ${s.icon}`}>
+                    <Icon className="text-sm" />
                 </div>
             </div>
-            <Icon className="absolute -bottom-4 -right-4 text-6xl opacity-10 rotate-12 group-hover:scale-110 transition-transform" />
+            <Icon className={`absolute -bottom-4 -right-4 text-6xl rotate-12 group-hover:scale-110 transition-transform ${s.watermark}`} />
         </div>
     );
 }

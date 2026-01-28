@@ -60,8 +60,8 @@ function ElegantShape({
                         "absolute inset-0 rounded-full",
                         "bg-gradient-to-r to-transparent",
                         gradient,
-                        "backdrop-blur-[2px] border-2 border-white/[0.15]",
-                        "shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]",
+                        "backdrop-blur-[2px] border-2 border-slate-900/[0.05] dark:border-white/[0.15]",
+                        "shadow-[0_8px_32px_0_rgba(0,0,0,0.05)] dark:shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]",
                         "after:absolute after:inset-0 after:rounded-full",
                         "after:bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)]"
                     )}
@@ -98,7 +98,7 @@ function HeroGeometric({
     };
 
     return (
-        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#030303]">
+        <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-background transition-colors duration-500">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-rose-500/[0.05] blur-3xl" />
 
             <div className="absolute inset-0 overflow-hidden">
@@ -149,16 +149,16 @@ function HeroGeometric({
             </div>
 
             <div className="relative z-10 container mx-auto px-4 md:px-6">
-                <div className="max-w-3xl mx-auto text-center">
+                <div className="max-w-3xl lg:max-w-6xl mx-auto text-center">
                     <motion.div
                         custom={0}
                         variants={fadeUpVariants}
                         initial="hidden"
                         animate="visible"
-                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8 md:mb-12"
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/[0.03] dark:bg-white/[0.03] border border-slate-900/[0.08] dark:border-white/[0.08] mb-8 md:mb-12"
                     >
                         <Circle className="h-2 w-2 fill-rose-500/80" />
-                        <span className="text-sm text-white/60 tracking-wide">
+                        <span className="text-sm text-slate-900/60 dark:text-white/60 tracking-wide font-medium">
                             {badge}
                         </span>
                     </motion.div>
@@ -169,17 +169,21 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 md:mb-8 tracking-tight">
-                            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/80">
+                        <h1 className="flex flex-col items-center mb-6 md:mb-8 tracking-tighter italic leading-[0.9] sm:leading-[0.8] md:leading-[0.8]">
+                            <span className="text-4xl sm:text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-600 via-indigo-500 to-slate-600 dark:from-slate-400 dark:via-blue-300 dark:to-slate-400 mb-2">
                                 {title1}
                             </span>
-                            <br />
                             <span
                                 className={cn(
-                                    "bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300 "
+                                    "text-4xl sm:text-6xl md:text-8xl font-black bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-600 drop-shadow-sm pb-2"
                                 )}
                             >
-                                {title2}
+                                {title2 === "SubsGrow" ? (
+                                    <>
+                                        <span className="">Subs</span>
+                                        <span className="bg-clip-text text-transparent bg-gradient-to-b from-emerald-500 to-emerald-700 dark:from-emerald-400 dark:to-emerald-600">Grow</span>
+                                    </>
+                                ) : title2}
                             </span>
                         </h1>
                     </motion.div>
@@ -190,7 +194,7 @@ function HeroGeometric({
                         initial="hidden"
                         animate="visible"
                     >
-                        <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
+                        <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-white/40 mb-8 leading-relaxed font-medium dark:font-light tracking-wide max-w-6xl mx-auto px-4">
                             {description}
                         </p>
                     </motion.div>
@@ -206,7 +210,7 @@ function HeroGeometric({
                 </div>
             </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/80 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-slate-50/80 dark:from-[#030303] dark:via-transparent dark:to-[#030303]/80 pointer-events-none" />
         </div>
     );
 }

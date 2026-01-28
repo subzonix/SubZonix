@@ -54,13 +54,13 @@ export default function OwnerAnalyticsPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                 <FaChartLine className="text-amber-500" /> Advanced Analytics
             </h1>
 
             {/* User Selector */}
-            <div className="border border-slate-700/50 rounded-2xl p-6 shadow-lg">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-lg shadow-black/5 dark:shadow-black/40">
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
                     Select User to Analyze
                 </label>
                 <div className="relative">
@@ -68,12 +68,12 @@ export default function OwnerAnalyticsPage() {
                     <select
                         value={selectedUserId}
                         onChange={(e) => setSelectedUserId(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none appearance-none cursor-pointer"
+                        className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-foreground focus:ring-2 focus:ring-amber-500 outline-none appearance-none cursor-pointer transition-colors"
                     >
                         <option value="">-- Choose User --</option>
                         {users.filter(u => u.role !== "owner").map(u => (
                             <option key={u.id} value={u.id}>
-                                {u.email} {u.companyName ? `(${u.companyName})` : ""}
+                                {u.companyName ? `${u.companyName} (${u.email})` : u.email}
                             </option>
                         ))}
                     </select>
@@ -88,42 +88,42 @@ export default function OwnerAnalyticsPage() {
                 >
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
-                            <div className="text-xs text-slate-400 uppercase font-bold">Total Revenue</div>
-                            <div className="text-2xl font-bold text-emerald-400 mt-1">${totalSales.toLocaleString()}</div>
+                        <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 p-4 rounded-xl">
+                            <div className="text-xs text-slate-700 dark:text-emerald-200/80 uppercase font-bold">Total Revenue</div>
+                            <div className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1">${totalSales.toLocaleString()}</div>
                         </div>
-                        <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
-                            <div className="text-xs text-slate-400 uppercase font-bold">Total Profit</div>
-                            <div className="text-2xl font-bold text-amber-400 mt-1">${totalProfit.toLocaleString()}</div>
+                        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 rounded-xl">
+                            <div className="text-xs text-slate-700 dark:text-amber-200/80 uppercase font-bold">Total Profit</div>
+                            <div className="text-2xl font-black text-amber-700 dark:text-amber-300 mt-1">${totalProfit.toLocaleString()}</div>
                         </div>
-                        <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
-                            <div className="text-xs text-slate-400 uppercase font-bold">Total Orders</div>
-                            <div className="text-2xl font-bold text-indigo-400 mt-1">{totalOrders}</div>
+                        <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 p-4 rounded-xl">
+                            <div className="text-xs text-slate-700 dark:text-indigo-200/80 uppercase font-bold">Total Orders</div>
+                            <div className="text-2xl font-black text-indigo-700 dark:text-indigo-300 mt-1">{totalOrders}</div>
                         </div>
                     </div>
 
                     {/* View Toggle */}
-                    <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl w-fit border border-slate-800">
+                    <div className="flex items-center gap-2 bg-muted/60 p-1 rounded-xl w-fit border border-border">
                         <button
                             onClick={() => setViewMode("transactions")}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${viewMode === "transactions" ? "bg-slate-800 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${viewMode === "transactions" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <FaList /> Transactions
                         </button>
                         <button
                             onClick={() => setViewMode("stats")}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${viewMode === "stats" ? "bg-slate-800 text-white shadow-sm" : "text-slate-500 hover:text-slate-300"}`}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 ${viewMode === "stats" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <FaChartLine /> Charts (Beta)
                         </button>
                     </div>
 
                     {/* Content View */}
-                    <div className="bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden shadow-lg min-h-[300px]">
+                    <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-lg shadow-black/5 dark:shadow-black/40 min-h-[300px]">
                         {viewMode === "transactions" ? (
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm text-slate-400">
-                                    <thead className="text-[10px] uppercase bg-slate-800/50 text-slate-400 font-black tracking-widest">
+                                <table className="w-full text-left text-sm text-muted-foreground">
+                                    <thead className="text-[10px] uppercase bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-black tracking-widest">
                                         <tr>
                                             <th className="px-6 py-4">Date</th>
                                             <th className="px-6 py-4">Customer</th>
@@ -133,25 +133,25 @@ export default function OwnerAnalyticsPage() {
                                             <th className="px-6 py-4 text-right">Profit</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-800">
+                                    <tbody className="divide-y divide-border">
                                         {sales.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="px-6 py-8 text-center text-slate-600 font-bold uppercase tracking-widest text-[10px]">No transactions found for this user.</td>
+                                                <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground font-bold uppercase tracking-widest text-[10px]">No transactions found for this user.</td>
                                             </tr>
                                         ) : (
                                             sales.map(sale => (
-                                                <tr key={sale.id} className="hover:bg-slate-800/30 transition border-transparent hover:border-slate-700/50 border-l-2">
+                                                <tr key={sale.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-transparent hover:border-border border-l-2">
                                                     <td className="px-6 py-4">
-                                                        <div className="text-slate-300 font-bold">{new Date(sale.createdAt).toLocaleDateString()}</div>
-                                                        <div className="text-[10px] text-slate-500">{new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                        <div className="text-foreground font-bold">{new Date(sale.createdAt).toLocaleDateString()}</div>
+                                                        <div className="text-[10px] text-muted-foreground">{new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="font-bold text-slate-200">{sale.client.name || "N/A"}</div>
-                                                        <div className="text-[10px] text-slate-500 font-mono">{sale.client.phone || "No Contact"}</div>
+                                                        <div className="font-bold text-foreground">{sale.client.name || "N/A"}</div>
+                                                        <div className="text-[10px] text-muted-foreground font-mono">{sale.client.phone || "No Contact"}</div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="font-bold text-slate-200">{sale.vendor.name || "N/A"}</div>
-                                                        <div className="text-[10px] text-slate-500 font-mono">{sale.vendor.phone || "No Contact"}</div>
+                                                        <div className="font-bold text-foreground">{sale.vendor.name || "N/A"}</div>
+                                                        <div className="text-[10px] text-muted-foreground font-mono">{sale.vendor.phone || "No Contact"}</div>
                                                     </td>
                                                     <td className="px-6 py-4 text-right font-bold text-rose-400">
                                                         Rs. {Number(sale.finance.totalCost || 0).toLocaleString()}
@@ -178,7 +178,7 @@ export default function OwnerAnalyticsPage() {
 
                 </motion.div>
             ) : (
-                <div className="text-center py-20 text-slate-600 bg-slate-900/50 rounded-3xl border border-dashed border-slate-800">
+                <div className="text-center py-20 text-muted-foreground bg-card/50 rounded-3xl border border-dashed border-border">
                     <FaUser className="text-4xl mx-auto mb-4 opacity-20" />
                     <p>Please select a user to view their analytics.</p>
                 </div>

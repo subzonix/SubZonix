@@ -5,6 +5,7 @@ import { collection, query, where, onSnapshot, orderBy } from "firebase/firestor
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { FaBullhorn, FaXmark } from "react-icons/fa6";
+import { usePathname } from "next/navigation";
 
 interface AppNotification {
     id: string;
@@ -61,11 +62,22 @@ export default function NotificationBanner() {
         };
     }, [user]);
 
-    if (notifications.length === 0) return null;
+    const pathname = usePathname();
+
+    // Filter out shop orders if on owner page
+    const filteredNotifications = notifications.filter(n => {
+        if (pathname?.startsWith("/owner") && n.message.toLowerCase().includes("order")) {
+            return false;
+        }
+        return true;
+    });
+
+    if (filteredNotifications.length === 0) return null;
 
     // Show only the latest notification
-    const latest = notifications[0];
+    const latest = filteredNotifications[0];
     const isMoving = (latest.behavior || "moving") === "moving";
+    const dateStr = new Date(latest.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
     const bgColors = {
         info: "bg-indigo-600",
@@ -99,12 +111,14 @@ export default function NotificationBanner() {
                     <div className="marquee-text text-xs font-bold w-full px-4">
                         <FaBullhorn className="shrink-0" />
                         <span>{latest.message}</span>
+                        <span className="opacity-70 text-[10px] ml-2">({dateStr})</span>
                     </div>
                 </>
             ) : (
                 <div className="w-full flex items-center justify-center gap-2 text-xs font-bold px-4">
                     <FaBullhorn className="shrink-0" />
                     <span className="truncate">{latest.message}</span>
+                    <span className="opacity-70 text-[10px]">({dateStr})</span>
                 </div>
             )}
         </div>

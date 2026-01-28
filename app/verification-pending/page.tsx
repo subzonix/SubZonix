@@ -25,8 +25,9 @@ export default function VerificationPendingPage() {
                     </button>
                     <button
                         onClick={logout}
-                        className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl transition border border-slate-700"
+                        className="w-full px-6 btn-edit dark:text-white"
                     >
+
                         Logout & Back to Login
                     </button>
                 </div>

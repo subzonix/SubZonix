@@ -19,7 +19,7 @@ export interface Vendor {
 
 export interface ToolItem {
     name: string;
-    type: "Shared" | "Private";
+    type: "Shared" | "Private" | "Screen";
     plan?: string;
     pDate: string; // YYYY-MM-DD
     eDate: string; // YYYY-MM-DD
@@ -31,16 +31,18 @@ export interface ToolItem {
     cost: number;
     inventoryId?: string;
     remindersSent?: number;
+    shares?: number; // For cost division
 }
 
 export interface InventoryItem {
     id?: string;
     name: string;
-    type: "Shared" | "Private";
+    type: "Shared" | "Private" | "Screen";
     plan?: string; // e.g. "Pro", "Premium" default text
     cost: number;
     sell: number;
     userId?: string;
+    shares?: number; // Default shares for this item
 }
 
 export interface Finance {
@@ -81,6 +83,8 @@ export interface PlanFeatures {
     customers?: boolean;
     analytics?: boolean;
     settings?: boolean;
+    mart?: boolean; // Shop/Mart page access
+    customBranding?: boolean; // Custom Logo/Branding
 }
 
 export interface Plan {
@@ -95,5 +99,29 @@ export interface Plan {
     planFeatures?: PlanFeatures; // Feature toggles for premium features
     isPublic?: boolean; // Show on public landing page (default: true)
     category?: 'personal' | 'business'; // For landing page toggle
+    dataRetentionMonths?: number;
+}
+
+export interface Permission {
+    read: boolean;
+    write: boolean;
+}
+
+export interface StaffPermissions {
+    inventory: Permission;
+    sales: Permission;
+    customers: Permission;
+    analytics: { read: boolean }; // Analytics usually read-only
+    settings: { read: boolean }; // Settings usually read-only or limited
+}
+
+export interface StaffAccount {
+    id: string;
+    ownerUid: string;
+    name: string;
+    email: string;
+    permissions: StaffPermissions;
+    createdAt: number;
+    status: "active" | "disabled";
 }
 

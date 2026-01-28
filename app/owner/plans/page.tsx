@@ -29,6 +29,8 @@ const DEFAULT_PLAN_FEATURES: PlanFeatures = {
     customers: true,
     analytics: true,
     settings: true,
+    mart: true,
+    customBranding: true,
 };
 
 export default function PlansManagementPage() {
@@ -43,6 +45,7 @@ export default function PlansManagementPage() {
         isContactOnly: false,
         isPublic: true,
         category: 'personal',
+        dataRetentionMonths: 0,
         features: [] as string[],
         planFeatures: { ...DEFAULT_PLAN_FEATURES }
     });
@@ -88,7 +91,7 @@ export default function PlansManagementPage() {
             await addDoc(collection(db, "plans"), newPlan);
             setNewPlan({
                 name: "", salesLimit: 100, price: 0, yearlyDiscount: 20, level: plans.length + 1,
-                isContactOnly: false, isPublic: true, category: 'personal', features: [], planFeatures: { ...DEFAULT_PLAN_FEATURES }
+                isContactOnly: false, isPublic: true, category: 'personal', dataRetentionMonths: 0, features: [], planFeatures: { ...DEFAULT_PLAN_FEATURES }
             });
             showToast("Plan added successfully", "success");
         } catch (e: any) {
@@ -108,6 +111,7 @@ export default function PlansManagementPage() {
                 isContactOnly: editingPlan.isContactOnly || false,
                 isPublic: editingPlan.isPublic ?? true,
                 category: editingPlan.category || 'personal',
+                dataRetentionMonths: (editingPlan as any).dataRetentionMonths || 0,
                 features: editingPlan.features || [],
                 planFeatures: editingPlan.planFeatures || DEFAULT_PLAN_FEATURES
             });
@@ -150,16 +154,16 @@ export default function PlansManagementPage() {
 
     return (
         <div className="space-y-6 pb-20 max-w-6xl mx-auto px-4">
-            <div className="flex justify-between items-center bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
+            <div className="flex justify-between items-center bg-card p-6 rounded-2xl border border-border shadow-xl shadow-black/5 dark:shadow-black/40">
                 <div>
-                    <h1 className="text-xl font-black text-white uppercase italic tracking-widest">Plans Management</h1>
+                    <h1 className="text-xl font-black text-foreground uppercase italic tracking-widest">Plans Management</h1>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Configure what users see on their upgrade page</p>
                 </div>
             </div>
 
             <div className="grid lg:grid-cols-12 gap-8">
                 {/* Form Section */}
-                <Card className="lg:col-span-4 space-y-5 bg-slate-900 border-slate-800 h-fit sticky top-24">
+                <Card className="lg:col-span-4 space-y-5 bg-card border-border h-fit sticky top-24">
                     <h2 className="text-xs font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2 mb-4">
                         {editingPlan ? <FaPen /> : <FaPlus />}
                         {editingPlan ? "Edit Subscription Plan" : "Create New Plan"}
@@ -194,6 +198,28 @@ export default function PlansManagementPage() {
                             />
                         </div>
 
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest pl-1">Data Retention</label>
+                            <select
+                                value={editingPlan ? ((editingPlan as any).dataRetentionMonths ?? 0) : (newPlan as any).dataRetentionMonths}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    editingPlan ? setEditingPlan({ ...(editingPlan as any), dataRetentionMonths: val } as any) : setNewPlan({ ...(newPlan as any), dataRetentionMonths: val } as any)
+                                }}
+                                className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                            >
+                                <option value={0}>Disabled</option>
+                                <option value={1}>1 month</option>
+                                <option value={2}>2 months</option>
+                                <option value={3}>3 months</option>
+                                <option value={6}>6 months</option>
+                                <option value={12}>1 year</option>
+                                <option value={24}>2 years</option>
+                                <option value={60}>5 years</option>
+                            </select>
+                            <p className="text-[9px] text-slate-500 pl-1">Controls which retention options users can select. Disabled hides retention for that plan.</p>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-3">
                             <Input
                                 label="Yearly Discount (%)"
@@ -225,7 +251,7 @@ export default function PlansManagementPage() {
                                         "py-2.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all",
                                         (editingPlan ? editingPlan.category === "personal" : newPlan.category === "personal" || !newPlan.category)
                                             ? "bg-indigo-500/20 border-indigo-500 text-indigo-400"
-                                            : "bg-slate-800 border-slate-700 text-slate-500 hover:bg-slate-700"
+                                            : "bg-muted/60 border-border text-muted-foreground hover:bg-muted"
                                     )}
                                 >
                                     Personal
@@ -236,7 +262,7 @@ export default function PlansManagementPage() {
                                         "py-2.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all",
                                         (editingPlan ? editingPlan.category === "business" : newPlan.category === "business")
                                             ? "bg-purple-500/20 border-purple-500 text-purple-400"
-                                            : "bg-slate-800 border-slate-700 text-slate-500 hover:bg-slate-700"
+                                            : "bg-muted/60 border-border text-muted-foreground hover:bg-muted"
                                     )}
                                 >
                                     Business
@@ -268,7 +294,7 @@ export default function PlansManagementPage() {
                                     "w-full py-2.5 rounded-xl border flex items-center justify-between px-4 transition-all text-[10px] font-bold uppercase tracking-widest",
                                     (editingPlan ? (editingPlan.isPublic ?? true) : newPlan.isPublic)
                                         ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
-                                        : "bg-slate-800 border-slate-700 text-slate-500"
+                                        : "bg-muted/60 border-border text-muted-foreground hover:bg-muted"
                                 )}
                             >
                                 <span>{(editingPlan ? (editingPlan.isPublic ?? true) : newPlan.isPublic) ? "Publicly Visible" : "Hidden (Private)"}</span>
@@ -281,7 +307,7 @@ export default function PlansManagementPage() {
                             <div className="flex gap-2 mb-3">
                                 <input
                                     type="text"
-                                    className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="flex-1 px-3 py-2 bg-background border border-border rounded-xl text-xs text-foreground outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                                     placeholder="Add a feature..."
                                     value={featureInput}
                                     onChange={e => setFeatureInput(e.target.value)}
@@ -293,7 +319,7 @@ export default function PlansManagementPage() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {(editingPlan ? editingPlan.features : newPlan.features)?.map((f, i) => (
-                                    <span key={i} className="px-2 py-1 bg-slate-800 border border-slate-700 rounded-lg text-[10px] text-slate-300 font-bold flex items-center gap-2 group">
+                                    <span key={i} className="px-2 py-1 bg-muted/60 border border-border rounded-lg text-[10px] text-slate-700 dark:text-slate-200 font-bold flex items-center gap-2 group">
                                         {f}
                                         <button onClick={() => handleRemoveFeature(i)} className="text-slate-500 hover:text-rose-500 transition-colors">
                                             <FaCircleXmark />
@@ -324,9 +350,9 @@ export default function PlansManagementPage() {
                                         key={key}
                                         type="button"
                                         onClick={() => handleTogglePlanFeature(key)}
-                                        className="w-full flex items-center justify-between p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition cursor-pointer group"
+                                        className="w-full flex items-center justify-between p-2 bg-muted/60 hover:bg-muted border border-border rounded-lg transition cursor-pointer group"
                                     >
-                                        <span className="text-xs text-slate-300 font-medium group-hover:text-white transition-colors">{label}</span>
+                                        <span className="text-xs text-slate-700 dark:text-slate-200 font-medium group-hover:text-foreground transition-colors">{label}</span>
                                         {isEnabled ? (
                                             <FaToggleOn className="text-xl text-emerald-500" />
                                         ) : (
@@ -350,6 +376,8 @@ export default function PlansManagementPage() {
                                 { key: 'customers' as keyof PlanFeatures, label: 'Customers Page' },
                                 { key: 'analytics' as keyof PlanFeatures, label: 'Analytics Page' },
                                 { key: 'settings' as keyof PlanFeatures, label: 'Settings Page' },
+                                { key: 'mart' as keyof PlanFeatures, label: 'Public Mart/Shop Page' },
+                                { key: 'customBranding' as keyof PlanFeatures, label: 'Custom Branding (Logo)' },
                             ].map(({ key, label }) => {
                                 const isEnabled = editingPlan
                                     ? (editingPlan.planFeatures?.[key] ?? true)
@@ -360,9 +388,9 @@ export default function PlansManagementPage() {
                                         key={key}
                                         type="button"
                                         onClick={() => handleTogglePlanFeature(key)}
-                                        className="w-full flex items-center justify-between p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition cursor-pointer group"
+                                        className="w-full flex items-center justify-between p-2 bg-muted/60 hover:bg-muted border border-border rounded-lg transition cursor-pointer group"
                                     >
-                                        <span className="text-xs text-slate-300 font-medium group-hover:text-white transition-colors">{label}</span>
+                                        <span className="text-xs text-slate-700 dark:text-slate-200 font-medium group-hover:text-foreground transition-colors">{label}</span>
                                         {isEnabled ? (
                                             <FaToggleOn className="text-xl text-emerald-500" />
                                         ) : (
@@ -374,7 +402,7 @@ export default function PlansManagementPage() {
                         </div>
                     </div>
 
-                    <div className="flex gap-3 mt-8 pt-4 border-t border-slate-800">
+                    <div className="flex gap-3 mt-8 pt-4 border-t border-border">
                         {editingPlan && (
                             <Button variant="outline" className="flex-1" onClick={() => { setEditingPlan(null); setFeatureInput(""); }}>Cancel</Button>
                         )}
@@ -390,35 +418,35 @@ export default function PlansManagementPage() {
                         {loading ? (
                             <div className="col-span-full py-20 text-center text-slate-500 animate-pulse font-bold uppercase tracking-widest">Loading Plans...</div>
                         ) : plans.length === 0 ? (
-                            <div className="col-span-full py-20 text-center text-slate-500 bg-slate-900 rounded-3xl border border-dashed border-slate-800 flex flex-col items-center gap-4">
+                            <div className="col-span-full py-20 text-center text-muted-foreground bg-card rounded-3xl border border-dashed border-border flex flex-col items-center gap-4">
                                 <FaPlus className="text-3xl opacity-20" />
                                 <p className="font-bold uppercase tracking-widest">No plans defined yet.</p>
                             </div>
                         ) : (
                             plans.map(plan => (
-                                <Card key={plan.id} className="bg-slate-900 border-slate-800 group hover:border-indigo-500/50 transition-all duration-300 shadow-lg relative overflow-hidden">
+                                <Card key={plan.id} className="bg-card border-border group hover:border-indigo-500/30 transition-all duration-300 shadow-lg shadow-black/5 dark:shadow-black/40 relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     <div className="flex justify-between items-start mb-6">
                                         <div>
-                                            <h3 className="text-lg font-black text-slate-100 uppercase tracking-widest italic">{plan.name}</h3>
+                                            <h3 className="text-lg font-black text-foreground uppercase tracking-widest italic">{plan.name}</h3>
                                             <div className="flex items-baseline gap-1 mt-1">
                                                 <span className="text-xl font-black text-indigo-400">₹{plan.price}</span>
                                                 <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">/ Month</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => setEditingPlan(plan)} className="p-2 bg-slate-800 text-slate-400 hover:text-indigo-400 hover:bg-slate-700 rounded-xl transition cursor-pointer"><FaPen className="text-xs" /></button>
-                                            <button onClick={() => handleDeletePlan(plan.id)} className="p-2 bg-slate-800 text-slate-400 hover:text-rose-400 hover:bg-slate-700 rounded-xl transition cursor-pointer"><FaTrash className="text-xs" /></button>
+                                            <button onClick={() => setEditingPlan(plan)} className="p-2 bg-muted/60 text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-muted rounded-xl transition cursor-pointer border border-border"><FaPen className="text-xs" /></button>
+                                            <button onClick={() => handleDeletePlan(plan.id)} className="p-2 bg-muted/60 text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 hover:bg-muted rounded-xl transition cursor-pointer border border-border"><FaTrash className="text-xs" /></button>
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-2 gap-2">
-                                            <div className="p-3 bg-slate-950/50 border border-slate-800 rounded-xl">
+                                            <div className="p-3 bg-slate-50 dark:bg-white/5 border border-border rounded-xl">
                                                 <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] mb-1">Sales Limit</p>
                                                 <p className="font-black text-emerald-500 text-sm whitespace-nowrap">{plan.salesLimit} ORD</p>
                                             </div>
-                                            <div className="p-3 bg-slate-950/50 border border-slate-800 rounded-xl text-center">
+                                            <div className="p-3 bg-slate-50 dark:bg-white/5 border border-border rounded-xl text-center">
                                                 <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] mb-1">Level {plan.level}</p>
                                                 <p className="text-[10px] text-amber-500 font-black uppercase">{plan.isContactOnly ? "Enterprise" : "Standard"}</p>
                                             </div>
@@ -431,7 +459,7 @@ export default function PlansManagementPage() {
 
                                         <div className="flex flex-wrap gap-1.5 min-h-[40px]">
                                             {plan.features?.slice(0, 4).map((f, i) => (
-                                                <span key={i} className="text-[10px] text-slate-400 font-medium flex items-center gap-1 bg-slate-800/50 px-2 py-0.5 rounded-md">
+                                                <span key={i} className="text-[10px] text-slate-700 dark:text-slate-300 font-medium flex items-center gap-1 bg-muted/60 px-2 py-0.5 rounded-md border border-border">
                                                     <FaCircleCheck className="text-indigo-500 text-[8px]" /> {f}
                                                 </span>
                                             ))}

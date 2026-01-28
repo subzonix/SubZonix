@@ -8,6 +8,7 @@ import PlanFeatureGuard from "@/components/PlanFeatureGuard";
 import { InventoryItem } from "@/types";
 
 import { useToast } from "@/context/ToastContext";
+import clsx from "clsx";
 
 export default function InventoryPage() {
     const { items, loading, addItem, updateItem, deleteItem } = useInventory();
@@ -21,43 +22,6 @@ export default function InventoryPage() {
         name: "", type: "Shared", cost: "" as any, sell: "" as any
     });
 
-    const handleImportCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            const text = event.target?.result as string;
-            const lines = text.split('\n');
-            let addedCount = 0;
-
-            for (let i = 1; i < lines.length; i++) { // Skip header
-                const line = lines[i].trim();
-                if (!line) continue;
-
-                // Expected format: Name,Plan,Type,Cost,Sell
-                const cols = line.split(',');
-                if (cols.length < 5) continue;
-
-                const item: InventoryItem = {
-                    name: cols[0].trim(),
-                    plan: cols[1].trim() || undefined,
-                    type: (cols[2].trim() as any) || "Shared",
-                    cost: parseFloat(cols[3].trim()) || 0,
-                    sell: parseFloat(cols[4].trim()) || 0,
-                };
-
-                if (item.name) {
-                    await addItem(item);
-                    addedCount++;
-                }
-            }
-            showToast(`Imported ${addedCount} items successfully`, "success");
-            // Reset input
-            e.target.value = '';
-        };
-        reader.readAsText(file);
-    };
 
     const handleAdd = async () => {
         if (!newItem.name) return showToast("Tool name is required", "error");
@@ -98,30 +62,27 @@ export default function InventoryPage() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h2 className="text-xl font-bold">Manage Inventory</h2>
-                    <div className="flex p-1.5 rounded-xl  border border-slate-200 dark:border-slate-700/50 self-end sm:self-auto">
-                        <button
+                    <div className="flex p-1.5 rounded-xl border border-border bg-card self-end sm:self-auto gap-1">
+                        <Button
                             onClick={() => setViewMode("card")}
-                            className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                            variant={viewMode === "card" ? "primary" : "secondary"}
+                            className={clsx(viewMode !== "card" && "bg-transparent border-transparent shadow-none hover:bg-muted/60")}
                         >
                             <FaAddressCard /> Card View
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={() => setViewMode("table")}
-                            className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                            variant={viewMode === "table" ? "primary" : "secondary"}
+                            className={clsx(viewMode !== "table" && "bg-transparent border-transparent shadow-none hover:bg-muted/60")}
                         >
                             <FaTableList /> Table View
-                        </button>
-
+                        </Button>
                     </div>
                 </div>
 
                 <Card>
                     <h3 className="text-sm font-black mb-4 flex items-center justify-between gap-2 uppercase tracking-wide">
                         <span className="flex items-center gap-2"><FaBoxesStacked className="text-indigo-500" /> Add New Inventory Item</span>
-                        <label className="cursor-pointer flex items-center gap-2 text-[10px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors text-slate-600 dark:text-slate-300">
-                            <FaFileImport /> Import CSV
-                            <input type="file" accept=".csv" className="hidden" onChange={handleImportCSV} />
-                        </label>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-3">
                         <Input label="Tool Name" value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value ? e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1) : "" })} />
@@ -134,7 +95,7 @@ export default function InventoryPage() {
                         <Input label="Cost Price" type="number" value={newItem.cost} onChange={(e) => setNewItem({ ...newItem, cost: e.target.value === "" ? "" as any : parseFloat(e.target.value) })} />
                         <Input label="Sell Price" type="number" value={newItem.sell} onChange={(e) => setNewItem({ ...newItem, sell: e.target.value === "" ? "" as any : parseFloat(e.target.value) })} />
                     </div>
-                    <button onClick={handleAdd} className="btn-save px-6 py-2.5">
+                    <button onClick={handleAdd} className="btn-save">
                         <FaPlus className="mr-2" /> Add Item
                     </button>
                 </Card>
@@ -153,8 +114,8 @@ export default function InventoryPage() {
                                                 <Input label="Sell" type="number" value={editForm.sell} onChange={(e) => setEditForm({ ...editForm, sell: e.target.value === "" ? "" as any : parseFloat(e.target.value) })} />
                                             </div>
                                             <div className="flex gap-2 justify-end mt-2">
-                                                <button onClick={() => setIsEditing(null)} className="btn-secondary text-[10px] py-1 px-3">Cancel</button>
-                                                <button onClick={handleUpdate} className="btn-save text-[10px] py-1 px-3">Save Changes</button>
+                                                <Button onClick={() => setIsEditing(null)} variant="secondary" className="text-[10px] px-3 py-1.5 min-h-9 font-black uppercase tracking-wider">Cancel</Button>
+                                                <Button onClick={handleUpdate} variant="primary" className="text-[10px] px-3 py-1.5 min-h-9 font-black uppercase tracking-wider">Save Changes</Button>
                                             </div>
                                         </div>
                                     ) : (
@@ -162,7 +123,7 @@ export default function InventoryPage() {
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                                                    <h4 className="font-black text-[11px] uppercase tracking-widest text-[var(--foreground)] truncate">
+                                                    <h4 className="font-black text-[11px] uppercase tracking-widest text-foreground truncate">
                                                         {item.name}
                                                     </h4>
                                                 </div>
@@ -197,7 +158,7 @@ export default function InventoryPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-sm">
+                        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
                             <div className="overflow-x-auto custom-scrollbar max-w-[85vw] sm:max-w-full mx-auto">
                                 <table className="w-full text-left text-[11px]">
                                     <thead className="bg-slate-5 dark:bg-slate-800/50 text-slate-500 font-black uppercase tracking-widest">
@@ -207,14 +168,14 @@ export default function InventoryPage() {
                                             <th className="px-6 py-4">Type</th>
                                             <th className="px-6 py-4">Cost Price</th>
                                             <th className="px-6 py-4">Sell Price</th>
-                                            <th className="px-6 py-4">Profit</th>
+                                            <th className="px-6 py-4">Profit (Full)</th>
                                             <th className="px-6 py-4 text-right">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-[var(--border)]">
+                                    <tbody className="divide-y divide-border">
                                         {items.map(item => (
                                             <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition group">
-                                                <td className="px-6 py-4 font-black text-[var(--foreground)]">{item.name}</td>
+                                                <td className="px-6 py-4 font-black text-foreground">{item.name}</td>
                                                 <td className="px-6 py-4  font-bold">{item.plan || "-"}</td>
                                                 <td className="px-6 py-4">
                                                     <span className="px-2 py-0.5 rounded-full border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-[9px] font-bold uppercase bg-transparent">

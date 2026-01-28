@@ -3,9 +3,12 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FaChartPie, FaBell, FaRightFromBracket, FaGem, FaChartLine, FaUsers, FaGear, FaHeadset } from "react-icons/fa6";
+import { FaChartPie, FaBell, FaRightFromBracket, FaGem, FaChartLine, FaUsers, FaGear, FaHeadset, FaShieldHalved } from "react-icons/fa6";
 import clsx from "clsx";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const NAV_ITEMS = [
     { label: "Dashboard", href: "/owner", icon: FaChartPie },
@@ -16,11 +19,34 @@ const NAV_ITEMS = [
     { label: "Advanced Analytics", href: "/owner/analytics", icon: FaChartLine },
     { label: "Settings", href: "/owner/settings", icon: FaGear },
     { label: "Notifications", href: "/owner/notifications", icon: FaBell },
+    { label: "Retention Review", href: "/owner/retention", icon: FaShieldHalved },
 ];
 
 export default function OwnerSidebar({ mobileOpen, setMobileOpen, collapsed }: { mobileOpen: boolean, setMobileOpen: (v: boolean) => void, collapsed?: boolean }) {
     const pathname = usePathname();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
+    const [unreadCounts, setUnreadCounts] = useState({ support: 0, notifications: 0 });
+
+    useEffect(() => {
+        if (!user) return;
+
+        // Support Queries Count
+        const qSupport = query(collection(db, "support_queries"), where("status", "==", "unread"));
+        const unsubSupport = onSnapshot(qSupport, (snap) => {
+            setUnreadCounts(prev => ({ ...prev, support: snap.size }));
+        });
+
+        // Notifications (Plan Requests) Count
+        const qNotif = query(collection(db, "notifications"), where("type", "==", "plan_request"));
+        const unsubNotif = onSnapshot(qNotif, (snap) => {
+            setUnreadCounts(prev => ({ ...prev, notifications: snap.size }));
+        });
+
+        return () => {
+            unsubSupport();
+            unsubNotif();
+        };
+    }, [user]);
 
     return (
         <>
@@ -43,13 +69,13 @@ export default function OwnerSidebar({ mobileOpen, setMobileOpen, collapsed }: {
                 }}
                 transition={{ duration: 0.4, type: "spring", stiffness: 150, damping: 20 }}
                 className={clsx(
-                    "fixed top-0 left-0 bottom-0 bg-[#0f172a] border-r border-slate-800 z-50 flex flex-col transition-transform duration-300 md:translate-x-0 overflow-hidden",
+                    "fixed top-0 left-0 bottom-0 bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))] border-r border-[hsl(var(--sidebar-border))] z-50 flex flex-col shadow-2xl shadow-black/5 dark:shadow-black/40 transition-transform duration-300 md:translate-x-0 overflow-hidden",
                     mobileOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
                 {/* Header */}
-                <div className={clsx("h-16 flex items-center border-b border-slate-800 transition-all duration-300", collapsed ? "px-0 justify-center" : "px-6")}>
-                    <div className={clsx("font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent truncate uppercase italic", collapsed ? "text-xl" : "text-xl")}>
+                <div className={clsx("h-16 flex items-center border-b border-[hsl(var(--sidebar-border))] transition-all duration-300", collapsed ? "px-0 justify-center" : "px-6")}>
+                    <div className={clsx("font-bold text-[hsl(var(--sidebar-fg))] truncate uppercase italic", collapsed ? "text-xl" : "text-xl")}>
                         {collapsed ? "OP" : "OWNER PANEL"}
                     </div>
                 </div>
@@ -66,31 +92,45 @@ export default function OwnerSidebar({ mobileOpen, setMobileOpen, collapsed }: {
                                 "flex items-center gap-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative",
                                 collapsed ? "justify-center px-0" : "px-4",
                                 pathname === item.href
-                                    ? "bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.05)]"
-                                    : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
+                                    ? "bg-primary/10 text-primary border border-primary/20"
+                                    : "text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-hover))] hover:text-[hsl(var(--sidebar-fg))]"
                             )}
                         >
                             <div className={clsx(
                                 "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 shrink-0",
-                                pathname === item.href ? "bg-amber-500/20 text-amber-500 shadow-lg ring-1 ring-amber-500/30" : "bg-slate-800/50 text-slate-500 group-hover:text-slate-300 group-hover:bg-slate-700/50"
+                                pathname === item.href ? "bg-primary/15 text-primary shadow-lg ring-1 ring-primary/15" : "bg-[hsl(var(--sidebar-hover))] text-[hsl(var(--sidebar-muted))] group-hover:text-[hsl(var(--sidebar-fg))]"
                             )}>
                                 <item.icon className="text-sm" />
                             </div>
                             {!collapsed && (
-                                <motion.span
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="truncate"
-                                >
-                                    {item.label}
-                                </motion.span>
+                                <div className="flex-1 flex justify-between items-center overflow-hidden">
+                                    <motion.span
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="truncate"
+                                    >
+                                        {item.label}
+                                    </motion.span>
+
+                                    {/* Badge Logic */}
+                                    {item.label === "Support Queries" && unreadCounts.support > 0 && (
+                                        <span className="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded-lg font-black min-w-[18px] text-center shadow-lg shadow-indigo-600/20 mr-2">
+                                            {unreadCounts.support}
+                                        </span>
+                                    )}
+                                    {item.label === "Notifications" && unreadCounts.notifications > 0 && (
+                                        <span className="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded-lg font-black min-w-[18px] text-center shadow-lg shadow-indigo-600/20 mr-2">
+                                            {unreadCounts.notifications}
+                                        </span>
+                                    )}
+                                </div>
                             )}
                         </Link>
                     ))}
                 </nav>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-slate-800">
+                <div className="p-4 border-t border-[hsl(var(--sidebar-border))]">
                     <button
                         onClick={logout}
                         className={clsx(

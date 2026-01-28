@@ -17,6 +17,7 @@ interface Props {
     showRemove: boolean;
     inventoryItems?: InventoryItem[];
     suggestions?: InventoryItem[];
+    isStaff?: boolean;
 }
 
 export default function ToolInput({
@@ -28,6 +29,7 @@ export default function ToolInput({
     showRemove,
     inventoryItems = [],
     suggestions = [],
+    isStaff = false,
 }: Props) {
     const isNetflix =
         data.name.toLowerCase().includes("netflix") ||
@@ -61,7 +63,7 @@ export default function ToolInput({
             onChange(null, {
                 name: item.name,
                 type: item.type,
-                plan: item.plan || "", // Default to inventory item plan, or fallback
+                plan: item.plan || "",
                 cost: item.cost ?? 0,
                 sell: item.sell ?? 0,
             });
@@ -284,18 +286,20 @@ export default function ToolInput({
                     }}
                     className="border-emerald-200"
                 />
-                <Input
-                    label="Cost Price"
-                    placeholder="0"
-                    type="number"
-                    value={data.cost === 0 ? "" : data.cost}
-                    onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        onChange("cost", isNaN(val) ? 0 : val);
-                    }}
-                    className="border-rose-200"
-                />
+                {!isStaff && (
+                    <Input
+                        label="Cost Price"
+                        placeholder="0"
+                        type="number"
+                        value={data.cost === 0 ? "" : data.cost}
+                        onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            onChange("cost", isNaN(val) ? 0 : val);
+                        }}
+                        className="border-rose-200"
+                    />
+                )}
             </div>
-        </Card>
+        </Card >
     );
 }
