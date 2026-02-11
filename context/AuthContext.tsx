@@ -178,7 +178,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                     // 2. Fetch User/Owner Data (for Plan & Status)
                     // If staff, we fetch the OWNER's data to get the plan limits and features
-                    if (currentUser.email === process.env.NEXT_PUBLIC_OWNER_EMAIL) {
+                    if (currentUser.email?.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase()) {
                         userRole = "owner";
                         userStatus = "active";
                     } else {

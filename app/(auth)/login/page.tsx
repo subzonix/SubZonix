@@ -39,15 +39,41 @@ export default function LoginPage() {
                     const userRef = doc(db, "users", user.uid);
                     const userDoc = await getDoc(userRef);
 
-                    if (!userDoc.exists()) {
-                        const isOwner = email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
+                    // Start of Admin Fix
+                    const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
+                    const currentEmail = email.toLowerCase();
+                    const isOwner = currentEmail === ownerEmail;
+
+                    if (isOwner) {
+                        // FORCE update for owner, whether doc exists or not
+                        await setDoc(userRef, {
+                            email: email, // Keep original casing for display if needed
+                            role: "owner",
+                            status: "active",
+                            createdAt: userDoc.exists() ? userDoc.data().createdAt : Date.now(),
+                            profile: {
+                                name: userDoc.exists() ? (userDoc.data().profile?.name || "Admin") : "Admin",
+                                email: email,
+                                plan: "premium", // Owners always get premium/unlimited
+                                createdAt: userDoc.exists() ? (userDoc.data().profile?.createdAt || Date.now()) : Date.now()
+                            }
+                        }, { merge: true });
+
+                        // Also ensure settings exist
+                        await setDoc(doc(db, "users", user.uid, "settings", "general"), {
+                            companyName: appName || "SubsGrow",
+                            updatedAt: Date.now()
+                        }, { merge: true });
+
+                    } else if (!userDoc.exists()) {
+                        // Normal user creation if doc doesn't exist
                         await setDoc(userRef, {
                             email,
-                            role: isOwner ? "owner" : "user",
-                            status: isOwner ? "active" : "pending",
+                            role: "user",
+                            status: "pending",
                             createdAt: Date.now(),
                             profile: {
-                                name: "Admin",
+                                name: "User",
                                 email: email,
                                 plan: "free",
                                 createdAt: Date.now()
@@ -60,6 +86,7 @@ export default function LoginPage() {
                             updatedAt: Date.now()
                         }, { merge: true });
                     }
+                    // End of Admin Fix
 
                     router.push("/dashboard");
                 } catch (loginError: any) {
