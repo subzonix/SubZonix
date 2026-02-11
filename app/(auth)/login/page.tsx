@@ -27,10 +27,13 @@ export default function LoginPage() {
         setSuccess("");
         setLoading(true);
 
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
         try {
             if (mode === "login") {
                 try {
-                    const userCred = await signInWithEmailAndPassword(auth, email, password);
+                    const userCred = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
                     const user = userCred.user;
 
                     // Check if profile exists, recreate if missing
@@ -41,19 +44,19 @@ export default function LoginPage() {
 
                     // Start of Admin Fix
                     const ownerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
-                    const currentEmail = email.toLowerCase();
+                    const currentEmail = trimmedEmail.toLowerCase();
                     const isOwner = currentEmail === ownerEmail;
 
                     if (isOwner) {
                         // FORCE update for owner, whether doc exists or not
                         await setDoc(userRef, {
-                            email: email, // Keep original casing for display if needed
+                            email: trimmedEmail, // Keep original casing for display if needed
                             role: "owner",
                             status: "active",
                             createdAt: userDoc.exists() ? userDoc.data().createdAt : Date.now(),
                             profile: {
                                 name: userDoc.exists() ? (userDoc.data().profile?.name || "Admin") : "Admin",
-                                email: email,
+                                email: trimmedEmail,
                                 plan: "premium", // Owners always get premium/unlimited
                                 createdAt: userDoc.exists() ? (userDoc.data().profile?.createdAt || Date.now()) : Date.now()
                             }
@@ -68,13 +71,13 @@ export default function LoginPage() {
                     } else if (!userDoc.exists()) {
                         // Normal user creation if doc doesn't exist
                         await setDoc(userRef, {
-                            email,
+                            email: trimmedEmail,
                             role: "user",
-                            status: "pending",
+                            status: "active", // AUTO-VERIFIED
                             createdAt: Date.now(),
                             profile: {
                                 name: "User",
-                                email: email,
+                                email: trimmedEmail,
                                 plan: "free",
                                 createdAt: Date.now()
                             }
@@ -90,52 +93,63 @@ export default function LoginPage() {
 
                     router.push("/dashboard");
                 } catch (loginError: any) {
-                    const isOwnerEmail = email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
-                    if (isOwnerEmail && loginError.code === "auth/user-not-found") {
-                        try {
-                            const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                            const user = userCred.user;
-                            const { setDoc, doc } = await import("firebase/firestore");
-                            const { db } = await import("@/lib/firebase");
+                    // Enhanced Error Handling
+                    if (loginError.code === "auth/invalid-credential" || loginError.code === "auth/wrong-password" || loginError.code === "auth/user-not-found") {
+                        // Check if it's the owner trying to login
+                        const isOwnerEmail = trimmedEmail.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
 
-                            await setDoc(doc(db, "users", user.uid), {
-                                email,
-                                role: "owner",
-                                status: "active",
-                                createdAt: Date.now(),
-                                profile: { name: "Owner", email: email, plan: "premium", createdAt: Date.now() },
-                                companyName: appName || "SubsGrow"
-                            });
+                        // If it IS the owner email, try to create account if missing (legacy logic), otherwise show specific error
+                        if (isOwnerEmail && loginError.code === "auth/user-not-found") {
+                            // ... Existing auto-create logic for owner ...
+                            try {
+                                const userCred = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
+                                const user = userCred.user;
+                                const { setDoc, doc } = await import("firebase/firestore");
+                                const { db } = await import("@/lib/firebase");
 
-                            await setDoc(doc(db, "users", user.uid, "settings", "general"), {
-                                companyName: appName || "SubsGrow",
-                                updatedAt: Date.now()
-                            }, { merge: true });
+                                await setDoc(doc(db, "users", user.uid), {
+                                    email: trimmedEmail,
+                                    role: "owner",
+                                    status: "active",
+                                    createdAt: Date.now(),
+                                    profile: { name: "Owner", email: trimmedEmail, plan: "premium", createdAt: Date.now() },
+                                    companyName: appName || "SubsGrow"
+                                });
 
-                            router.push("/dashboard");
-                            return;
-                        } catch (createError) {
-                            throw loginError;
+                                await setDoc(doc(db, "users", user.uid, "settings", "general"), {
+                                    companyName: appName || "SubsGrow",
+                                    updatedAt: Date.now()
+                                }, { merge: true });
+
+                                router.push("/dashboard");
+                                return;
+                            } catch (createError) {
+                                throw loginError;
+                            }
+                        }
+
+                        if (loginError.code === "auth/invalid-credential") {
+                            throw new Error("Invalid email or password. Any leading/trailing spaces were trimmed. If you are the admin, please reset your password if needed.");
                         }
                     }
                     throw loginError;
                 }
             } else if (mode === "register") {
-                if (password !== confirmPass) throw new Error("Passwords do not match");
+                if (trimmedPassword !== confirmPass.trim()) throw new Error("Passwords do not match");
                 if (!companyName.trim()) throw new Error("Company Name is required");
 
-                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                const userCred = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
                 const user = userCred.user;
                 const { setDoc, doc } = await import("firebase/firestore");
                 const { db } = await import("@/lib/firebase");
 
-                const isOwner = email === process.env.NEXT_PUBLIC_OWNER_EMAIL;
+                const isOwner = trimmedEmail.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
                 await setDoc(doc(db, "users", user.uid), {
-                    email,
+                    email: trimmedEmail,
                     role: isOwner ? "owner" : "user",
-                    status: isOwner ? "active" : "pending",
+                    status: "active", // AUTO-VERIFIED
                     createdAt: Date.now(),
-                    profile: { name: companyName, email: email, plan: "free", createdAt: Date.now() },
+                    profile: { name: companyName, email: trimmedEmail, plan: "free", createdAt: Date.now() },
                     companyName
                 });
 
@@ -146,13 +160,14 @@ export default function LoginPage() {
 
                 router.push("/dashboard");
             } else if (mode === "forgot") {
-                await sendPasswordResetEmail(auth, email);
+                await sendPasswordResetEmail(auth, trimmedEmail);
                 setSuccess("Password reset link sent to your email.");
                 setLoading(false);
                 return;
             }
         } catch (err: any) {
-            setError(err.message);
+            console.error("Auth Error:", err);
+            setError(err.message || "An error occurred during authentication");
             setLoading(false);
         }
     };
