@@ -94,44 +94,54 @@ export default function LoginPage() {
                     router.push("/dashboard");
                 } catch (loginError: any) {
                     // Enhanced Error Handling
-                    if (loginError.code === "auth/invalid-credential" || loginError.code === "auth/wrong-password" || loginError.code === "auth/user-not-found") {
-                        // Check if it's the owner trying to login
-                        const isOwnerEmail = trimmedEmail.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
+                    const errorCode = loginError.code;
+                    const isOwnerEmail = trimmedEmail.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
 
-                        // If it IS the owner email, try to create account if missing (legacy logic), otherwise show specific error
-                        if (isOwnerEmail && loginError.code === "auth/user-not-found") {
-                            // ... Existing auto-create logic for owner ...
-                            try {
-                                const userCred = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
-                                const user = userCred.user;
-                                const { setDoc, doc } = await import("firebase/firestore");
-                                const { db } = await import("@/lib/firebase");
+                    // ADMIN AUTO-CREATION LOGIC
+                    // If it's the owner email and we get an error indicating login failed (could be user missing OR wrong password)
+                    // We attempt to CREATE the user.
+                    if (isOwnerEmail && (errorCode === "auth/user-not-found" || errorCode === "auth/invalid-credential" || errorCode === "auth/wrong-password")) {
+                        try {
+                            // Try to create the admin account
+                            const userCred = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
+                            const user = userCred.user;
+                            const { setDoc, doc } = await import("firebase/firestore");
+                            const { db } = await import("@/lib/firebase");
 
-                                await setDoc(doc(db, "users", user.uid), {
-                                    email: trimmedEmail,
-                                    role: "owner",
-                                    status: "active",
-                                    createdAt: Date.now(),
-                                    profile: { name: "Owner", email: trimmedEmail, plan: "premium", createdAt: Date.now() },
-                                    companyName: appName || "SubsGrow"
-                                });
+                            // Create Admin Profile
+                            await setDoc(doc(db, "users", user.uid), {
+                                email: trimmedEmail,
+                                role: "owner",
+                                status: "active",
+                                createdAt: Date.now(),
+                                profile: { name: "Owner", email: trimmedEmail, plan: "premium", createdAt: Date.now() },
+                                companyName: appName || "SubsGrow"
+                            });
 
-                                await setDoc(doc(db, "users", user.uid, "settings", "general"), {
-                                    companyName: appName || "SubsGrow",
-                                    updatedAt: Date.now()
-                                }, { merge: true });
+                            await setDoc(doc(db, "users", user.uid, "settings", "general"), {
+                                companyName: appName || "SubsGrow",
+                                updatedAt: Date.now()
+                            }, { merge: true });
 
-                                router.push("/dashboard");
-                                return;
-                            } catch (createError) {
-                                throw loginError;
+                            router.push("/dashboard");
+                            return;
+
+                        } catch (createError: any) {
+                            // If creation failed because email is in use, then the original login error was due to WRONG PASSWORD
+                            if (createError.code === "auth/email-already-in-use") {
+                                throw new Error("Invalid password for Admin account.");
                             }
-                        }
-
-                        if (loginError.code === "auth/invalid-credential") {
-                            throw new Error("Invalid email or password. Any leading/trailing spaces were trimmed. If you are the admin, please reset your password if needed.");
+                            // Otherwise, it's some other creation error
+                            throw createError;
                         }
                     }
+
+                    // NORMAL USER ERROR MESSAGING
+                    if (errorCode === "auth/invalid-credential" || errorCode === "auth/user-not-found" || errorCode === "auth/wrong-password") {
+                        throw new Error("Invalid email or password.");
+                    }
+
+                    // Fallback for other errors (network, too-many-requests etc)
                     throw loginError;
                 }
             } else if (mode === "register") {
@@ -166,8 +176,7 @@ export default function LoginPage() {
                 return;
             }
         } catch (err: any) {
-            console.error("Auth Error:", err);
-            setError(err.message || "An error occurred during authentication");
+            setError(err instanceof Error ? err.message : "An error occurred during authentication");
             setLoading(false);
         }
     };
