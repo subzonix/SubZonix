@@ -176,9 +176,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         setStaffPermissions(undefined);
                     }
 
+                    // DEBUG: Check values
+                    const ownerEmailEnv = process.env.NEXT_PUBLIC_OWNER_EMAIL?.trim().toLowerCase();
+                    const userEmail = currentUser.email?.trim().toLowerCase();
+
+                    console.log("[AuthContext] Checking Owner:", {
+                        userEmail,
+                        ownerEmailEnv,
+                        match: userEmail === ownerEmailEnv
+                    });
+
                     // 2. Fetch User/Owner Data (for Plan & Status)
                     // If staff, we fetch the OWNER's data to get the plan limits and features
-                    if (currentUser.email?.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase()) {
+                    if (userEmail && ownerEmailEnv && userEmail === ownerEmailEnv) {
                         userRole = "owner";
                         userStatus = "active";
                     } else {
