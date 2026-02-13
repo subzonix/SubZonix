@@ -22,6 +22,7 @@ build_error.log
 build_error_2.log
 lint_output.txt
 tsc_errors.txt
+firestore.rules
 
 # =========================
 # Environment files (important)
