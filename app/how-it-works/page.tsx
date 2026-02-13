@@ -31,6 +31,8 @@ function HowItWorksContent() {
     }, [searchParams]);
     const YOUTUBE_VIDEO_ID = "y8mHzXid0oI"; // From: https://youtu.be/y8mHzXid0oI?si=tDPK-Bczoe5-u1Ne
 
+    const { appName } = useAuth(); // Move hook to top level
+
     const content = useMemo(
         () => [
             {
@@ -76,7 +78,7 @@ function HowItWorksContent() {
             {
                 title: "05. Watch Demo",
                 description:
-                    `See the platform in action. Watch a quick walkthrough to understand how ${useAuth().appName || "SubsGrow"} can revolutionize your reselling business.`,
+                    `See the platform in action. Watch a quick walkthrough to understand how ${appName || "SubZonix"} can revolutionize your reselling business.`,
                 content: (
                     <button
                         type="button"
@@ -97,7 +99,7 @@ function HowItWorksContent() {
                 ),
             },
         ],
-        []
+        [appName]
     );
 
     return (
@@ -131,7 +133,7 @@ function HowItWorksContent() {
             <VideoModal
                 open={videoOpen}
                 onClose={() => setVideoOpen(false)}
-                title={`${useAuth().appName || "SubsGrow"} Demo`}
+                title={`${appName || "SubZonix"} Demo`}
                 youtubeVideoId={YOUTUBE_VIDEO_ID}
             />
         </div>

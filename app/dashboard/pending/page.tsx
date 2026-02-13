@@ -63,21 +63,23 @@ export default function PendingPage() {
         const amt = s.finance.pendingAmount || s.finance.totalSell;
         const toolNames = s.items.map(i => i.name).join(", ");
         const emails = s.items.map(i => i.email || "N/A").join(", ");
+        const loginLinks = s.items.map(i => i.loginLink ? `- ${i.name}: ${i.loginLink}` : "").filter(Boolean).join("\n");
         const firstExpiry = s.items[0]?.eDate ? formatDate(s.items[0].eDate) : "N/A";
 
-        let template = settings?.pendingTemplate || `*Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*.\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n* *Pending Amount: [PendingAmount]*\n\nExpiry Date : [ExpiryDate]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> *Sent by [Company Name]*\n_© Powered by ${useAuth().appName || "SubsGrow"}_`;
+        let template = settings?.pendingTemplate || `*Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*.\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n[LoginLinks]\n* *Pending Amount: [PendingAmount]*\n\nExpiry Date : [ExpiryDate]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> *Sent by [Company Name]*\n_© Powered by ${useAuth().appName || "SubZonix"}_`;
 
         let msg = template
             .replace(/\[Client\]/g, s.client.name)
             .replace(/\[ActivationDate\]/g, formatDate(s.createdAt))
             .replace(/\[Tool Name\]/g, toolNames)
             .replace(/\[Email\]/g, emails)
+            .replace(/\[LoginLinks\]/g, loginLinks ? `\n*Login Links:*\n${loginLinks}\n` : "")
             .replace(/\[PendingAmount\]/g, String(amt))
             .replace(/\[ExpiryDate\]/g, firstExpiry)
             .replace(/\[Bank Name\]/g, settings?.bankName || "user not set yet")
             .replace(/\[Holder Name\]/g, settings?.accountHolder || "user not set yet")
             .replace(/\[Account No\]/g, settings?.iban || settings?.accountNumber || "user not set yet")
-            .replace(/\[Company Name\]/g, settings?.companyName || "SubsGrow");
+            .replace(/\[Company Name\]/g, settings?.companyName || "SubZonix");
 
         window.open(`https://wa.me/${cleanPhone(s.client.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
     };

@@ -1,42 +1,52 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Card, Button, Input } from "@/components/ui/Shared";
 import { useToast } from "@/context/ToastContext";
-import { FaFloppyDisk, FaUpload, FaWhatsapp, FaBuilding, FaPalette } from "react-icons/fa6";
+import { FaFloppyDisk, FaUpload, FaWhatsapp, FaBuilding, FaPalette, FaUserPlus } from "react-icons/fa6";
+import { Plan } from "@/types";
 import clsx from "clsx";
 
 export default function OwnerSettingsPage() {
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [plans, setPlans] = useState<Plan[]>([]);
     const [settings, setSettings] = useState({
         ownerWhatsApp: "",
         bankName: "",
         accountNumber: "",
         iban: "",
         accountHolder: "",
-        appName: "SubsGrow",
-        appNamePart1: "",
-        appNamePart2: "",
-        colorPart1: "#3b82f6",
-        colorPart2: "#10b981",
+        appName: "SubZonix",
+        appNamePart1: "Sub",
+        appNamePart2: "Zonix",
+        colorPart1: "#0066FF",
+        colorPart2: "#FF6A00",
         appLogoUrl: "",
-        accentColor: "#4f46e5",
+        accentColor: "#0066FF",
         themePreset: "indigo",
         sidebarLight: "card",
-        sidebarDark: "card"
+        sidebarDark: "card",
+        defaultSignupPlanId: "free_trial_plan",
+        trialDurationMonths: 1
     });
 
     useEffect(() => {
         const load = async () => {
+            // Load App config
             const snap = await getDoc(doc(db, "settings", "app_config"));
             if (snap.exists()) {
                 setSettings(prev => ({ ...prev, ...snap.data() }));
             }
+
+            // Load Plans for dropdown
+            const plansSnap = await getDocs(collection(db, "plans"));
+            const plansData = plansSnap.docs.map(d => ({ id: d.id, ...d.data() } as Plan));
+            setPlans(plansData);
         };
         load();
     }, []);
@@ -367,6 +377,40 @@ export default function OwnerSettingsPage() {
                                 onChange={(e) => setSettings({ ...settings, iban: e.target.value })}
                             />
                             <p className="text-[9px] text-slate-600 italic mt-2">These details will be shown to users when they request a plan upgrade.</p>
+                        </div>
+                    </Card>
+
+                    <Card className="p-6 bg-card border-border">
+                        <h3 className="text-sm font-black text-muted-foreground mb-6 flex items-center gap-2 uppercase tracking-widest">
+                            <FaUserPlus className="text-indigo-500" /> Registration & Trial
+                        </h3>
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Default Signup Plan</label>
+                                <select
+                                    value={settings.defaultSignupPlanId}
+                                    onChange={(e) => setSettings({ ...settings, defaultSignupPlanId: e.target.value })}
+                                    className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                                >
+                                    <option value="">Select a Plan</option>
+                                    {plans.map(plan => (
+                                        <option key={plan.id} value={plan.id}>
+                                            {plan.name} {!plan.isPublic ? "(Private)" : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-[9px] text-slate-500 mt-1">This plan will be automatically assigned to all new users upon registration.</p>
+                            </div>
+
+                            <Input
+                                label="Trial Duration (Months)"
+                                type="number"
+                                placeholder="e.g. 1"
+                                value={settings.trialDurationMonths}
+                                onChange={(e) => setSettings({ ...settings, trialDurationMonths: parseInt(e.target.value) || 0 })}
+                                icon={FaUserPlus}
+                            />
+                            <p className="text-[9px] text-slate-500">Number of months the auto-assigned plan will remain active before expiring.</p>
                         </div>
                     </Card>
                 </div>

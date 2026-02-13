@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaPlus, FaTrash, FaPen, FaCircleCheck, FaCircleXmark, FaToggleOn, FaToggleOff } from "react-icons/fa6";
 import { Card, Button, Input } from "@/components/ui/Shared";
@@ -33,6 +33,9 @@ const DEFAULT_PLAN_FEATURES: PlanFeatures = {
     customBranding: true,
 };
 
+
+const FREE_TRIAL_PLAN_ID = "free_trial_plan";
+
 export default function PlansManagementPage() {
     const [plans, setPlans] = useState<Plan[]>([]);
     const [loading, setLoading] = useState(true);
@@ -53,12 +56,51 @@ export default function PlansManagementPage() {
     const [featureInput, setFeatureInput] = useState("");
     const { showToast } = useToast();
 
+    // Auto-create Free Trial Plan if missing
+    const createFreeTrialPlan = async () => {
+        try {
+            await setDoc(doc(db, "plans", FREE_TRIAL_PLAN_ID), {
+                name: "Free Trial",
+                salesLimit: 50,
+                price: 0,
+                yearlyDiscount: 0,
+                level: 0,
+                isContactOnly: false,
+                isPublic: false, // Hidden from public
+                category: 'personal',
+                dataRetentionMonths: 1,
+                features: [
+                    "Full Dashboard Access",
+                    "Sales Management",
+                    "Inventory Tracking",
+                    "Customer Management",
+                    "Basic Analytics",
+                    "PDF Invoices",
+                    "Export Data"
+                ],
+                planFeatures: {
+                    ...DEFAULT_PLAN_FEATURES,
+                    importData: false // Only restriction
+                }
+            });
+            console.log("Free Trial plan auto-created");
+        } catch (error) {
+            console.error("Error creating free trial plan:", error);
+        }
+    };
+
     useEffect(() => {
         const q = query(collection(db, "plans"));
         const unsub = onSnapshot(q, (snap) => {
             const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Plan));
             setPlans(data);
             setLoading(false);
+
+            // Check if free trial exists
+            const hasFreeTrial = data.some(p => p.id === FREE_TRIAL_PLAN_ID);
+            if (!hasFreeTrial && snap.docs.length >= 0) {
+                createFreeTrialPlan();
+            }
         });
         return () => unsub();
     }, []);
@@ -143,6 +185,10 @@ export default function PlansManagementPage() {
     };
 
     const handleDeletePlan = async (id: string) => {
+        if (id === FREE_TRIAL_PLAN_ID) {
+            showToast("Free Trial plan cannot be deleted", "error");
+            return;
+        }
         if (!confirm("Are you sure you want to delete this plan?")) return;
         try {
             await deleteDoc(doc(db, "plans", id));

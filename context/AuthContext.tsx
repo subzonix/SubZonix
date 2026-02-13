@@ -19,6 +19,7 @@ interface AuthContextType {
     salesLimit?: number;
     currentSalesCount?: number;
     planFeatures?: PlanFeatures;
+    planExpiry?: number;
     appName: string;
     appLogoUrl: string;
     accentColor: string;
@@ -49,6 +50,7 @@ const AuthContext = createContext<AuthContextType>({
     salesLimit: undefined,
     currentSalesCount: undefined,
     planFeatures: undefined,
+    planExpiry: undefined,
     appName: "Admin Console",
     appLogoUrl: "",
     accentColor: "#4f46e5",
@@ -80,19 +82,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [salesLimit, setSalesLimit] = useState<number | undefined>(undefined);
     const [currentSalesCount, setCurrentSalesCount] = useState<number | undefined>(undefined);
     const [planFeatures, setPlanFeatures] = useState<PlanFeatures | undefined>(undefined);
-    const [appName, setAppName] = useState("SubsGrow");
+    const [planExpiry, setPlanExpiry] = useState<number | undefined>(undefined);
+    const [appName, setAppName] = useState("SubZonix");
     const [appLogoUrl, setAppLogoUrl] = useState("");
-    const [accentColor, setAccentColor] = useState("#4f46e5");
+    const [accentColor, setAccentColor] = useState("#0066FF");
     const [themePreset, setThemePreset] = useState("indigo");
     const [supportEmail, setSupportEmail] = useState("");
     const [brandDisclaimer, setBrandDisclaimer] = useState("");
     const [sidebarLight, setSidebarLight] = useState("card");
     const [sidebarDark, setSidebarDark] = useState("card");
     const [sidebarMode, setSidebarMode] = useState<"auto" | "light" | "dark">("auto");
-    const [appNamePart1, setAppNamePart1] = useState("Subs");
-    const [appNamePart2, setAppNamePart2] = useState("Grow");
-    const [colorPart1, setColorPart1] = useState("#3b82f6");
-    const [colorPart2, setColorPart2] = useState("#10b981");
+    const [appNamePart1, setAppNamePart1] = useState("Sub");
+    const [appNamePart2, setAppNamePart2] = useState("Zonix");
+    const [colorPart1, setColorPart1] = useState("#0066FF");
+    const [colorPart2, setColorPart2] = useState("#FF6A00");
     const [dataRetentionMonths, setDataRetentionMonths] = useState<number | undefined>(undefined);
     const [merchantId, setMerchantId] = useState<string | null>(null);
     const [isStaff, setIsStaff] = useState(false);
@@ -204,8 +207,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             setPlanName(data.planName);
                             setSalesLimit(data.salesLimit);
                             setCurrentSalesCount(data.currentSalesCount);
+                            setPlanExpiry(data.planExpiry);
 
-                            // Fetch plan features
+                            // AUTO-PAUSE IF EXPIRED
+                            if (userRole !== "owner" && data.planExpiry && data.planExpiry < Date.now()) {
+                                userStatus = "paused";
+                            }
                             if (data.planName) {
                                 const plansQuery = query(
                                     collection(db, "plans"),
@@ -360,7 +367,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return (
         <AuthContext.Provider value={{
-            user, loading, logout, role, status, planName, salesLimit, currentSalesCount, planFeatures,
+            user, loading, logout, role, status, planName, salesLimit, currentSalesCount, planFeatures, planExpiry,
             appName, appLogoUrl, accentColor, appNamePart1, appNamePart2, colorPart1, colorPart2, themePreset, supportEmail, brandDisclaimer, sidebarLight, sidebarDark, sidebarMode, setSidebarMode, dataRetentionMonths, merchantId, isStaff, staffPermissions
         }}>
             {children}

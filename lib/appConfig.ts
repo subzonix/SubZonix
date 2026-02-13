@@ -1,3 +1,3 @@
 export const appConfig = {
-    appName: "TapnTools",
+    appName: "SubZonix",
 };

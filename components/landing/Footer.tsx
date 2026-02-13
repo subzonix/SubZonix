@@ -54,17 +54,17 @@ export default function Footer() {
                             ) : (
                                 <div
                                     className="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 dark:border-white/10 group-hover:rotate-12 transition-transform duration-300 text-white text-lg font-black"
-                                    style={{ backgroundColor: accentColor || "#4f46e5" }}
+                                    style={{ backgroundColor: accentColor || "#0066FF" }}
                                 >
-                                    {(appName?.[0] || "T").toUpperCase()}
+                                    {(appName?.[0] || "S").toUpperCase()}
                                 </div>
                             )}
                             <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                                {appName || "SubsGrow"}
+                                {appName || "SubZonix"}
                             </span>
                         </Link>
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-8 max-w-sm">
-                            {appName || "SubsGrow"} is an all-in-one platform for digital resellers to automate inventory, track profits, and scale securely.
+                            {appName || "SubZonix"} is an all-in-one platform for digital resellers to automate inventory, track profits, and scale securely.
                         </p>
                         <div className="flex gap-4">
                             {socialLinks.map((social, i) => (
@@ -138,7 +138,7 @@ export default function Footer() {
 
                 <div className="pt-8 border-t border-slate-200 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
                     <p className="text-slate-500 dark:text-slate-500 text-sm">
-                        © {new Date().getFullYear()} {appName || "SubsGrow"}. All rights reserved.
+                        © {new Date().getFullYear()} {appName || "SubZonix"}. All rights reserved.
                     </p>
                     <div className="flex gap-6">
                         {footerLinks.legal.map((link) => (

@@ -7,6 +7,7 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaKey, FaUserPlus, FaRightToBrac
 import { useRouter } from "next/navigation";
 import ThemeToggle from "@/components/landing/ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 export default function LoginPage() {
     const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
@@ -64,7 +65,7 @@ export default function LoginPage() {
 
                         // Also ensure settings exist
                         await setDoc(doc(db, "users", user.uid, "settings", "general"), {
-                            companyName: appName || "SubsGrow",
+                            companyName: appName || "SubZonix",
                             updatedAt: Date.now()
                         }, { merge: true });
 
@@ -78,14 +79,14 @@ export default function LoginPage() {
                             profile: {
                                 name: "User",
                                 email: trimmedEmail,
-                                plan: "free",
+                                plan: "free_trial_plan", // Reference the permanent free trial plan
                                 createdAt: Date.now()
                             }
                         });
 
                         // Re-initialize Settings
                         await setDoc(doc(db, "users", user.uid, "settings", "general"), {
-                            companyName: appName || "SubsGrow",
+                            companyName: appName || "SubZonix",
                             updatedAt: Date.now()
                         }, { merge: true });
                     }
@@ -105,7 +106,7 @@ export default function LoginPage() {
                             // Try to create the admin account
                             const userCred = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
                             const user = userCred.user;
-                            const { setDoc, doc } = await import("firebase/firestore");
+                            const { setDoc, doc, getDoc } = await import("firebase/firestore");
                             const { db } = await import("@/lib/firebase");
 
                             // Create Admin Profile
@@ -119,7 +120,7 @@ export default function LoginPage() {
                             });
 
                             await setDoc(doc(db, "users", user.uid, "settings", "general"), {
-                                companyName: appName || "SubsGrow",
+                                companyName: appName || "SubZonix",
                                 updatedAt: Date.now()
                             }, { merge: true });
 
@@ -150,16 +151,51 @@ export default function LoginPage() {
 
                 const userCred = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
                 const user = userCred.user;
-                const { setDoc, doc } = await import("firebase/firestore");
+                const { setDoc, doc, getDoc } = await import("firebase/firestore");
                 const { db } = await import("@/lib/firebase");
 
                 const isOwner = trimmedEmail.toLowerCase() === process.env.NEXT_PUBLIC_OWNER_EMAIL?.toLowerCase();
+
+                let planId = isOwner ? "premium" : "free_trial_plan";
+                let planName = isOwner ? "Premium" : "Free Trial";
+                let salesLimit = isOwner ? 1000000 : 50;
+                let durationMonths = 1;
+
+                if (!isOwner) {
+                    try {
+                        const configSnap = await getDoc(doc(db, "settings", "app_config"));
+                        if (configSnap.exists()) {
+                            const config = configSnap.data();
+                            if (config.defaultSignupPlanId) {
+                                const planSnap = await getDoc(doc(db, "plans", config.defaultSignupPlanId));
+                                if (planSnap.exists()) {
+                                    const planData = planSnap.data();
+                                    planId = config.defaultSignupPlanId;
+                                    planName = planData.name;
+                                    salesLimit = planData.salesLimit;
+                                }
+                            }
+                            if (config.trialDurationMonths !== undefined) {
+                                durationMonths = config.trialDurationMonths;
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error fetching signup config:", e);
+                    }
+                }
+
+                const expiryDate = Date.now() + (durationMonths * 30 * 24 * 60 * 60 * 1000);
+
                 await setDoc(doc(db, "users", user.uid), {
                     email: trimmedEmail,
                     role: isOwner ? "owner" : "user",
                     status: "active", // AUTO-VERIFIED
                     createdAt: Date.now(),
-                    profile: { name: companyName, email: trimmedEmail, plan: "free", createdAt: Date.now() },
+                    planId,
+                    planName,
+                    salesLimit,
+                    planExpiry: expiryDate,
+                    currentSalesCount: 0,
                     companyName
                 });
 
@@ -191,18 +227,16 @@ export default function LoginPage() {
             <div className="w-full max-w-md bg-card border border-border rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/50 p-8 relative overflow-hidden backdrop-blur-sm z-10 transition-colors duration-500">
                 <div className="absolute -top-20 -right-20 w-48 h-48 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl" />
 
-                <div className="relative z-10">
-                    <div className="w-20 h-20 rounded-2xl bg-indigo-50 dark:bg-white/5 flex items-center justify-center overflow-hidden shadow-xl mx-auto mb-4 border border-indigo-200 dark:border-white/10 text-indigo-600 dark:text-indigo-300">
-                        {appLogoUrl ? (
-                            <img src={appLogoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
-                        ) : (
-                            <div className="text-2xl font-black" style={{ color: accentColor || undefined }}>
-                                {(appName?.[0] || "T").toUpperCase()}
-                            </div>
-                        )}
+                <div className="relative z-10 w-full">
+                    <div className="flex flex-col items-center mb-6">
+                        <div className="w-20 h-20 rounded-2xl bg-indigo-50 dark:bg-white/5 flex items-center justify-center overflow-hidden shadow-xl mb-4 border border-indigo-200 dark:border-white/10 text-indigo-600 dark:text-indigo-300">
+                            <BrandLogo size="lg" showIcon={true} collapsed={true} />
+                        </div>
+                        <div className="mb-2">
+                            <BrandLogo size="md" showIcon={false} />
+                        </div>
+                        <p className="text-center text-xs text-muted-foreground">AI-Powered Cloud Sales Console</p>
                     </div>
-                    <h1 className="text-center text-2xl font-semibold text-foreground">{appName || "SubsGrow"}</h1>
-                    <p className="text-center text-xs text-muted-foreground mb-6">AI-Powered Cloud Sales Console</p>
 
                     {error && <div className="mb-4 bg-destructive/10 text-destructive p-3 rounded-lg text-xs border border-destructive/20">{error}</div>}
                     {success && <div className="mb-4 bg-primary/10 text-primary p-3 rounded-lg text-xs border border-primary/20">{success}</div>}

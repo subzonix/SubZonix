@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // App config - read by everyone
+    match /settings/app_config {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        request.auth.token.email == 'subzonix@gmail.com';
+    }
+
+    // Plans collection - read by everyone
+    match /plans/{planId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        request.auth.token.email == 'subzonix@gmail.com';
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Allow users to read/write their own document
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow owner to read all user documents
+      allow read: if request.auth != null && 
+        request.auth.token.email == 'subzonix@gmail.com';
+      
+      // Settings subcollection
+      match /settings/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && 
+          request.auth.token.email == 'subzonix@gmail.com';
+      }
+    }
+    
+    // Staff accounts - only owner can manage
+    match /staff_accounts/{staffId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == staffId || request.auth.token.email == 'subzonix@gmail.com');
+      allow write: if request.auth != null && 
+        request.auth.token.email == 'subzonix@gmail.com';
+    }
+    
+    // All other collections - allow authenticated access for now
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

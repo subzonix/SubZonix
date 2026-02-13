@@ -32,6 +32,7 @@ export interface ToolItem {
     inventoryId?: string;
     remindersSent?: number;
     shares?: number; // For cost division
+    loginLink?: string;
 }
 
 export interface InventoryItem {
@@ -61,6 +62,7 @@ export interface Sale {
     instructions: string;
     createdAt: number; // timestamp
     userId?: string;
+    loginLink?: string; // URL for standard login
 }
 
 export interface PlanFeatures {

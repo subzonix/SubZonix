@@ -58,6 +58,7 @@ export default function ExpiryPage() {
                 ...item,
                 clientName: sale.client.name,
                 clientPhone: sale.client.phone,
+                loginLink: sale.loginLink,
                 clientId: sale.id, // This is the Document ID
                 itemIndex: index, // Index in the items array
                 remindersSent: item.remindersSent || 0
@@ -107,7 +108,7 @@ export default function ExpiryPage() {
         const isExpired = daysLeft < 0;
         const statusText = isExpired ? "expired" : "expiring";
 
-        let template = settings?.reminderTemplate || `*Membership Reminder*\n\nDear *[Client]*,\n\nThe following memberships are [Status] on [Date].[DayLabel]\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n\nExpiry Date : [Date]\n\nTo continue uninterrupted access, kindly confirm your renewals.\n\n> *Sent by [Company Name]*\n_© Powered by ${appConfig?.appName || "SubsGrow"}_`;
+        let template = settings?.reminderTemplate || `*Membership Reminder*\n\nDear *[Client]*,\n\nThe following memberships are [Status] on [Date].[DayLabel]\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n\nExpiry Date : [Date]\n\nTo continue uninterrupted access, kindly confirm your renewals.\n\n> *Sent by [Company Name]*\n_© Powered by ${appConfig?.appName || "SubZonix"}_`;
 
         let msg = template
             .replace(/\[Client\]/g, item.clientName)
@@ -116,7 +117,8 @@ export default function ExpiryPage() {
             .replace(/\[DayLabel\]/g, dayLabel ? ` (${dayLabel})` : "")
             .replace(/\[Tool Name\]/g, item.name)
             .replace(/\[Email\]/g, item.email || "N/A")
-            .replace(/\[Company Name\]/g, settings?.companyName || "SubsGrow");
+            .replace(/\[LoginLink\]/g, item.loginLink ? `\n🔗 Login Link: ${item.loginLink}` : "")
+            .replace(/\[Company Name\]/g, settings?.companyName || "SubZonix");
 
         window.open(`https://wa.me/${cleanPhone(item.clientPhone)}?text=${encodeURIComponent(msg)}`, '_blank');
         showToast("WhatsApp opened for reminder", "info");

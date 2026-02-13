@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
+import { BrandLogo } from "@/components/ui/BrandLogo";
+
 const NAV_ITEMS = [
     { label: "Dashboard", href: "/owner", icon: FaChartPie },
     { label: "User Management", href: "/owner/users", icon: FaUsers },
@@ -69,14 +71,22 @@ export default function OwnerSidebar({ mobileOpen, setMobileOpen, collapsed }: {
                 }}
                 transition={{ duration: 0.4, type: "spring", stiffness: 150, damping: 20 }}
                 className={clsx(
-                    "fixed top-0 left-0 bottom-0 bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))] border-r border-[hsl(var(--sidebar-border))] z-50 flex flex-col shadow-2xl shadow-black/5 dark:shadow-black/40 transition-transform duration-300 md:translate-x-0 overflow-hidden",
+                    "fixed top-0 left-0 bottom-0 bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))] border-r border-[hsl(var(--sidebar-border))] z-50 flex flex-col shadow-2xl dark:shadow-[4px_0_24px_rgba(0,0,0,0.5)] transition-transform duration-300 md:translate-x-0 overflow-hidden",
                     mobileOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
                 {/* Header */}
-                <div className={clsx("h-16 flex items-center border-b border-[hsl(var(--sidebar-border))] transition-all duration-300", collapsed ? "px-0 justify-center" : "px-6")}>
-                    <div className={clsx("font-bold text-[hsl(var(--sidebar-fg))] truncate uppercase italic", collapsed ? "text-xl" : "text-xl")}>
-                        {collapsed ? "OP" : "OWNER PANEL"}
+                <div className={clsx("border-b border-[hsl(var(--sidebar-border))] transition-all duration-300", collapsed ? "px-0 flex justify-center h-16 items-center" : "px-6 py-6 min-h-[80px] flex items-center")}>
+                    <div className="flex items-center gap-2.5">
+                        <BrandLogo size="md" showIcon={true} collapsed={true} />
+                        {!collapsed && (
+                            <div className="flex flex-col leading-none">
+                                <BrandLogo size="sm" showIcon={false} />
+                                <span className="text-[9px] uppercase tracking-widest text-[hsl(var(--sidebar-muted))] font-black opacity-80 mt-1 ml-0.5">
+                                    Owner Panel
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
 

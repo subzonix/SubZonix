@@ -99,7 +99,7 @@ function HeroGeometric({
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-background transition-colors duration-500">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-rose-500/[0.05] blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0066FF]/[0.05] via-transparent to-[#FF6A00]/[0.05] blur-3xl" />
 
             <div className="absolute inset-0 overflow-hidden">
                 <ElegantShape
@@ -175,13 +175,13 @@ function HeroGeometric({
                             </span>
                             <span
                                 className={cn(
-                                    "text-4xl sm:text-6xl md:text-8xl font-black bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-600 drop-shadow-sm pb-2"
+                                    "text-4xl sm:text-6xl md:text-8xl font-black bg-clip-text text-transparent bg-gradient-to-b from-[#0066FF] to-[#0044CC] dark:from-[#3385FF] dark:to-[#0066FF] drop-shadow-sm pb-2"
                                 )}
                             >
-                                {title2 === "SubsGrow" ? (
+                                {title2 === "SubZonix" ? (
                                     <>
-                                        <span className="">Subs</span>
-                                        <span className="bg-clip-text text-transparent bg-gradient-to-b from-emerald-500 to-emerald-700 dark:from-emerald-400 dark:to-emerald-600">Grow</span>
+                                        <span className="">Sub</span>
+                                        <span className="bg-clip-text text-transparent bg-gradient-to-b from-[#FF6A00] to-[#CC5500] dark:from-[#FF8533] dark:to-[#FF6A00]">Zonix</span>
                                     </>
                                 ) : title2}
                             </span>

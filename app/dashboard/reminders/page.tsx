@@ -12,10 +12,10 @@ import PlanFeatureGuard from "@/components/PlanFeatureGuard";
 import clsx from "clsx";
 
 const TEMPLATE_DEFAULTS: any = {
-    "Renewal Reminder": "Dear [Client],\n\nTo continue uninterrupted access to [Tool Name], kindly confirm your renewals. Your current plan expires on [Date].\n\nThank you!",
-    "Payment Pending": "*Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*.\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n* *Pending Amount: [PendingAmount]*\n\nExpiry Date : [ExpiryDate]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]",
-    "Renewal Successful": "Dear [Client],\n\nYour [Tool Name] has been renewed successfully! Thank you for choosing us.\n\nEnjoy your service!",
-    "Order Receipt": "*Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date].\n`Thank u for choosing and trusting [TrustText] [Company Name]`\n\n[ToolsList]\n\n*Payment Summary*\nTotal : [Total]\nStatus : [Status]\n\n[AccountInfo]"
+    "Renewal Reminder": "Dear [Client], 👋\n\nTo continue uninterrupted access to [Tool Name], kindly confirm your renewals. 📅 Your current plan expires on [Date].\n\n🔗 Login Link: [LoginLink]\n\nThank you! ✨",
+    "Payment Pending": "*💰 Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*. ⏳\n\n* 🛠️ Tool Name : [Tool Name]\n* 📧 Email : [Email]\n* *💵 Pending Amount: [PendingAmount]*\n\n📅 Expiry Date : [ExpiryDate]\n\n🔗 Login Link: [LoginLink]\n\nTo continue uninterrupted access, kindly clear all the dues. 🙏\n\n*🏦 Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]",
+    "Renewal Successful": "Dear [Client], 🎉\n\nYour [Tool Name] has been renewed successfully! Thank you for choosing us. ✅\n\n🔗 Login Link: [LoginLink]\n\nEnjoy your service! 🚀",
+    "Order Receipt": "*📦 Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date]. ⚡\n`Thank u for choosing and trusting [TrustText] [Company Name]`\n\n[ToolsList]\n\n🔗 Login Link: [LoginLink]\n\n*💳 Payment Summary*\n💰 Total : [Total]\n💎 Status : [Status]\n\n[AccountInfo] ✨"
 };
 
 const EditableTemplate = ({ title, icon: Icon, color, value, variables, onSave, onReset, renameInstruction, deleteInstruction, confirm, showToast }: any) => {
@@ -526,7 +526,7 @@ export default function RemindersPage() {
                                 icon={FaBell}
                                 color="text-amber-500"
                                 value={settings.reminderTemplate}
-                                variables={["[Client]", "[Tool Name]", "[Date]"]}
+                                variables={["[Client]", "[Tool Name]", "[Date]", "[LoginLink]"]}
                                 onSave={(val: string) => setSettings((prev: any) => ({ ...prev, reminderTemplate: val }))}
                                 onReset={() => TEMPLATE_DEFAULTS["Renewal Reminder"]}
                                 renameInstruction={renameInstruction}
@@ -539,7 +539,7 @@ export default function RemindersPage() {
                                 icon={FaFileInvoiceDollar}
                                 color="text-rose-500"
                                 value={settings.pendingTemplate}
-                                variables={["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]"]}
+                                variables={["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]", "[LoginLink]"]}
                                 onSave={(val: string) => setSettings((prev: any) => ({ ...prev, pendingTemplate: val }))}
                                 onReset={() => TEMPLATE_DEFAULTS["Payment Pending"]}
                                 renameInstruction={renameInstruction}
@@ -552,7 +552,7 @@ export default function RemindersPage() {
                                 icon={FaCheck}
                                 color="text-emerald-500"
                                 value={settings.receiptTemplate}
-                                variables={["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]"]}
+                                variables={["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]", "[LoginLink]"]}
                                 onSave={(val: string) => setSettings((prev: any) => ({ ...prev, receiptTemplate: val }))}
                                 onReset={() => TEMPLATE_DEFAULTS["Order Receipt"]}
                                 renameInstruction={renameInstruction}
@@ -565,7 +565,7 @@ export default function RemindersPage() {
                                 icon={FaCheck}
                                 color="text-emerald-500"
                                 value={settings.renewalTemplate}
-                                variables={["[Client]", "[Tool Name]"]}
+                                variables={["[Client]", "[Tool Name]", "[LoginLink]"]}
                                 onSave={(val: string) => setSettings((prev: any) => ({ ...prev, renewalTemplate: val }))}
                                 onReset={() => TEMPLATE_DEFAULTS["Renewal Successful"]}
                                 renameInstruction={renameInstruction}
@@ -645,10 +645,10 @@ export default function RemindersPage() {
                             <div className="space-y-2">
                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Message Reminders</h4>
                                 {[
-                                    { title: "Renewal Reminder", value: settings.reminderTemplate, variables: ["[Client]", "[Tool Name]", "[Date]"] },
-                                    { title: "Payment Pending", value: settings.pendingTemplate, variables: ["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]"] },
-                                    { title: "Order Receipt", value: settings.receiptTemplate, variables: ["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]"] },
-                                    { title: "Renewal Successful", value: settings.renewalTemplate, variables: ["[Client]", "[Tool Name]"] }
+                                    { title: "Renewal Reminder", value: settings.reminderTemplate, variables: ["[Client]", "[Tool Name]", "[Date]", "[LoginLink]"] },
+                                    { title: "Payment Pending", value: settings.pendingTemplate, variables: ["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]", "[LoginLink]"] },
+                                    { title: "Order Receipt", value: settings.receiptTemplate, variables: ["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]", "[LoginLink]"] },
+                                    { title: "Renewal Successful", value: settings.renewalTemplate, variables: ["[Client]", "[Tool Name]", "[LoginLink]"] }
                                 ].map((item) => (
                                     <div
                                         key={item.title}
@@ -722,7 +722,7 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Renewal Reminder",
                                             value: settings.reminderTemplate,
-                                            variables: ["[Client]", "[Tool Name]", "[Date]"]
+                                            variables: ["[Client]", "[Tool Name]", "[Date]", "[LoginLink]"]
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >
@@ -739,7 +739,7 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Payment Pending Alert",
                                             value: settings.pendingTemplate,
-                                            variables: ["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]"]
+                                            variables: ["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]", "[LoginLink]"]
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >
@@ -756,7 +756,7 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Order Receipt",
                                             value: settings.receiptTemplate,
-                                            variables: ["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]"]
+                                            variables: ["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]", "[LoginLink]"]
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >
@@ -773,7 +773,7 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Renewal Successful",
                                             value: settings.renewalTemplate,
-                                            variables: ["[Client]", "[Tool Name]"]
+                                            variables: ["[Client]", "[Tool Name]", "[LoginLink]"]
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >

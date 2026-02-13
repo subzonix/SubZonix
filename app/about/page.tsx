@@ -98,7 +98,7 @@ export default function AboutPage() {
                             Have questions or want to partner with us? Reach out.
                         </p>
                         <a
-                            href="mailto:support@tapntools.com"
+                            href={`mailto:${supportEmail || "support@subzonix.com"}`}
                             className="inline-flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold text-base hover:bg-indigo-500 transition-all hover:scale-105 shadow-xl shadow-indigo-600/20"
                         >
                             <FaEnvelope /> Contact Support

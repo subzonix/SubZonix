@@ -10,7 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 const testimonials = [
     {
         quote:
-            "SubsGrow transformed how I manage reselling — no more spreadsheets and instant expiry reminders.",
+            "SubZonix transformed how I manage reselling — no more spreadsheets and instant expiry reminders.",
         name: "Alex Rivera",
         title: "Digital Reseller",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
@@ -68,7 +68,7 @@ export default function TestimonialsSection() {
                         Loved by Resellers
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-                        Don't just take our word for it. Here's what our community has to say about {useAuth().appName || "SubsGrow"}.
+                        Don't just take our word for it. Here's what our community has to say about {useAuth().appName || "SubZonix"}.
                     </p>
                 </motion.div>
 

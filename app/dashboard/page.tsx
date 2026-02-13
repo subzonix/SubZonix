@@ -342,7 +342,7 @@ export default function DashboardPage() {
 
             {/* Content Area */}
             {viewMode === "stats" ? (
-                <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-5 shadow-sm transition-colors overflow-hidden">
+                <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-5 shadow-xl dark:shadow-2xl transition-colors overflow-hidden">
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h2 className="text-sm font-semibold text-foreground">Transactions In Range</h2>
@@ -416,7 +416,7 @@ export default function DashboardPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
                     {/* Multi-line Financial Chart */}
-                    <div className="bg-card border border-border rounded-2xl p-6 shadow-sm min-h-[350px] md:col-span-2">
+                    <div className="bg-card border border-border rounded-2xl p-6 shadow-xl dark:shadow-2xl min-h-[350px] md:col-span-2">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Financial Overview</h3>
                             <div className="flex flex-wrap gap-4">
@@ -440,7 +440,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Separate Revenue Chart */}
-                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-xl dark:shadow-2xl min-h-[300px]">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Revenue Trend</h3>
                         <div className="h-64 w-full">
                             {chartData && <RevenueChart data={chartData.revenue} />}
@@ -448,21 +448,21 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Separate Profit Chart */}
-                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-xl dark:shadow-2xl min-h-[300px]">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Profit Trend</h3>
                         <div className="h-64 w-full">
                             {chartData && <RevenueChart data={chartData.profit} />}
                         </div>
                     </div>
 
-                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px]">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-xl dark:shadow-2xl min-h-[300px]">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Top Vendors (Revenue)</h3>
                         <div className="h-64 w-full">
                             {chartData && <VendorChart data={chartData.vendors} />}
                         </div>
                     </div>
 
-                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-sm min-h-[300px] grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-card dark:bg-slate-900 border border-border rounded-2xl p-6 shadow-xl dark:shadow-2xl min-h-[300px] grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Top Tools</h3>
                             <div className="flex items-center justify-center h-48">
@@ -520,7 +520,7 @@ function StatCard({ title, value, color, icon: Icon, isCurrency = true }: any) {
     const s = styles[color] ?? styles.indigo;
 
     return (
-        <div className={`p-4 rounded-2xl border shadow-sm relative overflow-hidden group hover:shadow-md transition-all ${s.container}`}>
+        <div className={`p-4 rounded-2xl border shadow-xl hover:shadow-2xl transition-all relative overflow-hidden group ${s.container}`}>
             <div className="relative z-10 flex justify-between items-start">
                 <div>
                     <div className="text-[10px] mb-1 text-muted-foreground font-bold uppercase tracking-wider">{title}</div>

@@ -63,7 +63,7 @@ export function formatDateSafe(val: any, fallback = ""): string {
     }
 }
 
-export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slogan?: string, logo?: string, contact?: string, account?: string, iban?: string, bankName?: string, accountHolder?: string }) {
+export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slogan?: string, logo?: string, contact?: string, account?: string, iban?: string, bankName?: string, accountHolder?: string, loginLink?: string }) {
     const doc = new jsPDF();
     const primaryColor = [79, 70, 229]; // Indigo-600
     const secondaryColor = [241, 245, 249]; // Slate-100
@@ -149,7 +149,7 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
         // Alternate row background
         if (idx % 2 !== 0) {
             doc.setFillColor(249, 250, 251);
-            doc.rect(20, y, 170, 25, 'F');
+            doc.rect(20, y, 170, 30, 'F');
         }
 
         doc.setFont("helvetica", "bold");
@@ -162,6 +162,11 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
         doc.setTextColor(100);
         doc.text(`Type: ${item.type}`, 25, y + 14);
         doc.text(`Login: ${item.email || '-'} / ${item.pass || '-'}`, 25, y + 20);
+        if (item.loginLink) {
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text(`Link: ${item.loginLink}`, 25, y + 26);
+            doc.setTextColor(100);
+        }
 
         doc.setTextColor(0);
         doc.text(item.plan || "-", 85, y + 8);
@@ -177,7 +182,7 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
         doc.setFontSize(10);
         doc.text(`Rs. ${item.sell.toLocaleString()}`, 170, y + 8);
 
-        y += 25;
+        y += 30;
         doc.setDrawColor(241, 245, 249);
         doc.line(20, y, 190, y);
     });
@@ -280,6 +285,22 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
     const renderInstr = splitInstr.length > maxLines ? splitInstr.slice(0, maxLines).concat(["..."]) : splitInstr;
 
     doc.text(renderInstr, 115, panelY + 18);
+
+    // Login Link (if present)
+    if (companyInfo?.loginLink) {
+        const linkY = panelY + 18 + (renderInstr.length * 4) + 4;
+        if (linkY < panelY + panelHeight - 5) {
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.text("LOGIN LINK:", 115, linkY);
+
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 255); // Blue link color
+            doc.setFontSize(8);
+            const splitLink = doc.splitTextToSize(companyInfo.loginLink, 70);
+            doc.text(splitLink, 115, linkY + 4);
+        }
+    }
 
     // --- Document Footer with Indigo Background ---
     const footerHeight = 20;

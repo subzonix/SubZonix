@@ -271,6 +271,14 @@ export default function ToolInput({
                     value={data.pass || ""}
                     onChange={(e) => onChange("pass", e.target.value)}
                 />
+                <div className="col-span-2">
+                    <Input
+                        label="Login Link / URL"
+                        placeholder="https://..."
+                        value={data.loginLink || ""}
+                        onChange={(e) => onChange("loginLink", e.target.value)}
+                    />
+                </div>
             </div>
 
             {/* Prices */}

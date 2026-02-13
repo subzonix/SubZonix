@@ -40,6 +40,7 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
             if (item.pass) message += `Password: ${item.pass}\n`;
             if (item.profileName) message += `Profile: ${item.profileName}\n`;
             if (item.profilePin) message += `PIN: ${item.profilePin}\n`;
+            if (item.loginLink) message += `Link: ${item.loginLink}\n`;
             message += `Expiry: ${item.eDate}\n\n`;
         });
 
@@ -47,8 +48,8 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
             message += `*Instructions & Warranty:*\n${sale.instructions}\n\n`;
         }
 
-        message += `*Sold By:* ${companyInfo?.companyName || "Tapn Tools"}\n`;
-        message += `_Powered by TapnTools_`;
+        message += `*Sold By:* ${companyInfo?.companyName || "SubZonix"}\n`;
+        message += `_Powered by SubZonix_`;
 
         const url = `https://wa.me/${cleanPhone(sale.client.phone)}?text=${encodeURIComponent(message)}`;
         window.open(url, "_blank");
@@ -161,6 +162,7 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
                                             <div className="mt-2 pt-2 border-t border-dashed border-[var(--border)] text-[10px] space-y-1">
                                                 <div className="flex justify-between"><span className="text-slate-500">Email:</span> <span className="font-mono text-[var(--foreground)]">{item.email}</span></div>
                                                 <div className="flex justify-between"><span className="text-slate-500">Pass:</span> <span className="font-mono text-[var(--foreground)]">{item.pass}</span></div>
+                                                {item.loginLink && <div className="flex justify-between"><span className="text-slate-500">Link:</span> <a href={item.loginLink} target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:underline truncate ml-4 max-w-[150px]">{item.loginLink}</a></div>}
                                                 {item.profileName && <div className="flex justify-between"><span className="text-slate-500">Profile:</span> <span className="font-bold text-amber-600">{item.profileName} (PIN: {item.profilePin})</span></div>}
                                             </div>
                                         )}

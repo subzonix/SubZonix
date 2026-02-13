@@ -81,6 +81,9 @@ export default function SaleForm() {
                     if (data.instructions) {
                         setInstructions(data.instructions);
                     }
+                    if (data.instructions) {
+                        setInstructions(data.instructions);
+                    }
                     if (data.items) {
                         setTools(data.items);
                     }
@@ -379,7 +382,8 @@ export default function SaleForm() {
                     account: companyInfo.accountNumber,
                     iban: companyInfo.iban,
                     bankName: companyInfo.bankName,
-                    accountHolder: companyInfo.accountHolder
+                    accountHolder: companyInfo.accountHolder,
+                    loginLink: saleData.loginLink
                 });
             } else if (action === "whatsapp") {
                 const isRenew = existingClients.some(c => c.phone === clientPhone);
@@ -397,16 +401,17 @@ export default function SaleForm() {
                 // Build Tools List
                 let toolsList = "";
                 tools.forEach((t, i) => {
-                    toolsList += `*Tool # ${i + 1}*\n`;
+                    toolsList += `*🛠️ Tool # ${i + 1}*\n`;
                     toolsList += `* Tool Name : ${t.name}${t.type === 'Shared' ? ' (Shared)' : ''}\n`;
                     if (t.plan) toolsList += `* Plan : ${t.plan}\n`;
-                    toolsList += `*Credentials*\n`;
+                    toolsList += `*🔐 Credentials*\n`;
                     toolsList += `* Email : ${t.email || "N/A"}\n`;
                     toolsList += `* Password : ${t.pass || "N/A"}\n`;
                     if (t.profileName) toolsList += `* Profile : ${t.profileName}\n`;
                     if (t.profilePin) toolsList += `* Pin : ${t.profilePin}\n`;
-                    toolsList += `* Price : ${t.sell}\n`;
-                    toolsList += `Expiry Date : *${formatDate(t.eDate)}*\n\n`;
+                    if (t.loginLink) toolsList += `* 🔗 Login Link : ${t.loginLink}\n`;
+                    toolsList += `* 💰 Price : ${t.sell}\n`;
+                    toolsList += `📅 Expiry Date : *${formatDate(t.eDate)}*\n\n`;
                 });
 
                 // Build Status & Account Info
@@ -420,7 +425,7 @@ export default function SaleForm() {
                 }
 
                 // Get Template
-                let templateText = companyInfo.receiptTemplate || "*Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date].\n`Thank u for choosing and trusting [TrustText] [Company Name]`\n\n[ToolsList]\n\n*Payment Summary*\nTotal : [Total]\nStatus : [Status]\n\n[AccountInfo]\n\n> Thank you for trusting *[Company Name]*.\n_© Powered by TapnTools_";
+                let templateText = companyInfo.receiptTemplate || "*Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date].\n`Thank u for choosing and trusting [TrustText] [Company Name]`\n\n[ToolsList]\n\n*Payment Summary*\nTotal : [Total]\nStatus : [Status]\n\n[AccountInfo]\n\n> Thank you for trusting *[Company Name]*.\n_© Powered by SubZonix_";
 
                 // Replace Variables
                 let msg = templateText
@@ -428,7 +433,7 @@ export default function SaleForm() {
                     .replace(/\[ActionType\]/g, actionText)
                     .replace(/\[Date\]/g, todayFormatted)
                     .replace(/\[TrustText\]/g, trustText)
-                    .replace(/\[Company Name\]/g, companyInfo.companyName || "Tapn Tools")
+                    .replace(/\[Company Name\]/g, companyInfo.companyName || "SubZonix")
                     .replace(/\[ToolsList\]/g, toolsList.trim())
                     .replace(/\[Total\]/g, String(totalSell))
                     .replace(/\[Status\]/g, statusText)
@@ -440,7 +445,7 @@ export default function SaleForm() {
                 }
 
                 // Add Mandatory Branding Footer
-                msg += `\n\n> *Sent by ${companyInfo.companyName || "Tapn Tools"}*\n_© Powered by ${appName || "TapnTools"}_`;
+                msg += `\n\n> *Sent by ${companyInfo.companyName || "SubZonix"}*\n_© Powered by ${appName || "SubZonix"}_`;
 
                 window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(msg)}`, '_blank');
                 showToast("WhatsApp opened for receipt", "info");

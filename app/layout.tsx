@@ -9,8 +9,11 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "SubsGrow | Admin Console",
+  title: "SubZonix | Admin Panel",
   description: "Secure Cloud Sales Console",
+  icons: {
+    icon: "/tabicon.png",
+  },
 };
 
 import { Providers } from "./providers";

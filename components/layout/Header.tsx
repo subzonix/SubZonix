@@ -18,7 +18,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
     const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
-    const [appName, setAppName] = useState("SubsGrow");
+    const [appName, setAppName] = useState("SubZonix");
     const profileRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const { user, planName, salesLimit, currentSalesCount } = useAuth();
@@ -27,7 +27,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
         setMounted(true);
         const loadAppName = async () => {
             const snap = await getDoc(doc(db, "settings", "app_config"));
-            if (snap.exists()) setAppName(snap.data().appName || "SubsGrow");
+            if (snap.exists()) setAppName(snap.data().appName || "SubZonix");
         };
         loadAppName();
 

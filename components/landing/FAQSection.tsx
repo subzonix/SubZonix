@@ -12,11 +12,11 @@ const faqs = [
     },
     {
         q: "Can I manage shared accounts?",
-        a: "Yes. SubsGrow supports shared accounts with automatic cost-splitting and usage tracking."
+        a: "Yes. SubZonix supports shared accounts with automatic cost-splitting and usage tracking."
     },
     {
         q: "Does it calculate profit automatically?",
-        a: "Yes. Enter tool cost and selling price; SubsGrow will compute profit and per-user cost shares."
+        a: "Yes. Enter tool cost and selling price; SubZonix will compute profit and per-user cost shares."
     },
     {
         q: "Can I cancel anytime?",

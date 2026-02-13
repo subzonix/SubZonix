@@ -27,7 +27,9 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
         const loadPlans = async () => {
             try {
                 const plansSnap = await getDocs(collection(db, "plans"));
-                const plansData = plansSnap.docs.map(d => ({ id: d.id, ...d.data() } as Plan));
+                const plansData = plansSnap.docs
+                    .map(d => ({ id: d.id, ...d.data() } as Plan))
+                    .filter(p => p.isPublic !== false); // Filter out private plans
                 plansData.sort((a, b) => (a.salesLimit || 0) - (b.salesLimit || 0));
                 setPlans(plansData);
             } catch (error) {
@@ -165,12 +167,12 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                         </div>
                     ) : (
                         displayedPlans.map((plan, i) => {
-                             const isBestValue = i === 1;
-                             const marketingTitle = marketingTitleForIndex(i);
-                             const marketingDesc = marketingDescriptionForIndex(i);
-                             const isContactSales = !!plan.isContactOnly || marketingTitle === "Business" || !shouldShowPrice(plan);
-                             
-                             const CardContent = (
+                            const isBestValue = i === 1;
+                            const marketingTitle = marketingTitleForIndex(i);
+                            const marketingDesc = marketingDescriptionForIndex(i);
+                            const isContactSales = !!plan.isContactOnly || marketingTitle === "Business" || !shouldShowPrice(plan);
+
+                            const CardContent = (
                                 <div className={clsx(
                                     "relative p-8 rounded-[2rem] border transition-all duration-300 flex flex-col h-full",
                                     isBestValue ? "bg-card border-transparent" : "bg-card/50 border-border hover:border-primary/30"
@@ -227,9 +229,9 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                                         {isContactSales ? "Contact Sales" : "Start Free Trial"}
                                     </button>
                                 </div>
-                             );
+                            );
 
-                             return (
+                            return (
                                 <div key={plan.id} className={clsx("h-full", isBestValue && "z-10 scale-105")}>
                                     {isBestValue ? (
                                         <BackgroundGradient className="rounded-[2rem] h-full bg-card" containerClassName="h-full">
@@ -239,7 +241,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                                         CardContent
                                     )}
                                 </div>
-                             );
+                            );
                         })
                     )}
                 </div>
