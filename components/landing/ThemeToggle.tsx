@@ -7,69 +7,59 @@ import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ThemeToggle() {
-    const { theme, setTheme } = useTheme();
+    const { theme, setTheme, resolvedTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
-    const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => setMounted(true), []);
 
     if (!mounted) return null;
 
-    const themes = [
-        { id: "light", icon: FaSun, label: "Light" },
-        { id: "dark", icon: FaMoon, label: "Dark" },
-        { id: "system", icon: FaDesktop, label: "System" },
-    ];
+    const isDark = theme === "dark" || (theme === "system" && resolvedTheme === "dark");
 
-    const currentTheme = themes.find(t => t.id === theme) || themes[2];
+    const toggleTheme = () => {
+        setTheme(isDark ? "light" : "dark");
+    };
 
     return (
-        <div className="relative">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
-                aria-label="Toggle Theme"
+        <button
+            onClick={toggleTheme}
+            className="relative flex items-center h-8 w-14 rounded-full bg-slate-200 dark:bg-slate-800 p-1 cursor-pointer transition-colors duration-300 border border-slate-300 dark:border-slate-700 focus:outline-none shadow-inner group"
+            aria-label="Toggle Theme"
+        >
+            <motion.div
+                className="flex items-center justify-center w-6 h-6 rounded-full bg-white dark:bg-slate-900 shadow-md border border-slate-200 dark:border-slate-700 overflow-hidden z-10"
+                animate={{
+                    x: isDark ? 24 : 0,
+                }}
+                transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 30
+                }}
             >
-                <currentTheme.icon size={16} />
-            </button>
-
-            <AnimatePresence>
-                {isOpen && (
+                <AnimatePresence mode="wait">
                     <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl overflow-hidden min-w-[140px] z-50 py-1"
+                        key={isDark ? "dark" : "light"}
+                        initial={{ opacity: 0, scale: 0.5, rotate: -45 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        exit={{ opacity: 0, scale: 0.5, rotate: 45 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center justify-center"
                     >
-                        {themes.map((t) => (
-                            <button
-                                key={t.id}
-                                onClick={() => {
-                                    setTheme(t.id);
-                                    setIsOpen(false);
-                                }}
-                                className={clsx(
-                                    "w-full px-4 py-2 text-sm flex items-center gap-3 transition-colors",
-                                    theme === t.id
-                                        ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-bold"
-                                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                                )}
-                            >
-                                <t.icon size={14} />
-                                {t.label}
-                            </button>
-                        ))}
+                        {isDark ? (
+                            <FaMoon size={10} className="text-indigo-400" />
+                        ) : (
+                            <FaSun size={10} className="text-amber-500" />
+                        )}
                     </motion.div>
-                )}
-            </AnimatePresence>
+                </AnimatePresence>
+            </motion.div>
 
-            {/* Backdrop to close */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
-        </div>
+            {/* Background Icons */}
+            <div className="absolute inset-x-2 flex justify-between items-center h-full pointer-events-none px-1">
+                <FaSun size={10} className={clsx("transition-all duration-300", isDark ? "text-slate-400 opacity-40" : "opacity-0 scale-50")} />
+                <FaMoon size={10} className={clsx("transition-all duration-300", isDark ? "opacity-0 scale-50" : "text-slate-500 opacity-40")} />
+            </div>
+        </button>
     );
 }

@@ -14,6 +14,19 @@ export const metadata: Metadata = {
   icons: {
     icon: "/tabicon.png",
   },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: true,
+    },
+  },
+  other: {
+    "robots": "noai, noimageai",
+  },
 };
 
 import { Providers } from "./providers";

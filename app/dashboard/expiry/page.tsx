@@ -5,7 +5,7 @@ import { doc, getDoc, collection, query, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Sale, ToolItem } from "@/types";
 import { Card, Button, Input } from "@/components/ui/Shared";
-import { FaWhatsapp, FaClock, FaCalendarDay, FaCircleInfo, FaReceipt, FaCheckDouble, FaTriangleExclamation, FaTableList, FaAddressCard, FaLock } from "react-icons/fa6";
+import { FaWhatsapp, FaClock, FaCalendarDay, FaCircleInfo, FaReceipt, FaCheckDouble, FaTriangleExclamation, FaTableList, FaAddressCard, FaLock, FaMagnifyingGlass } from "react-icons/fa6";
 import { cleanPhone, toHumanDate } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
@@ -25,6 +25,7 @@ export default function ExpiryPage() {
         to: new Date().toISOString().slice(0, 10)
     });
     const [viewMode, setViewMode] = useState<"table" | "card">("table");
+    const [searchQuery, setSearchQuery] = useState("");
     const { user, merchantId } = useAuth();
     const { showToast } = useToast();
 
@@ -52,8 +53,8 @@ export default function ExpiryPage() {
     }, [user, merchantId]);
 
     // Helper to get all items with indices
-    const allItems = useMemo(() => {
-        return sales.flatMap(sale =>
+    const allFilteredItems = useMemo(() => {
+        const rawItems = sales.flatMap(sale =>
             sale.items.map((item, index) => ({
                 ...item,
                 clientName: sale.client.name,
@@ -64,35 +65,18 @@ export default function ExpiryPage() {
                 remindersSent: item.remindersSent || 0
             }))
         );
-    }, [sales]);
 
-    // Items for Selected Date (Today's Expiry)
-    const dailyItems = useMemo(() => {
-        return allItems.filter(item => item.eDate === expiryDate)
-            .sort((a, b) => a.clientName.localeCompare(b.clientName));
-    }, [allItems, expiryDate]);
+        if (!searchQuery) return rawItems;
 
-    // Items expired in previous 3 days (-3 to -1 days)
-    const previousThreeDaysItems = useMemo(() => {
-        const targetDate = new Date(expiryDate);
-        return allItems.filter(item => {
-            const itemDate = new Date(item.eDate);
-            const diffTime = itemDate.getTime() - targetDate.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays >= -3 && diffDays < 0;
-        }).sort((a, b) => b.eDate.localeCompare(a.eDate)); // Newest expiry first
-    }, [allItems, expiryDate]);
+        const lowQuery = searchQuery.toLowerCase();
+        return rawItems.filter(item =>
+            item.clientName.toLowerCase().includes(lowQuery) ||
+            item.clientPhone.includes(searchQuery) ||
+            item.name.toLowerCase().includes(lowQuery) ||
+            (item.email && item.email.toLowerCase().includes(lowQuery))
+        );
+    }, [sales, searchQuery]);
 
-    // Upcoming Items (Next 4 days)
-    const upcomingItems = useMemo(() => {
-        const targetDate = new Date(expiryDate);
-        return allItems.filter(item => {
-            const itemDate = new Date(item.eDate);
-            const diffTime = itemDate.getTime() - targetDate.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays > 0 && diffDays <= 4;
-        }).sort((a, b) => a.eDate.localeCompare(b.eDate));
-    }, [allItems, expiryDate]);
 
     const sendReminder = async (item: any) => {
         const hDate = toHumanDate(item.eDate);
@@ -332,25 +316,38 @@ export default function ExpiryPage() {
                 <h1 className="text-lg font-black text-[var(--foreground)] uppercase tracking-widest flex items-center gap-2">
                     <FaTriangleExclamation className="text-rose-500" /> Expiry Alerts
                 </h1>
-                <div className="flex p-1.5 rounded-xl  border border-slate-200 dark:border-slate-700/50 self-end sm:self-auto">
-                    <button
-                        onClick={() => setViewMode("card")}
-                        className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
-                    >
-                        <FaAddressCard /> Card View
-                    </button>
-                    <button
-                        onClick={() => setViewMode("table")}
-                        className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
-                    >
-                        <FaTableList /> Table View
-                    </button>
 
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    {/* Search Bar */}
+                    <div className="relative flex-1 sm:w-64">
+                        <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" />
+                        <Input
+                            placeholder="Search client or tool..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 h-10 text-xs font-bold rounded-xl border-slate-200 dark:border-slate-800"
+                        />
+                    </div>
+
+                    <div className="flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-700/50 self-end sm:self-auto">
+                        <button
+                            onClick={() => setViewMode("card")}
+                            className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                        >
+                            <FaAddressCard /> Card View
+                        </button>
+                        <button
+                            onClick={() => setViewMode("table")}
+                            className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                        >
+                            <FaTableList /> Table View
+                        </button>
+                    </div>
                 </div>
             </div >
 
             {renderSection(
-                allItems.filter(i => i.eDate >= dateRange.from && i.eDate <= dateRange.to).sort((a, b) => a.eDate.localeCompare(b.eDate)),
+                allFilteredItems.filter(i => i.eDate >= dateRange.from && i.eDate <= dateRange.to).sort((a, b) => a.eDate.localeCompare(b.eDate)),
                 "Results in Selected Range",
                 FaCircleInfo,
                 "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500"
@@ -358,13 +355,25 @@ export default function ExpiryPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {renderSection(
-                    previousThreeDaysItems,
+                    allFilteredItems.filter(item => {
+                        const targetDate = new Date(expiryDate);
+                        const itemDate = new Date(item.eDate);
+                        const diffTime = itemDate.getTime() - targetDate.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays >= -3 && diffDays < 0;
+                    }).sort((a, b) => b.eDate.localeCompare(a.eDate)),
                     "Expired (Last 3 Days)",
                     FaClock,
                     "bg-rose-50 dark:bg-rose-950/40 text-rose-500"
                 )}
                 {renderSection(
-                    upcomingItems,
+                    allFilteredItems.filter(item => {
+                        const targetDate = new Date(expiryDate);
+                        const itemDate = new Date(item.eDate);
+                        const diffTime = itemDate.getTime() - targetDate.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays > 0 && diffDays <= 4;
+                    }).sort((a, b) => a.eDate.localeCompare(b.eDate)),
                     "Upcoming (Next 4 Days)",
                     FaClock,
                     "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500"

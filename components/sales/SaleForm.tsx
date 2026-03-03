@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { addMonths, addDays, addYears, format, parseISO } from "date-fns";
 import Link from "next/link";
 import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, limit, orderBy, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -6,7 +7,8 @@ import { ToolItem, Sale, InventoryItem, Client } from "@/types";
 import { Button, Input, Select, Card } from "@/components/ui/Shared";
 import Autocomplete from "@/components/ui/Autocomplete";
 import ToolInput from "./ToolInput";
-import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen } from "react-icons/fa6";
+import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen, FaCalendar, FaFaceSmile } from "react-icons/fa6";
+import EmojiPicker from "@/components/ui/EmojiPicker";
 import { cleanPhone, generateInvoicePDF } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useInventory } from "@/context/InventoryContext";
@@ -24,8 +26,8 @@ export default function SaleForm() {
     const editId = searchParams.get("id");
     const { items: inventoryItems } = useInventory();
     const { vendors } = useVendors();
-    const { showToast } = useToast();
-    const { user, merchantId, isStaff, appName } = useAuth(); // use merchantId, isStaff and appName
+    const { showToast, confirm } = useToast();
+    const { user, merchantId, isStaff, appName, invoiceDomain } = useAuth(); // use merchantId, isStaff and appName
 
     const [loading, setLoading] = useState(false);
     const [clientName, setClientName] = useState("");
@@ -37,7 +39,10 @@ export default function SaleForm() {
     const [vendorStatus, setVendorStatus] = useState<"Paid" | "Unpaid" | "Credit">("Paid");
     const [pendingAmount, setPendingAmount] = useState(0);
     const [instructions, setInstructions] = useState("");
+    const [isDirty, setIsDirty] = useState(false);
+    const [saleDate, setSaleDate] = useState(new Date().toISOString().slice(0, 10));
     const [tools, setTools] = useState<ToolItem[]>([]);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [existingClients, setExistingClients] = useState<Client[]>([]);
     const [companyInfo, setCompanyInfo] = useState<any>(null);
     const [showClientSearch, setShowClientSearch] = useState(false);
@@ -52,6 +57,22 @@ export default function SaleForm() {
     // ...
 
 
+
+    // Initialize default tool when saleDate is set
+    useEffect(() => {
+        if (tools.length === 0 && !editId) {
+            setTools([{
+                name: "",
+                type: "Shared",
+                pDate: saleDate,
+                eDate: format(addMonths(parseISO(saleDate), 1), "yyyy-MM-dd"),
+                duration: "30",
+                sell: 0,
+                cost: 0,
+                plan: ""
+            }]);
+        }
+    }, [saleDate, editId]);
 
     // Load Sale if editing
     useEffect(() => {
@@ -83,6 +104,9 @@ export default function SaleForm() {
                     }
                     if (data.instructions) {
                         setInstructions(data.instructions);
+                    }
+                    if (data.createdAt) {
+                        setSaleDate(new Date(data.createdAt).toISOString().slice(0, 10));
                     }
                     if (data.items) {
                         setTools(data.items);
@@ -134,6 +158,10 @@ export default function SaleForm() {
                 setClientEmail(order.clientEmail || "");
 
                 if (order.items && order.items.length > 0 && inventoryItems.length > 0) {
+                    const defaultExpiry = new Date(saleDate);
+                    defaultExpiry.setDate(defaultExpiry.getDate() + 30);
+                    const expiryDate = defaultExpiry.toISOString().slice(0, 10);
+
                     const mappedTools = order.items.map((item: any) => {
                         // Try to find matching item in inventory
                         const match = inventoryItems.find(inv =>
@@ -144,8 +172,8 @@ export default function SaleForm() {
                             return {
                                 name: match.name,
                                 type: match.type || "Shared",
-                                pDate: today,
-                                eDate: nextMonth,
+                                pDate: saleDate,
+                                eDate: expiryDate,
                                 cost: match.cost,
                                 sell: match.sell,
                                 plan: match.plan || "",
@@ -156,8 +184,8 @@ export default function SaleForm() {
                         return {
                             name: item.name,
                             type: "Shared",
-                            pDate: today,
-                            eDate: nextMonth,
+                            pDate: saleDate,
+                            eDate: expiryDate,
                             cost: 0,
                             sell: item.price || 0,
                             plan: "",
@@ -184,17 +212,29 @@ export default function SaleForm() {
             } else if (typeof fieldOrData === "string") {
                 next[idx] = { ...next[idx], [fieldOrData]: value };
             }
+            setIsDirty(true);
             return next;
         });
     };
 
     const addTool = () => {
         if (tools.length >= 5) return;
-        setTools([...tools, { name: "", type: "Shared", pDate: today, eDate: nextMonth, sell: 0, cost: 0, plan: "" }]);
+        setTools([...tools, {
+            name: "",
+            type: "Shared",
+            pDate: saleDate,
+            eDate: format(addMonths(parseISO(saleDate), 1), "yyyy-MM-dd"),
+            duration: "30",
+            sell: 0,
+            cost: 0,
+            plan: ""
+        }]);
+        setIsDirty(true);
     };
 
     const removeTool = (idx: number) => {
         setTools(tools.filter((_, i) => i !== idx));
+        setIsDirty(true);
     };
 
     // Tool Totals
@@ -210,6 +250,36 @@ export default function SaleForm() {
         else if (clientStatus === "Clear") setPendingAmount(0);
     }, [clientStatus, totalSell]);
 
+    // Sync tool purchase dates with sale date
+    const handleSaleDateChange = (date: string) => {
+        setSaleDate(date);
+        setIsDirty(true);
+        setTools(prev => prev.map(t => {
+            const pDate = parseISO(date);
+            let newEDate = t.eDate;
+
+            if (t.duration === "30") {
+                newEDate = format(addMonths(pDate, 1), "yyyy-MM-dd");
+            } else if (t.duration === "60") {
+                newEDate = format(addMonths(pDate, 2), "yyyy-MM-dd");
+            } else if (t.duration === "365") {
+                newEDate = format(addYears(pDate, 1), "yyyy-MM-dd");
+            } else if (t.duration === "custom" || !t.duration) {
+                // Shift relatively for custom/legacy tools
+                const oldPDate = parseISO(t.pDate);
+                const oldEDate = parseISO(t.eDate);
+                const daysDiff = Math.abs(Math.round((oldEDate.getTime() - oldPDate.getTime()) / (1000 * 60 * 60 * 24)));
+                newEDate = format(addDays(pDate, daysDiff), "yyyy-MM-dd");
+            }
+
+            return {
+                ...t,
+                pDate: date,
+                eDate: newEDate
+            };
+        }));
+    };
+
     const handleVendorSelect = (id: string) => {
         if (id === "custom") {
             setSelectedVendorId("custom");
@@ -223,6 +293,7 @@ export default function SaleForm() {
             setVendorName(v.name);
             setVendorPhone(v.phone);
         }
+        setIsDirty(true);
     };
 
     const handleSetMe = () => {
@@ -240,6 +311,7 @@ export default function SaleForm() {
         setClientPhone(c.phone);
         if (c.email) setClientEmail(c.email);
         setShowClientSearch(false);
+        setIsDirty(true);
     };
 
     const validate = () => {
@@ -266,7 +338,7 @@ export default function SaleForm() {
         return errs;
     };
 
-    const handleSave = async (action: "save" | "whatsapp" | "pdf") => {
+    const handleSave = async (action: "save" | "whatsapp" | "pdf" | "invoice") => {
         const newErrors = validate();
         if (newErrors.length > 0) {
             showToast("Please fill all required fields", "warning");
@@ -343,7 +415,14 @@ export default function SaleForm() {
             const finalTotalCost = finalTools.reduce((acc, t) => acc + (Number(t.cost) || 0), 0);
             const finalTotalProfit = totalSell - finalTotalCost;
 
+            // Preserve current time if editing or today, otherwise use start of day for selected date
             let createdAt = Date.now();
+            const selectedDate = new Date(saleDate);
+            const now = new Date();
+
+            // Set the time of selectedDate to current time
+            selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+            createdAt = selectedDate.getTime();
 
             const saleData: any = {
                 client: { name: clientName, phone: clientPhone, status: clientStatus, email: clientEmail },
@@ -368,10 +447,12 @@ export default function SaleForm() {
                 await batch.commit();
             }
 
+            let savedId = editId;
             if (editId) {
                 await updateDoc(doc(db, "users", merchantId, "salesHistory", editId), saleData);
             } else {
-                await addDoc(collection(db, "users", merchantId, "salesHistory"), { ...saleData, userId: user?.uid, createdByStaff: !!(user && user.uid !== merchantId) });
+                const docRef = await addDoc(collection(db, "users", merchantId, "salesHistory"), { ...saleData, userId: user?.uid, createdByStaff: !!(user && user.uid !== merchantId) });
+                savedId = docRef.id;
             }
 
             if (action === "pdf") {
@@ -385,7 +466,7 @@ export default function SaleForm() {
                     accountHolder: companyInfo.accountHolder,
                     loginLink: saleData.loginLink
                 });
-            } else if (action === "whatsapp") {
+            } else if (action === "whatsapp" || action === "invoice") {
                 const isRenew = existingClients.some(c => c.phone === clientPhone);
                 const actionText = isRenew ? "renewed" : "succesfully activated";
                 const trustText = isRenew ? "again" : "";
@@ -444,14 +525,17 @@ export default function SaleForm() {
                     msg += `\n\n*Note:* ${instructions}`;
                 }
 
-                // Add Mandatory Branding Footer
-                msg += `\n\n> *Sent by ${companyInfo.companyName || "SubZonix"}*\n_© Powered by ${appName || "SubZonix"}_`;
+                if ((action as string) === "invoice" && savedId) {
+                    const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${savedId}`;
+                    msg += `\n\n📄 *View Invoice:* ${invoiceLink}`;
+                }
 
                 window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(msg)}`, '_blank');
-                showToast("WhatsApp opened for receipt", "info");
+                showToast((action as string) === "invoice" ? "WhatsApp opened with Invoice link" : "WhatsApp opened for receipt", "info");
             }
 
             showToast("Transaction saved successfully", "success");
+            setIsDirty(false);
 
             // Increment Sales Count and Enforce Limit
             if (merchantId && !editId) {
@@ -509,6 +593,49 @@ export default function SaleForm() {
                     </div>
                 </Card>
             )}
+
+            {/* Sale Date Section - Enhanced Design */}
+            <Card className="relative overflow-hidden border-2 border-indigo-200 dark:border-indigo-700/50">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20" />
+                <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                    {/* Icon */}
+                    <div className="flex items-center gap-4 sm:gap-0">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 dark:shadow-indigo-900/50">
+                            <FaCalendar className="text-2xl" />
+                        </div>
+                        <div className="sm:hidden">
+                            <div className="text-xs font-black text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">Sale Date</div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400">Transaction Date</div>
+                        </div>
+                    </div>
+
+                    {/* Date Input */}
+                    <div className="flex-1 w-full sm:w-auto">
+                        <label className="hidden sm:block text-[10px] font-black text-indigo-700 dark:text-indigo-300 uppercase tracking-widest mb-2">
+                            Sale Date
+                        </label>
+                        <Input
+                            type="date"
+                            value={saleDate}
+                            onChange={(e) => handleSaleDateChange(e.target.value)}
+                            required
+                            className="bg-white dark:bg-slate-900 max-w-xs"
+                        />
+                    </div>
+
+                    {/* Info Text */}
+                    <div className="hidden sm:flex flex-col items-end text-right bg-white/60 dark:bg-slate-700/40 px-4 py-2 rounded-xl border border-indigo-100 dark:border-indigo-700/30 backdrop-blur-sm">
+                        <div className="text-[9px] text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-wider flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-pulse" />
+                            Transaction Date
+                        </div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
+                            All items will use this date
+                        </div>
+                    </div>
+                </div>
+            </Card>
+
             <div className="grid md:grid-cols-2 gap-4">
                 <Card className="space-y-4 relative">
                     <div className="flex justify-between">
@@ -546,15 +673,15 @@ export default function SaleForm() {
                         label="Client Name"
                         placeholder="Client Name"
                         value={clientName}
-                        onChange={(val) => setClientName(val ? val.charAt(0).toUpperCase() + val.slice(1) : "")}
+                        onChange={(val) => { setClientName(val ? val.charAt(0).toUpperCase() + val.slice(1) : ""); setIsDirty(true); }}
                         onSelect={(c: Client) => handleClientSelect(c)}
                         suggestions={existingClients}
                         searchKey="name"
                         secondaryKey="phone"
                         required
                     />
-                    <Input placeholder="Client Phone" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} required />
-                    <Input placeholder="Email (Optional)" type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} />
+                    <Input placeholder="Client Phone" value={clientPhone} onChange={(e) => { setClientPhone(e.target.value); setIsDirty(true); }} required />
+                    <Input placeholder="Email (Optional)" type="email" value={clientEmail} onChange={(e) => { setClientEmail(e.target.value); setIsDirty(true); }} />
                 </Card>
 
                 <Card className="space-y-4">
@@ -575,7 +702,7 @@ export default function SaleForm() {
                         <Autocomplete
                             label="Name"
                             value={vendorName}
-                            onChange={(val) => setVendorName(val ? val.charAt(0).toUpperCase() + val.slice(1) : "")}
+                            onChange={(val) => { setVendorName(val ? val.charAt(0).toUpperCase() + val.slice(1) : ""); setIsDirty(true); }}
                             onSelect={(v: any) => {
                                 setVendorName(v.name);
                                 setVendorPhone(v.phone);
@@ -585,7 +712,7 @@ export default function SaleForm() {
                             readOnly={selectedVendorId !== "custom"}
                             className={selectedVendorId !== "custom" ? "cursor-not-allowed opacity-70" : ""}
                         />
-                        <Input label="Phone" value={vendorPhone} onChange={(e) => setVendorPhone(e.target.value)} readOnly={selectedVendorId !== "custom"} className={selectedVendorId !== "custom" ? "cursor-not-allowed opacity-70" : ""} />
+                        <Input label="Phone" value={vendorPhone} onChange={(e) => { setVendorPhone(e.target.value); setIsDirty(true); }} readOnly={selectedVendorId !== "custom"} className={selectedVendorId !== "custom" ? "cursor-not-allowed opacity-70" : ""} />
                     </div>
                 </Card>
             </div>
@@ -619,17 +746,17 @@ export default function SaleForm() {
 
             <div className="grid md:grid-cols-2 gap-4">
                 <Card className="space-y-4">
-                    <Select label="Client Payment Status" value={clientStatus} onChange={(e) => setClientStatus(e.target.value as any)}>
+                    <Select label="Client Payment Status" value={clientStatus} onChange={(e) => { setClientStatus(e.target.value as any); setIsDirty(true); }}>
                         <option value="Clear">Full Payment Received</option>
                         <option value="Pending">Payment Pending</option>
                         <option value="Partial">Partial Payment</option>
                     </Select>
                     {(clientStatus === "Pending" || clientStatus === "Partial") && (
-                        <Input label="Pending Amount" type="number" value={pendingAmount === 0 ? "" : pendingAmount} onChange={(e) => setPendingAmount(e.target.value)} />
+                        <Input label="Pending Amount" type="number" value={pendingAmount === 0 ? "" : pendingAmount} onChange={(e) => { setPendingAmount(e.target.value); setIsDirty(true); }} />
                     )}
                 </Card>
                 <Card className="space-y-4">
-                    <Select label="My Payment to Vendor" value={vendorStatus} onChange={(e) => setVendorStatus(e.target.value as any)}>
+                    <Select label="My Payment to Vendor" value={vendorStatus} onChange={(e) => { setVendorStatus(e.target.value as any); setIsDirty(true); }}>
                         <option value="Paid">I have Paid Full</option>
                         <option value="Unpaid">I have Not Paid Yet</option>
                     </Select>
@@ -654,14 +781,14 @@ export default function SaleForm() {
                         const templates = companyInfo?.instructions || {};
                         if (val && templates[val]) {
                             const template = templates[val];
-                            const companyFooter = `\n${companyInfo.companyName || "Tapn Tools"} and powered by TapnTools`;
-                            setInstructions(template + companyFooter);
+                            setInstructions(template);
                         } else {
-                            setInstructions("No Instructions");
+                            setInstructions("");
                         }
+                        setIsDirty(true);
                     }}
                 >
-                    <option value="">No Instructions</option>
+                    <option value="">-- Select Template --</option>
                     {Object.keys(companyInfo?.instructions || {}).length > 0 ? (
                         Object.keys(companyInfo?.instructions || {}).map(k => (
                             <option key={k} value={k}>{k}</option>
@@ -670,14 +797,148 @@ export default function SaleForm() {
                         <option value="" disabled>No templates found (Add in Reminders)</option>
                     )}
                 </Select>
-                <div className="flex justify-end mt-1">
-                    <Link href="/dashboard/reminders" className="text-[10px] text-indigo-500 hover:text-indigo-600 flex items-center gap-1 font-bold">
+                <div className="flex justify-between mt-1">
+                    <button
+                        onClick={() => {
+                            setInstructions("");
+                            setIsDirty(true);
+                        }}
+                        className="text-[10px] text-indigo-500 hover:text-indigo-600 flex items-center gap-1 font-bold"
+                    >
+                        <FaPlus className="text-[8px]" /> Add Custom Instructions
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if (isDirty) {
+                                const ok = await confirm({
+                                    title: "Unsaved Changes",
+                                    message: "You have unsaved changes. Do you want to leave and go to templates?",
+                                    confirmText: "Leave",
+                                    variant: "danger"
+                                });
+                                if (!ok) return;
+                            }
+                            router.push("/dashboard/reminders");
+                        }}
+                        className="text-[10px] text-indigo-500 hover:text-indigo-600 flex items-center gap-1 font-bold"
+                    >
                         <FaPen className="text-[8px]" /> Edit Templates
-                    </Link>
+                    </button>
                 </div>
-                {instructions !== "No Instructions" && (
-                    <div className="mt-4 p-4  rounded-xl border border-dashed border-indigo-400 text-indigo-500">
-                        <p className="text-[11px] font-medium whitespace-pre-wrap">{instructions}</p>
+                {(instructions || isDirty) && (
+                    <div className="mt-4 space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                            Instruction Content
+                        </label>
+                        <textarea
+                            id="instructions-textarea"
+                            value={instructions}
+                            onChange={(e) => {
+                                setInstructions(e.target.value);
+                                setIsDirty(true);
+                            }}
+                            className="w-full h-32 p-4 text-[11px] bg-background text-foreground border border-dashed border-indigo-400 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all outline-none resize-none font-medium leading-relaxed"
+                            placeholder="Type custom instructions here..."
+                        />
+                        <div className="flex flex-wrap gap-1.5 p-2 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-800/50">
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mr-1 self-center">Format:</span>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const textarea = document.getElementById('instructions-textarea') as HTMLTextAreaElement;
+                                    if (textarea) {
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const selectedText = instructions.substring(start, end);
+                                        const newText = instructions.substring(0, start) + `*${selectedText}*` + instructions.substring(end);
+                                        setInstructions(newText);
+                                        setIsDirty(true);
+                                        setTimeout(() => { textarea.focus(); textarea.selectionStart = start + 1; textarea.selectionEnd = end + 1; }, 0);
+                                    }
+                                }}
+                                className="text-[10px] px-2 py-1 rounded-lg bg-slate-700 text-white font-black border border-slate-600 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+                                title="Bold (*)"
+                            >
+                                *B*
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const textarea = document.getElementById('instructions-textarea') as HTMLTextAreaElement;
+                                    if (textarea) {
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const selectedText = instructions.substring(start, end);
+                                        const newText = instructions.substring(0, start) + `_${selectedText}_` + instructions.substring(end);
+                                        setInstructions(newText);
+                                        setIsDirty(true);
+                                        setTimeout(() => { textarea.focus(); textarea.selectionStart = start + 1; textarea.selectionEnd = end + 1; }, 0);
+                                    }
+                                }}
+                                className="text-[10px] px-2 py-1 rounded-lg bg-slate-700 text-white font-black border border-slate-600 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer italic"
+                                title="Italic (_)"
+                            >
+                                _I_
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const textarea = document.getElementById('instructions-textarea') as HTMLTextAreaElement;
+                                    if (textarea) {
+                                        const start = textarea.selectionStart;
+                                        const end = textarea.selectionEnd;
+                                        const selectedText = instructions.substring(start, end);
+                                        const newText = instructions.substring(0, start) + `~${selectedText}~` + instructions.substring(end);
+                                        setInstructions(newText);
+                                        setIsDirty(true);
+                                        setTimeout(() => { textarea.focus(); textarea.selectionStart = start + 1; textarea.selectionEnd = end + 1; }, 0);
+                                    }
+                                }}
+                                className="text-[10px] px-2 py-1 rounded-lg bg-slate-700 text-white font-black border border-slate-600 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer line-through"
+                                title="Strike (~)"
+                            >
+                                ~S~
+                            </button>
+                            <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-0.5 self-center"></div>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const textarea = document.getElementById('instructions-textarea') as HTMLTextAreaElement;
+                                    if (textarea) {
+                                        const start = textarea.selectionStart;
+                                        const textBeforeCursor = instructions.substring(0, start);
+                                        const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+                                        const isAtLineStart = lastNewlineIndex === start - 1 || start === 0;
+                                        const bullet = isAtLineStart ? '• ' : '\n• ';
+                                        setInstructions(instructions.substring(0, start) + bullet + instructions.substring(start));
+                                        setIsDirty(true);
+                                        setTimeout(() => { textarea.focus(); textarea.selectionStart = textarea.selectionEnd = start + bullet.length; }, 0);
+                                    }
+                                }}
+                                className="text-[10px] px-2 py-1 rounded-lg bg-indigo-600 text-white font-black border border-indigo-100 dark:border-indigo-800 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+                            >
+                                • Bullet
+                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={(e) => { e.preventDefault(); setShowEmojiPicker(!showEmojiPicker); }}
+                                    className="text-[10px] px-2 py-1 rounded-lg bg-emerald-600 text-white font-black border border-emerald-500 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+                                    title="Add Emoji"
+                                >
+                                    <FaFaceSmile />
+                                </button>
+                                {showEmojiPicker && (
+                                    <EmojiPicker
+                                        onSelect={(emoji) => {
+                                            setInstructions(instructions + emoji);
+                                            setIsDirty(true);
+                                            setShowEmojiPicker(false);
+                                        }}
+                                        onClose={() => setShowEmojiPicker(false)}
+                                    />
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
             </Card>
@@ -756,14 +1017,23 @@ export default function SaleForm() {
                                     </span>
                                 }
                             >
-                                <Button
-                                    onClick={() => handleSave("whatsapp")}
-                                    variant="secondary"
-                                    disabled={loading}
-                                    className="btn-whatsapp"
-                                >
-                                    <FaWhatsapp /> Send
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => handleSave("whatsapp")}
+                                        variant="secondary"
+                                        disabled={loading}
+                                        className="btn-whatsapp"
+                                    >
+                                        <FaWhatsapp /> Send
+                                    </Button>
+                                    <Button
+                                        onClick={() => handleSave("invoice")}
+                                        variant="success"
+                                        disabled={loading}
+                                    >
+                                        <FaWhatsapp /> Invoice
+                                    </Button>
+                                </div>
                             </PlanFeatureGuard>
 
                             <PlanFeatureGuard
@@ -794,6 +1064,6 @@ export default function SaleForm() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

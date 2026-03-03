@@ -1,0 +1,103 @@
+User-agent: *
+Allow: /
+
+# Block AI scrapers and crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Omegabot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: FacebookExternalHit
+Disallow: /
+
+User-agent: Anthropic-AI
+Disallow: /
+
+User-agent: Cohere-AI
+Disallow: /
+
+User-agent: TimpiBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+# AI IDEs and specific scrapers
+User-agent: Lovable
+Disallow: /
+
+User-agent: Lovable-Bot
+Disallow: /
+
+User-agent: Cursor
+Disallow: /
+
+User-agent: CursorBot
+Disallow: /
+
+User-agent: V0-Bot
+Disallow: /
+
+User-agent: Bolt-Bot
+Disallow: /
+
+User-agent: Trae
+Disallow: /
+
+User-agent: Trae-Bot
+Disallow: /
+
+User-agent: Replit
+Disallow: /
+
+User-agent: ReplitBot
+Disallow: /
+
+User-agent: WebCopy
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+# Sitemaps
+Sitemap: https://subzonix.cloud/sitemap.xml

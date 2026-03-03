@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, addDoc, deleteDoc, doc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaBell, FaPaperPlane, FaTrash, FaClock, FaArrowsLeftRight, FaStop, FaArrowRight, FaShieldHalved } from "react-icons/fa6";
+import { Select } from "@/components/ui/Shared";
 import { useToast } from "@/context/ToastContext";
 import { useRouter } from "next/navigation";
 
@@ -206,49 +207,49 @@ export default function NotificationsPage() {
                         {/* Type */}
                         <div className="flex items-center gap-2">
                             <label className="text-xs text-muted-foreground font-bold uppercase">Type:</label>
-                            <select
+                            <Select
                                 value={notifType}
                                 onChange={e => setNotifType(e.target.value as any)}
-                                className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:border-amber-500 transition-colors"
+                                className="h-9 min-w-[120px]"
                             >
                                 <option value="info">Info (Blue)</option>
                                 <option value="warning">Warning (Amber)</option>
                                 <option value="alert">Alert (Red)</option>
-                            </select>
+                            </Select>
                         </div>
 
                         {/* Target */}
                         <div className="flex items-center gap-2">
                             <label className="text-xs text-muted-foreground font-bold uppercase">Target:</label>
-                            <select
+                            <Select
                                 value={notifTarget}
                                 onChange={e => setNotifTarget(e.target.value as any)}
-                                className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:border-amber-500 transition-colors"
+                                className="h-9 min-w-[140px]"
                             >
                                 <option value="global">Global (All Users)</option>
                                 <option value="user">Specific User</option>
-                            </select>
+                            </Select>
                             {notifTarget === "user" && (
-                                <select
+                                <Select
                                     value={selectedUserForNotif}
                                     onChange={e => setSelectedUserForNotif(e.target.value)}
-                                    className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground max-w-[150px] transition-colors"
+                                    className="h-9 min-w-[150px]"
                                 >
                                     <option value="">Select User...</option>
                                     {users.filter(u => u.role !== "owner").map(u => (
                                         <option key={u.id} value={u.id}>{u.email}</option>
                                     ))}
-                                </select>
+                                </Select>
                             )}
                         </div>
 
                         {/* Duration */}
                         <div className="flex items-center gap-2">
                             <label className="text-xs text-muted-foreground font-bold uppercase flex items-center gap-1"><FaClock /> Duration:</label>
-                            <select
-                                value={durationHours}
+                            <Select
+                                value={String(durationHours)}
                                 onChange={e => setDurationHours(Number(e.target.value))}
-                                className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs text-foreground outline-none focus:border-amber-500 transition-colors"
+                                className="h-9 min-w-[110px]"
                             >
                                 <option value={1}>1 Hour</option>
                                 <option value={6}>6 Hours</option>
@@ -256,7 +257,7 @@ export default function NotificationsPage() {
                                 <option value={24}>24 Hours</option>
                                 <option value={48}>2 Days</option>
                                 <option value={168}>1 Week</option>
-                            </select>
+                            </Select>
                         </div>
 
                         {/* Behavior */}

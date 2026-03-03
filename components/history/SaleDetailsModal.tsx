@@ -7,8 +7,10 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+import { Card, Button } from "@/components/ui/Shared";
 import { handleDownloadPDF as handleDownloadPDFUtil } from "@/lib/pdfUtils";
 
+import { useAuth } from "@/context/AuthContext";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
 
 interface SaleDetailsModalProps {
@@ -19,18 +21,20 @@ interface SaleDetailsModalProps {
 
 export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsModalProps) {
     const [companyInfo, setCompanyInfo] = useState<any>(null);
+    const { merchantId, invoiceDomain } = useAuth();
 
     useEffect(() => {
         const loadInfo = async () => {
-            const snap = await getDoc(doc(db, "settings", "global"));
+            if (!merchantId) return;
+            const snap = await getDoc(doc(db, "users", merchantId, "settings", "general"));
             if (snap.exists()) setCompanyInfo(snap.data());
         };
         if (isOpen) loadInfo();
-    }, [isOpen]);
+    }, [isOpen, merchantId]);
 
     if (!isOpen) return null;
 
-    const handleWhatsApp = () => {
+    const handleWhatsApp = (includeInvoice: boolean = false) => {
         let message = `*Hello ${sale.client.name}, here are your credentials for your recent purchase:* \n\n`;
 
         sale.items.forEach((item, idx) => {
@@ -46,6 +50,11 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
 
         if (sale.instructions && sale.instructions !== "No Instructions") {
             message += `*Instructions & Warranty:*\n${sale.instructions}\n\n`;
+        }
+
+        if (includeInvoice && merchantId) {
+            const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${sale.id}`;
+            message += `📄 *View Full Invoice:* ${invoiceLink}\n\n`;
         }
 
         message += `*Sold By:* ${companyInfo?.companyName || "SubZonix"}\n`;
@@ -193,12 +202,22 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
                             </button>
                         }
                     >
-                        <button
-                            onClick={handleWhatsApp}
-                            className="flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-900/20 active:scale-[0.98]"
-                        >
-                            <FaWhatsapp className="text-lg" /> Send Credentials (WA)
-                        </button>
+                        <div className="flex-1 flex gap-2">
+                            <Button
+                                onClick={() => handleWhatsApp(false)}
+                                variant="outline"
+                                className="flex-1 min-h-11 rounded-2xl text-[10px]"
+                            >
+                                <FaWhatsapp className="text-lg text-emerald-500" /> Send Details
+                            </Button>
+                            <Button
+                                onClick={() => handleWhatsApp(true)}
+                                variant="success"
+                                className="flex-1 min-h-11 rounded-2xl text-[10px]"
+                            >
+                                <FaWhatsapp className="text-lg" /> Invoice (WA)
+                            </Button>
+                        </div>
                     </PlanFeatureGuard>
 
                     <PlanFeatureGuard
@@ -209,12 +228,12 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
                             </button>
                         }
                     >
-                        <button
+                        <Button
                             onClick={handleDownloadPDF}
-                            className="flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/20 active:scale-[0.98]"
+                            className="flex-1 min-h-11 rounded-2xl"
                         >
                             <FaFilePdf className="text-lg" /> Download Invoice (PDF)
-                        </button>
+                        </Button>
                     </PlanFeatureGuard>
                 </div>
             </div>

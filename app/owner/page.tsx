@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { collection, query, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaChartLine, FaCalendarDay, FaUserClock, FaShop } from "react-icons/fa6";
+import { Select } from "@/components/ui/Shared";
 import { useToast } from "@/context/ToastContext";
 import clsx from "clsx";
 import { Sale, ToolItem } from "@/types";
@@ -308,10 +309,10 @@ export default function OwnerDashboardPage() {
                 <div className="flex items-center gap-4 bg-card p-4 rounded-2xl border border-border">
                     <div className="flex-1">
                         <label className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1 block">Select User</label>
-                        <select
+                        <Select
                             value={dashboardUser}
                             onChange={(e) => setDashboardUser(e.target.value)}
-                            className="w-full bg-secondary border border-border rounded-xl px-4 py-2 text-sm text-foreground focus:ring-2 focus:ring-primary outline-none"
+                            className="w-full"
                         >
                             <option value="">Select a user...</option>
                             {users.map(u => (
@@ -319,7 +320,7 @@ export default function OwnerDashboardPage() {
                                     {u.companyName ? `${u.companyName} (${u.email})` : u.email} - {u.role}
                                 </option>
                             ))}
-                        </select>
+                        </Select>
                     </div>
                     {dashboardUser && (
                         <div className="flex-1">

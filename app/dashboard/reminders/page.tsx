@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { FaBell, FaFileInvoiceDollar, FaClock, FaEye, FaPenToSquare, FaTrash, FaCheck, FaXmark, FaPlus, FaTable, FaAddressCard, FaArrowRotateRight, FaWhatsapp, FaCircleInfo } from "react-icons/fa6";
+import { FaBell, FaFileInvoiceDollar, FaClock, FaEye, FaPenToSquare, FaTrash, FaCheck, FaXmark, FaPlus, FaTable, FaAddressCard, FaArrowRotateRight, FaWhatsapp, FaCircleInfo, FaFaceSmile } from "react-icons/fa6";
+import EmojiPicker from "@/components/ui/EmojiPicker";
 import { Card, Button, Input } from "@/components/ui/Shared";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +22,7 @@ const TEMPLATE_DEFAULTS: any = {
 const EditableTemplate = ({ title, icon: Icon, color, value, variables, onSave, onReset, renameInstruction, deleteInstruction, confirm, showToast }: any) => {
     const [isEditing, setIsEditing] = useState(false);
     const [tempValue, setTempValue] = useState(value);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(() => {
         setTempValue(value);
@@ -46,7 +48,7 @@ const EditableTemplate = ({ title, icon: Icon, color, value, variables, onSave, 
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
                     <Icon className={color} />
-                    {isEditing && title.includes("Instruction") ? (
+                    {isEditing && renameInstruction ? (
                         <input
                             type="text"
                             defaultValue={title}
@@ -79,7 +81,7 @@ const EditableTemplate = ({ title, icon: Icon, color, value, variables, onSave, 
                             <button onClick={() => setIsEditing(true)} className="icon-edit">
                                 <FaPenToSquare className="text-[10px]" />
                             </button>
-                            {title.includes("Instruction") && (
+                            {renameInstruction && (
                                 <button
                                     onClick={async () => {
                                         const ok = await confirm({
@@ -249,6 +251,24 @@ const EditableTemplate = ({ title, icon: Icon, color, value, variables, onSave, 
                         >
                             ```Code```
                         </button>
+                        <div className="relative">
+                            <button
+                                onClick={(e) => { e.preventDefault(); setShowEmojiPicker(!showEmojiPicker); }}
+                                className="text-[12px] px-2 py-1 rounded-lg bg-emerald-600 text-white font-black border border-emerald-500 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+                                title="Add Emoji"
+                            >
+                                <FaFaceSmile />
+                            </button>
+                            {showEmojiPicker && (
+                                <EmojiPicker
+                                    onSelect={(emoji) => {
+                                        setTempValue(tempValue + emoji);
+                                        setShowEmojiPicker(false);
+                                    }}
+                                    onClose={() => setShowEmojiPicker(false)}
+                                />
+                            )}
+                        </div>
                         <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1 self-center"></div>
                         <button
                             onClick={(e) => {
@@ -342,7 +362,7 @@ export default function RemindersPage() {
     const [viewMode, setViewMode] = useState<"table" | "card">("table");
     const [isDirty, setIsDirty] = useState(false);
     const [lastSavedSettings, setLastSavedSettings] = useState("");
-    const [editingItem, setEditingItem] = useState<{ title: string, value: string, variables?: string[], isInstruction?: boolean } | null>(null);
+    const [editingItem, setEditingItem] = useState<{ title: string, value: string, variables?: string[], isInstruction?: boolean, originalKey?: string } | null>(null);
     const { user } = useAuth();
     const { showToast, confirm } = useToast();
 
@@ -472,6 +492,8 @@ export default function RemindersPage() {
             }
         }));
     }, []);
+
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     return (
         <PlanFeatureGuard feature="editReminders">
@@ -625,15 +647,6 @@ export default function RemindersPage() {
                                 </button>
                             )}
 
-                            <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 flex items-start gap-3 mt-6">
-                                <FaCircleInfo className="text-indigo-500 shrink-0 mt-0.5" />
-                                <div className="space-y-1">
-                                    <p className="text-[10px] text-indigo-500 font-black uppercase tracking-widest">Fixed Branding Footer</p>
-                                    <p className="text-[10px] text-slate-500 leading-relaxed">
-                                        All WhatsApp messages automatically append a branding footer with your company name and our app name. This section is locked to ensure professional consistency.
-                                    </p>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 ) : (
@@ -652,7 +665,7 @@ export default function RemindersPage() {
                                 ].map((item) => (
                                     <div
                                         key={item.title}
-                                        onClick={() => setEditingItem(item)}
+                                        onClick={() => setEditingItem({ ...item, originalKey: item.title })}
                                         className="bg-background p-4 rounded-xl border border-border cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
                                     >
                                         <div className="flex items-center justify-between mb-2">
@@ -670,14 +683,14 @@ export default function RemindersPage() {
                                 {Object.entries(settings.instructions || {}).map(([key, val]: any) => (
                                     <div
                                         key={key}
-                                        onClick={() => setEditingItem({ title: key, value: val, isInstruction: true })}
+                                        onClick={() => setEditingItem({ title: key, value: val, isInstruction: true, originalKey: key })}
                                         className="bg-background p-4 rounded-xl border border-border cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
                                     >
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="font-black text-xs text-foreground">{key}</span>
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={(e) => { e.stopPropagation(); setEditingItem({ title: key, value: val, isInstruction: true }); }}
+                                                    onClick={(e) => { e.stopPropagation(); setEditingItem({ title: key, value: val, isInstruction: true, originalKey: key }); }}
                                                     className="icon-edit"
                                                 >
                                                     <FaPenToSquare className="text-[14px]" />
@@ -722,7 +735,8 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Renewal Reminder",
                                             value: settings.reminderTemplate,
-                                            variables: ["[Client]", "[Tool Name]", "[Date]", "[LoginLink]"]
+                                            variables: ["[Client]", "[Tool Name]", "[Date]", "[LoginLink]"],
+                                            originalKey: "Renewal Reminder"
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >
@@ -739,7 +753,8 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Payment Pending Alert",
                                             value: settings.pendingTemplate,
-                                            variables: ["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]", "[LoginLink]"]
+                                            variables: ["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]", "[LoginLink]"],
+                                            originalKey: "Payment Pending"
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >
@@ -756,7 +771,8 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Order Receipt",
                                             value: settings.receiptTemplate,
-                                            variables: ["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]", "[LoginLink]"]
+                                            variables: ["[Client]", "[ActionType]", "[Date]", "[TrustText]", "[Company Name]", "[ToolsList]", "[Total]", "[Status]", "[AccountInfo]", "[LoginLink]"],
+                                            originalKey: "Order Receipt"
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >
@@ -773,7 +789,8 @@ export default function RemindersPage() {
                                         onClick={() => setEditingItem({
                                             title: "Renewal Successful",
                                             value: settings.renewalTemplate,
-                                            variables: ["[Client]", "[Tool Name]", "[LoginLink]"]
+                                            variables: ["[Client]", "[Tool Name]", "[LoginLink]"],
+                                            originalKey: "Renewal Successful"
                                         })}
                                         className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                     >
@@ -794,7 +811,8 @@ export default function RemindersPage() {
                                             onClick={() => setEditingItem({
                                                 title: key,
                                                 value: val,
-                                                isInstruction: true
+                                                isInstruction: true,
+                                                originalKey: key
                                             })}
                                             className="group hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition cursor-pointer"
                                         >
@@ -803,7 +821,7 @@ export default function RemindersPage() {
                                             <td className="px-6 py-4 text-slate-500 truncate max-w-[200px]">{val}</td>
                                             <td className="px-6 py-4 text-right flex justify-end gap-2" onClick={e => e.stopPropagation()}>
                                                 <button
-                                                    onClick={() => setEditingItem({ title: key, value: val, isInstruction: true })}
+                                                    onClick={() => setEditingItem({ title: key, value: val, isInstruction: true, originalKey: key })}
                                                     className="icon-edit"
                                                     title="Edit"
                                                 >
@@ -844,6 +862,15 @@ export default function RemindersPage() {
                                     <h3 className="text-sm font-black text-foreground uppercase tracking-widest flex items-center gap-2">
                                         <FaPenToSquare className="text-indigo-500" /> Edit {editingItem.title}
                                     </h3>
+                                    <div className="flex-1 px-4">
+                                        <input
+                                            type="text"
+                                            value={editingItem.title}
+                                            onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                                            className="bg-transparent border-b border-indigo-500/30 outline-none text-[11px] font-black uppercase tracking-widest text-foreground w-full focus:border-indigo-500 transition-colors"
+                                            placeholder="Enter Title..."
+                                        />
+                                    </div>
                                     <button onClick={() => setEditingItem(null)} className="icon-cancel" title="Close">
                                         <FaXmark />
                                     </button>
@@ -989,6 +1016,24 @@ export default function RemindersPage() {
                                         >
                                             ```Code```
                                         </button>
+                                        <div className="relative">
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); setShowEmojiPicker(!showEmojiPicker); }}
+                                                className="text-[12px] px-2 py-1 rounded-lg bg-emerald-600 text-white font-black border border-emerald-500 hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+                                                title="Add Emoji"
+                                            >
+                                                <FaFaceSmile />
+                                            </button>
+                                            {showEmojiPicker && (
+                                                <EmojiPicker
+                                                    onSelect={(emoji) => {
+                                                        setEditingItem({ ...editingItem, value: editingItem.value + emoji });
+                                                        setShowEmojiPicker(false);
+                                                    }}
+                                                    onClose={() => setShowEmojiPicker(false)}
+                                                />
+                                            )}
+                                        </div>
                                         <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-1 self-center"></div>
                                         <button
                                             onClick={(e) => {
@@ -1073,7 +1118,18 @@ export default function RemindersPage() {
                                         <button
                                             onClick={() => {
                                                 if (editingItem.isInstruction) {
-                                                    updateInstruction(editingItem.title, editingItem.value);
+                                                    // Handle rename if key changed
+                                                    const originalKey = editingItem.originalKey || editingItem.title;
+                                                    if (originalKey !== editingItem.title) {
+                                                        setSettings((prev: any) => {
+                                                            const newIns = { ...prev.instructions };
+                                                            delete newIns[originalKey];
+                                                            newIns[editingItem.title] = editingItem.value;
+                                                            return { ...prev, instructions: newIns };
+                                                        });
+                                                    } else {
+                                                        updateInstruction(editingItem.title, editingItem.value);
+                                                    }
                                                 } else {
                                                     const keyMap: any = {
                                                         "Renewal Reminder": "reminderTemplate",
@@ -1081,7 +1137,11 @@ export default function RemindersPage() {
                                                         "Order Receipt": "receiptTemplate",
                                                         "Renewal Successful": "renewalTemplate"
                                                     };
-                                                    const settingKey = keyMap[editingItem.title];
+
+                                                    // For system templates, we don't allow renaming the key in DB 
+                                                    // but we might want to store the custom label if needed.
+                                                    // For now just save the content.
+                                                    const settingKey = keyMap[editingItem.originalKey || editingItem.title];
                                                     if (settingKey) {
                                                         setSettings((prev: any) => ({ ...prev, [settingKey]: editingItem.value }));
                                                     }

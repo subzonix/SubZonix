@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { FaUserCheck, FaUserSlash, FaClockRotateLeft, FaMagnifyingGlass, FaTrash, FaDatabase, FaTriangleExclamation, FaGem, FaCalendar } from "react-icons/fa6";
 import UserHistoryModal from "@/components/admin/UserHistoryModal";
 import { useToast } from "@/context/ToastContext";
-import { Card, Button, Input } from "@/components/ui/Shared";
+import { Card, Button, Input, Select } from "@/components/ui/Shared";
 import clsx from "clsx";
 import { useSearchParams } from "next/navigation";
 
@@ -265,7 +265,7 @@ export default function UserManagementPage() {
                                                         <span>Usage</span>
                                                         <span>{u.currentSalesCount || 0}/{u.salesLimit}</span>
                                                     </div>
-                                                        <div className="h-1 bg-muted rounded-full overflow-hidden">
+                                                    <div className="h-1 bg-muted rounded-full overflow-hidden">
                                                         <div
                                                             className={clsx("h-full transition-all", (u.currentSalesCount || 0) / u.salesLimit > 0.9 ? "bg-rose-500" : "bg-emerald-500")}
                                                             style={{ width: `${Math.min(100, ((u.currentSalesCount || 0) / u.salesLimit) * 100)}%` }}
@@ -383,8 +383,8 @@ export default function UserManagementPage() {
                         <div className="space-y-4 mb-8">
                             <div>
                                 <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Select Plan</label>
-                                <select
-                                    className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                                <Select
+                                    className="w-full"
                                     value={planForm.planId}
                                     onChange={(e) => setPlanForm({ ...planForm, planId: e.target.value })}
                                 >
@@ -392,7 +392,7 @@ export default function UserManagementPage() {
                                     {plans.map(p => (
                                         <option key={p.id} value={p.id}>{p.name} ({p.salesLimit} Sales)</option>
                                     ))}
-                                </select>
+                                </Select>
                             </div>
 
                             <Input

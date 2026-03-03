@@ -54,7 +54,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen, collapsed }: { mobi
                 }}
                 transition={{ duration: 0.4, type: "spring", stiffness: 150, damping: 20 }}
                 className={clsx(
-                    "fixed md:static inset-y-0 left-0 z-50 bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))] border-r border-[hsl(var(--sidebar-border))] flex flex-col shadow-2xl dark:shadow-[4px_0_24px_rgba(0,0,0,0.5)] overflow-hidden md:translate-x-0 transition-[transform] duration-300",
+                    "fixed md:static inset-y-0 left-0 z-50 bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-fg))] border-r border-[hsl(var(--sidebar-border))] flex flex-col overflow-hidden md:translate-x-0 transition-[transform] duration-300",
+                    "shadow-xl dark:shadow-[6px_0_32px_rgba(0,0,0,0.7),2px_0_8px_rgba(0,0,0,0.5)]",
                     mobileOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >

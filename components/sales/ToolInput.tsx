@@ -5,7 +5,7 @@ import { FaTrash, FaPlus } from "react-icons/fa6";
 import { Card, Input, Select } from "@/components/ui/Shared";
 import Autocomplete from "@/components/ui/Autocomplete";
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, addMonths, addDays, addYears, parseISO } from "date-fns";
 
 interface Props {
     // ... existing Props continue ...
@@ -74,6 +74,7 @@ export default function ToolInput({
         const value = e.target.value;
         if (value === "custom") {
             setIsCustomDuration(true);
+            onChange("duration", "custom");
             return;
         }
 
@@ -81,17 +82,24 @@ export default function ToolInput({
         const days = parseInt(value);
         if (isNaN(days)) return;
 
-        const pDate = new Date(data.pDate || Date.now());
-        const eDate = new Date(pDate);
+        const pDateStr = data.pDate || new Date().toISOString().slice(0, 10);
+        const pDate = parseISO(pDateStr);
+        let eDate: Date;
 
         if (days === 365) {
-            eDate.setFullYear(eDate.getFullYear() + 1);
+            eDate = addYears(pDate, 1);
+        } else if (days === 30) {
+            eDate = addMonths(pDate, 1);
+        } else if (days === 60) {
+            eDate = addMonths(pDate, 2);
         } else {
-            eDate.setDate(eDate.getDate() + days);
+            eDate = addDays(pDate, days);
         }
 
-        onChange("eDate", eDate.toISOString().slice(0, 10));
-        // Removed auto-setting of "plan" text here to separate duration from plan name (Pro/Premium)
+        onChange(null, {
+            eDate: format(eDate, "yyyy-MM-dd"),
+            duration: value
+        });
     };
 
     const formatDate = (value: string) =>
@@ -125,26 +133,21 @@ export default function ToolInput({
 
             {/* Tool Selection */}
             <div className="grid md:grid-cols-4 gap-3 mb-3">
-                <div className="col-span-1">
-                    <label className="block text-[10px] text-slate-500 mb-1 uppercase font-semibold">
-                        Tool Selection
-                    </label>
-                    <select
-                        className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent text-[var(--foreground)] text-xs focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition"
-                        onChange={handleInventorySelect}
-                        value={selectedId}
-                    >
-                        <option value="" disabled>
-                            Choose Tool...
+                <Select
+                    label="Tool Selection"
+                    onChange={handleInventorySelect}
+                    value={selectedId}
+                >
+                    <option value="" disabled>
+                        Choose Tool...
+                    </option>
+                    <option value="custom">-- Custom Tool --</option>
+                    {inventoryItems.map((i) => (
+                        <option key={i.id} value={i.id}>
+                            {i.name}
                         </option>
-                        <option value="custom">-- Custom Tool --</option>
-                        {inventoryItems.map((i) => (
-                            <option key={i.id} value={i.id}>
-                                {i.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                    ))}
+                </Select>
 
                 {isCustomTool && (
                     <div className="col-span-1">
@@ -178,21 +181,16 @@ export default function ToolInput({
                     <option value="Screen">Screen</option>
                 </Select>
 
-                <div className="col-span-1">
-                    <label className="block text-[10px] text-slate-500 mb-1 uppercase font-semibold">
-                        Duration Plan
-                    </label>
-                    <select
-                        className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent text-[var(--foreground)] text-xs focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition"
-                        onChange={handleDurationChange}
-                        defaultValue="30"
-                    >
-                        <option value="30">1 Month (30 Days)</option>
-                        <option value="60">2 Months (60 Days)</option>
-                        <option value="365">1 Year (12 Months)</option>
-                        <option value="custom">Custom Duration</option>
-                    </select>
-                </div>
+                <Select
+                    label="Duration Plan"
+                    onChange={handleDurationChange}
+                    value={data.duration || "30"}
+                >
+                    <option value="30">1 Month (Calendar)</option>
+                    <option value="60">2 Months (Calendar)</option>
+                    <option value="365">1 Year (Calendar)</option>
+                    <option value="custom">Custom Duration</option>
+                </Select>
 
                 <div className="col-span-1">
                     <Input

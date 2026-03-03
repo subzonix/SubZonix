@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { FaPlus, FaTrash, FaPen, FaCircleCheck, FaCircleXmark, FaToggleOn, FaToggleOff } from "react-icons/fa6";
-import { Card, Button, Input } from "@/components/ui/Shared";
+import { Card, Button, Input, Select } from "@/components/ui/Shared";
 import { useToast } from "@/context/ToastContext";
 import { Plan, PlanFeatures } from "@/types";
 import clsx from "clsx";
@@ -246,13 +246,13 @@ export default function PlansManagementPage() {
 
                         <div className="flex flex-col gap-2">
                             <label className="text-[10px] text-slate-500 font-black uppercase tracking-widest pl-1">Data Retention</label>
-                            <select
+                            <Select
                                 value={editingPlan ? ((editingPlan as any).dataRetentionMonths ?? 0) : (newPlan as any).dataRetentionMonths}
                                 onChange={(e) => {
                                     const val = parseInt(e.target.value) || 0;
                                     editingPlan ? setEditingPlan({ ...(editingPlan as any), dataRetentionMonths: val } as any) : setNewPlan({ ...(newPlan as any), dataRetentionMonths: val } as any)
                                 }}
-                                className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                                className="w-full h-11"
                             >
                                 <option value={0}>Disabled</option>
                                 <option value={1}>1 month</option>
@@ -262,7 +262,7 @@ export default function PlansManagementPage() {
                                 <option value={12}>1 year</option>
                                 <option value={24}>2 years</option>
                                 <option value={60}>5 years</option>
-                            </select>
+                            </Select>
                             <p className="text-[9px] text-slate-500 pl-1">Controls which retention options users can select. Disabled hides retention for that plan.</p>
                         </div>
 

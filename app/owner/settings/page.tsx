@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { Card, Button, Input } from "@/components/ui/Shared";
+import { Card, Button, Input, Select } from "@/components/ui/Shared";
 import { useToast } from "@/context/ToastContext";
 import { FaFloppyDisk, FaUpload, FaWhatsapp, FaBuilding, FaPalette, FaUserPlus } from "react-icons/fa6";
 import { Plan } from "@/types";
@@ -32,7 +32,8 @@ export default function OwnerSettingsPage() {
         sidebarLight: "card",
         sidebarDark: "card",
         defaultSignupPlanId: "free_trial_plan",
-        trialDurationMonths: 1
+        trialDurationMonths: 1,
+        invoiceDomain: "subzonix.cloud"
     });
 
     useEffect(() => {
@@ -262,7 +263,7 @@ export default function OwnerSettingsPage() {
                             <div className="grid grid-cols-1 gap-4">
                                 <div>
                                     <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Theme Preset</label>
-                                    <select
+                                    <Select
                                         value={settings.themePreset}
                                         onChange={(e) => {
                                             const preset = e.target.value;
@@ -279,45 +280,45 @@ export default function OwnerSettingsPage() {
                                                 accentColor: presetColors[preset] ?? prev.accentColor
                                             }));
                                         }}
-                                        className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition-all font-medium"
+                                        className="w-full h-11"
                                     >
                                         <option value="indigo">Indigo (Default)</option>
                                         <option value="emerald">Emerald</option>
                                         <option value="rose">Rose</option>
                                         <option value="amber">Amber</option>
                                         <option value="slate">Slate</option>
-                                    </select>
+                                    </Select>
                                     <p className="text-[9px] text-slate-500 mt-1">Preset updates the accent color; you can still override with a custom hex.</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Sidebar (Light Mode)</label>
-                                        <select
+                                        <Select
                                             value={settings.sidebarLight}
                                             onChange={(e) => setSettings(prev => ({ ...prev, sidebarLight: e.target.value }))}
-                                            className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition-all font-medium"
+                                            className="w-full h-11"
                                         >
                                             <option value="card">Card</option>
                                             <option value="background">Background</option>
                                             <option value="white">White</option>
                                             <option value="slate">Slate</option>
                                             <option value="black">Black</option>
-                                        </select>
+                                        </Select>
                                     </div>
                                     <div>
                                         <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Sidebar (Dark Mode)</label>
-                                        <select
+                                        <Select
                                             value={settings.sidebarDark}
                                             onChange={(e) => setSettings(prev => ({ ...prev, sidebarDark: e.target.value }))}
-                                            className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition-all font-medium"
+                                            className="w-full h-11"
                                         >
                                             <option value="card">Card</option>
                                             <option value="background">Background</option>
                                             <option value="slate">Slate</option>
                                             <option value="black">Black</option>
                                             <option value="white">White</option>
-                                        </select>
+                                        </Select>
                                     </div>
                                 </div>
                             </div>
@@ -338,6 +339,13 @@ export default function OwnerSettingsPage() {
                                 value={settings.ownerWhatsApp}
                                 onChange={(e) => setSettings({ ...settings, ownerWhatsApp: e.target.value })}
                                 icon={FaWhatsapp}
+                            />
+                            <Input
+                                label="Public Invoice Domain"
+                                placeholder="subzonix.cloud"
+                                value={settings.invoiceDomain}
+                                onChange={(e) => setSettings({ ...settings, invoiceDomain: e.target.value })}
+                                icon={FaBuilding}
                             />
                             <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
                                 <p className="text-[10px] text-emerald-500/80 leading-relaxed font-bold">
@@ -387,10 +395,10 @@ export default function OwnerSettingsPage() {
                         <div className="space-y-5">
                             <div>
                                 <label className="block text-[10px] text-slate-500 mb-1 uppercase font-black tracking-widest">Default Signup Plan</label>
-                                <select
+                                <Select
                                     value={settings.defaultSignupPlanId}
                                     onChange={(e) => setSettings({ ...settings, defaultSignupPlanId: e.target.value })}
-                                    className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                                    className="w-full h-11"
                                 >
                                     <option value="">Select a Plan</option>
                                     {plans.map(plan => (
@@ -398,7 +406,7 @@ export default function OwnerSettingsPage() {
                                             {plan.name} {!plan.isPublic ? "(Private)" : ""}
                                         </option>
                                     ))}
-                                </select>
+                                </Select>
                                 <p className="text-[9px] text-slate-500 mt-1">This plan will be automatically assigned to all new users upon registration.</p>
                             </div>
 

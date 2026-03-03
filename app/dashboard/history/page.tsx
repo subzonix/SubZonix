@@ -39,7 +39,7 @@ export default function HistoryPage() {
     const importFile = useMemo(() => null, []); // Placeholder for state logic if needed elsewhere
     const [importFileReal, setImportFileReal] = useState<File | null>(null);
     const [importing, setImporting] = useState(false);
-    const { user, merchantId } = useAuth();
+    const { user, merchantId, invoiceDomain } = useAuth();
     const { showToast, confirm } = useToast();
 
     useEffect(() => {
@@ -201,6 +201,36 @@ export default function HistoryPage() {
             console.error(e);
         }
         setImporting(false);
+    };
+
+    const handleWhatsAppAction = (sale: Sale, includeInvoice: boolean = false) => {
+        let message = `*Hello ${sale.client.name}, here are your credentials for your recent purchase:* \n\n`;
+
+        sale.items.forEach((item, idx) => {
+            message += `*Tool #${idx + 1}: ${item.name} (${item.type})*\n`;
+            if (item.plan) message += `Plan: ${item.plan}\n`;
+            if (item.email) message += `Email: ${item.email}\n`;
+            if (item.pass) message += `Password: ${item.pass}\n`;
+            if (item.profileName) message += `Profile: ${item.profileName}\n`;
+            if (item.profilePin) message += `PIN: ${item.profilePin}\n`;
+            if (item.loginLink) message += `Link: ${item.loginLink}\n`;
+            message += `Expiry: ${item.eDate}\n\n`;
+        });
+
+        if (sale.instructions && sale.instructions !== "No Instructions") {
+            message += `*Instructions & Warranty:*\n${sale.instructions}\n\n`;
+        }
+
+        if (includeInvoice && merchantId) {
+            const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${sale.id}`;
+            message += `📄 *View Full Invoice:* ${invoiceLink}\n\n`;
+        }
+
+        message += `*Sold By:* ${companyInfo.companyName || "SubZonix"}\n`;
+        message += `_Powered by SubZonix_`;
+
+        window.open(`https://wa.me/${cleanPhone(sale.client?.phone || "")}?text=${encodeURIComponent(message)}`, '_blank');
+        showToast(includeInvoice ? "WhatsApp opened with Invoice link" : "WhatsApp opened with Credentials", "info");
     };
 
     return (
@@ -539,15 +569,34 @@ export default function HistoryPage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-3 sm:pt-0">
-                                                        <button onClick={() => setSelectedSale(s)} className="btn-view" title="View Details">
+                                                        <Button
+                                                            onClick={() => setSelectedSale(s)}
+                                                            variant="outline"
+                                                            className="min-h-9 px-3"
+                                                            title="View Details"
+                                                        >
                                                             <FaEye /> View
-                                                        </button>
+                                                        </Button>
+
                                                         <PlanFeatureGuard feature="pdf" fallback={<button className="icon-pdf cursor-not-allowed opacity-50" disabled><FaFilePdf /></button>}>
                                                             <button onClick={() => handleDownloadPDF(s, companyInfo)} className="icon-pdf" title="PDF"><FaFilePdf /></button>
                                                         </PlanFeatureGuard>
+
                                                         <PlanFeatureGuard feature="whatsappAlerts" fallback={<button className="icon-whatsapp cursor-not-allowed opacity-50" disabled><FaWhatsapp /></button>}>
-                                                            <button onClick={() => window.open(`https://wa.me/${cleanPhone(s.client?.phone || "")}`, '_blank')} className="icon-whatsapp" title="WhatsApp"><FaWhatsapp /></button>
+                                                            <div className="flex gap-1">
+                                                                <button onClick={() => handleWhatsAppAction(s, false)} className="icon-whatsapp" title="Send Credentials (WA)"><FaWhatsapp /></button>
+                                                                <Button
+                                                                    onClick={() => handleWhatsAppAction(s, true)}
+                                                                    variant="success"
+                                                                    className="min-h-9 px-3"
+                                                                    title="Send Invoice (WA)"
+                                                                >
+                                                                    <FaWhatsapp />
+                                                                    <span className="text-[10px] font-black uppercase hidden lg:inline">Invoice</span>
+                                                                </Button>
+                                                            </div>
                                                         </PlanFeatureGuard>
+
                                                         <button onClick={() => router.push(`/dashboard/new-sale?id=${s.id}`)} className="icon-edit" title="Edit"><FaPen className="text-sm" /></button>
                                                         <button onClick={() => handleDelete(s.id!)} className="icon-delete" title="Delete"><FaTrash /></button>
                                                     </div>
@@ -637,15 +686,34 @@ export default function HistoryPage() {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-3 sm:pt-0">
-                                                            <button onClick={() => setSelectedSale(s)} className="icon-view" title="View Details">
-                                                                <FaEye />
-                                                            </button>
+                                                            <Button
+                                                                onClick={() => setSelectedSale(s)}
+                                                                variant="outline"
+                                                                className="min-h-9 px-3"
+                                                                title="View Details"
+                                                            >
+                                                                <FaEye /> View
+                                                            </Button>
+
                                                             <PlanFeatureGuard feature="pdf" fallback={<button className="icon-pdf cursor-not-allowed opacity-50" disabled><FaFilePdf /></button>}>
                                                                 <button onClick={() => handleDownloadPDF(s, companyInfo)} className="icon-pdf" title="PDF"><FaFilePdf /></button>
                                                             </PlanFeatureGuard>
+
                                                             <PlanFeatureGuard feature="whatsappAlerts" fallback={<button className="icon-whatsapp cursor-not-allowed opacity-50" disabled><FaWhatsapp /></button>}>
-                                                                <button onClick={() => window.open(`https://wa.me/${cleanPhone(s.client?.phone || "")}`, '_blank')} className="icon-whatsapp" title="WhatsApp"><FaWhatsapp /></button>
+                                                                <div className="flex gap-1">
+                                                                    <button onClick={() => handleWhatsAppAction(s, false)} className="icon-whatsapp" title="Send Credentials (WA)"><FaWhatsapp /></button>
+                                                                    <Button
+                                                                        onClick={() => handleWhatsAppAction(s, true)}
+                                                                        variant="success"
+                                                                        className="min-h-9 px-3"
+                                                                        title="Send Invoice (WA)"
+                                                                    >
+                                                                        <FaWhatsapp />
+                                                                        <span className="text-[10px] font-black uppercase hidden lg:inline">Invoice</span>
+                                                                    </Button>
+                                                                </div>
                                                             </PlanFeatureGuard>
+
                                                             <button onClick={() => router.push(`/dashboard/new-sale?id=${s.id}`)} className="icon-edit" title="Edit"><FaPen className="text-sm" /></button>
                                                             <button onClick={() => handleDelete(s.id!)} className="icon-delete" title="Delete"><FaTrash /></button>
                                                         </div>
@@ -700,18 +768,19 @@ export default function HistoryPage() {
                             </div>
                         </div>
                         <div className="p-6 bg-slate-50/50 dark:bg-slate-800/10 flex gap-3">
-                            <button
+                            <Button
                                 onClick={() => setShowExportModal(false)}
-                                className="flex-1 btn-delete"
+                                variant="outline"
+                                className="flex-1 min-h-12"
                             >
                                 Cancel
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 onClick={handleFilteredExport}
-                                className="flex-[2] btn-save"
+                                className="flex-[2] min-h-12"
                             >
                                 Start Export
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -723,7 +792,7 @@ export default function HistoryPage() {
                     <div className="bg-card border border-border rounded-3xl p-6 w-[600px] shadow-2xl">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-black">Import Sales from CSV</h3>
-                            <button onClick={() => { setShowImportModal(false); setImportFileReal(null); }} className="btn-delete px-2 py-2">
+                            <button onClick={() => { setShowImportModal(false); setImportFileReal(null); }} className="p-2 text-slate-400 hover:text-rose-500 transition-colors">
                                 <FaTimes />
                             </button>
                         </div>
@@ -742,7 +811,7 @@ export default function HistoryPage() {
                                 <a
                                     href="/sample-import.csv"
                                     download
-                                    className="btn-edit flex-1 justify-center text-center"
+                                    className="flex-1 inline-flex items-center justify-center gap-2 min-h-11 px-4 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-indigo-900/40 transition-all"
                                 >
                                     📥 Download Sample CSV
                                 </a>
@@ -764,19 +833,20 @@ export default function HistoryPage() {
                             </div>
 
                             <div className="flex gap-3 pt-2">
-                                <button
+                                <Button
                                     onClick={() => { setShowImportModal(false); setImportFileReal(null); }}
-                                    className="btn-pdf flex-1"
+                                    variant="outline"
+                                    className="flex-1 min-h-12"
                                 >
                                     Cancel
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={handleImportCSV}
                                     disabled={!importFileReal || importing}
-                                    className="btn-whatsapp flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 min-h-12"
                                 >
                                     {importing ? "Importing..." : "🚀 Import CSV"}
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

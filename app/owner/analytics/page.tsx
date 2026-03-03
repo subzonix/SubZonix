@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { Sale } from "@/types";
 import { FaChartLine, FaList, FaUser } from "react-icons/fa6";
 import { motion } from "framer-motion";
+import { Select } from "@/components/ui/Shared";
 
 interface UserProfile {
     id: string;
@@ -65,10 +66,10 @@ export default function OwnerAnalyticsPage() {
                 </label>
                 <div className="relative">
                     <FaUser className="absolute left-4 top-3.5 text-slate-500" />
-                    <select
+                    <Select
                         value={selectedUserId}
                         onChange={(e) => setSelectedUserId(e.target.value)}
-                        className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-foreground focus:ring-2 focus:ring-amber-500 outline-none appearance-none cursor-pointer transition-colors"
+                        className="w-full pl-10"
                     >
                         <option value="">-- Choose User --</option>
                         {users.filter(u => u.role !== "owner").map(u => (
@@ -76,7 +77,7 @@ export default function OwnerAnalyticsPage() {
                                 {u.companyName ? `${u.companyName} (${u.email})` : u.email}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </div>
             </div>
 

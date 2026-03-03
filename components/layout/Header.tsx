@@ -70,7 +70,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
     return (
         <div className="flex flex-col">
             {!hideNotifications && <NotificationBanner />}
-            <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-[var(--card)] dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300">
+            <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-[var(--card)] dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800/80 shadow-[0_2px_12px_rgba(0,0,0,0.08)] dark:shadow-[0_2px_20px_rgba(0,0,0,0.5)] transition-all duration-300">
                 <div className="flex items-center gap-3">
                     <button onClick={onMenuClick} className="md:hidden text-slate-600 dark:text-slate-200 text-xl hover:text-indigo-500 transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                         <FaBars />

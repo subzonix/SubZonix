@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useSales } from "@/context/SalesContext";
-import { Card, Input, Button } from "@/components/ui/Shared";
+import { Card, Input, Button, Select } from "@/components/ui/Shared";
 import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
 import { FaUserGroup, FaRotate, FaUserPlus, FaArrowTrendUp, FaFilter, FaMagnifyingGlass, FaToolbox, FaChartPie, FaChartLine, FaLock } from "react-icons/fa6";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
@@ -163,7 +163,10 @@ export default function CustomersPage() {
 
     const filteredCustomers = useMemo(() => {
         return customers.filter(c => {
-            const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search);
+            const matchesSearch =
+                c.name.toLowerCase().includes(search.toLowerCase()) ||
+                c.phone.includes(search) ||
+                Object.values(c.tools).some(t => t.name.toLowerCase().includes(search.toLowerCase()));
             const matchesTool = toolFilter === "all" || Object.values(c.tools).some(t => t.name === toolFilter);
             return matchesSearch && matchesTool;
         }).sort((a, b) => b.totalSpent - a.totalSpent);
@@ -230,13 +233,13 @@ export default function CustomersPage() {
                             </div>
                             {filter === "custom" && (
                                 <div className="w-full flex justify-end sm:w-auto sm:ml-auto">
-                                <CalendarDateRangePicker
-                                    from={fromDate}
-                                    to={toDate}
-                                    onFromChange={setFromDate}
-                                    onToChange={setToDate}
-                                />
-                            </div>
+                                    <CalendarDateRangePicker
+                                        from={fromDate}
+                                        to={toDate}
+                                        onFromChange={setFromDate}
+                                        onToChange={setToDate}
+                                    />
+                                </div>
                             )}
                         </PlanFeatureGuard>
                     </div>
@@ -304,16 +307,16 @@ export default function CustomersPage() {
                         <div className="flex gap-2">
                             <div className="relative">
                                 <FaToolbox className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
-                                <select
+                                <Select
                                     value={toolFilter}
                                     onChange={(e) => setToolFilter(e.target.value)}
-                                    className="pl-10 pr-8 h-10 bg-slate-50 dark:bg-slate-800/50 border border-[var(--border)] rounded-xl outline-none text-xs font-bold appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
+                                    className="pl-10 pr-8 h-10"
                                 >
                                     <option value="all">All Tools</option>
                                     {uniqueTools.map(t => (
                                         <option key={t} value={t}>{t}</option>
                                     ))}
-                                </select>
+                                </Select>
                             </div>
                         </div>
                     </div>

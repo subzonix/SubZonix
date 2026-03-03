@@ -6,7 +6,7 @@ import { useSales } from "@/context/SalesContext";
 import { useInventory } from "@/context/InventoryContext";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
-import { Card, Button, Input } from "@/components/ui/Shared";
+import { Card, Button, Input, Select } from "@/components/ui/Shared";
 import { FaUserTag, FaPlus, FaTrash, FaPen, FaMoneyBillWave, FaCheck, FaRotateLeft, FaTableList, FaAddressCard, FaUserCheck, FaUserSlash, FaXmark, FaClockRotateLeft, FaTag, FaWrench } from "react-icons/fa6";
 import { Vendor, Sale } from "@/types";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
@@ -27,6 +27,7 @@ export default function VendorsPage() {
     const [newVendor, setNewVendor] = useState<{ name: string, phone: string, relatedTools: string[] }>({ name: "", phone: "", relatedTools: [] });
     const [toolInput, setToolInput] = useState("");
     const [selectedToolId, setSelectedToolId] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const [isCustomTool, setIsCustomTool] = useState(false);
     const [editToolInput, setEditToolInput] = useState("");
@@ -146,25 +147,46 @@ export default function VendorsPage() {
         return list;
     }, [vendors, vendorSales]);
 
+    const filteredVendors = useMemo(() => {
+        if (!searchQuery) {
+            return allUniqueVendors;
+        }
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        return allUniqueVendors.filter(vendor =>
+            vendor.name.toLowerCase().includes(lowerCaseQuery) ||
+            vendor.relatedTools?.some(tool => tool.toLowerCase().includes(lowerCaseQuery))
+        );
+    }, [allUniqueVendors, searchQuery]);
+
     return (
         <PlanFeatureGuard feature="vendors">
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h2 className="text-xl font-bold">Manage Vendors</h2>
-                    <div className="flex p-1.5 rounded-xl  border border-slate-200 dark:border-slate-700/50 self-end sm:self-auto">
-                        <button
-                            onClick={() => setViewMode("card")}
-                            className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
-                        >
-                            <FaAddressCard /> Card View
-                        </button>
-                        <button
-                            onClick={() => setViewMode("table")}
-                            className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
-                        >
-                            <FaTableList /> Table View
-                        </button>
-
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-[250px]">
+                            <Input
+                                placeholder="Search name or tool..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 h-10 text-xs"
+                            />
+                            <FaWrench className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                        </div>
+                        <div className="flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-700/50">
+                            <button
+                                onClick={() => setViewMode("card")}
+                                className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                            >
+                                <FaAddressCard /> Card View
+                            </button>
+                            <button
+                                onClick={() => setViewMode("table")}
+                                className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                            >
+                                <FaTableList /> Table View
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -195,8 +217,8 @@ export default function VendorsPage() {
                                 </span>
                             ))}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-                                <select
-                                    className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent text-[var(--foreground)] text-xs focus:outline-none focus:ring-2 focus:ring-[#6366f1] transition"
+                                <Select
+                                    className="w-full h-10"
                                     value={selectedToolId}
                                     onChange={(e) => {
                                         const val = e.target.value;
@@ -217,7 +239,7 @@ export default function VendorsPage() {
                                     {Array.from(new Set(inventory.map((i: any) => i.name))).map((name: any) => (
                                         <option key={name} value={name}>{name}</option>
                                     ))}
-                                </select>
+                                </Select>
 
                                 {isCustomTool && (
                                     <input
@@ -246,7 +268,7 @@ export default function VendorsPage() {
 
                 {viewMode === "card" ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {allUniqueVendors.map(vendor => {
+                        {filteredVendors.map(vendor => {
                             const unpaidSales = vendorSales[vendor.name.toUpperCase()]?.filter(s => s.vendor.status !== "Paid") || [];
                             const totalDues = unpaidSales.reduce((acc, s) => acc + s.finance.totalCost, 0);
 
@@ -280,8 +302,8 @@ export default function VendorsPage() {
                                                         </span>
                                                     ))}
                                                     <div className="w-full space-y-2 mt-1">
-                                                        <select
-                                                            className="w-full px-2 py-1 rounded border border-slate-300 dark:border-slate-700 bg-transparent text-[var(--foreground)] text-[10px] focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                        <Select
+                                                            className="w-full h-8 text-[10px]"
                                                             onChange={(e) => {
                                                                 const val = e.target.value;
                                                                 if (val === "custom") {
@@ -300,7 +322,7 @@ export default function VendorsPage() {
                                                             {Array.from(new Set(inventory.map((i: any) => i.name))).map((name: any) => (
                                                                 <option key={name} value={name}>{name}</option>
                                                             ))}
-                                                        </select>
+                                                        </Select>
                                                         <input
                                                             value={editToolInput}
                                                             onChange={(e) => setEditToolInput(e.target.value)}
@@ -421,7 +443,13 @@ export default function VendorsPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--border)]">
-                                    {allUniqueVendors.map((vendor, idx) => {
+                                    {filteredVendors.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="px-6 py-10 text-center text-slate-400 italic text-xs">
+                                                No vendors found matching "{searchQuery}"
+                                            </td>
+                                        </tr>
+                                    ) : filteredVendors.map((vendor, idx) => {
                                         const unpaidSales = vendorSales[vendor.name.toUpperCase()]?.filter(s => s.vendor.status !== "Paid") || [];
                                         const totalDues = unpaidSales.reduce((acc, s) => acc + s.finance.totalCost, 0);
 
@@ -471,8 +499,8 @@ export default function VendorsPage() {
                                                     <div className="flex flex-wrap gap-1 max-w-[200px]">
                                                         {isEditing === vendor.id ? (
                                                             <div className="flex flex-col gap-1 w-full min-w-[120px]">
-                                                                <select
-                                                                    className="px-2 py-1 text-[9px] bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded outline-none w-full"
+                                                                <Select
+                                                                    className="h-8 text-[9px] w-full"
                                                                     onChange={(e) => {
                                                                         const val = e.target.value;
                                                                         if (val === "custom") {
@@ -490,7 +518,7 @@ export default function VendorsPage() {
                                                                     {Array.from(new Set(inventory.map((i: any) => i.name))).map((name: any) => (
                                                                         <option key={name} value={name}>{name}</option>
                                                                     ))}
-                                                                </select>
+                                                                </Select>
                                                                 <input
                                                                     value={editToolInput}
                                                                     onChange={(e) => setEditToolInput(e.target.value)}

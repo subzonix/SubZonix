@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { Vendor } from "@/types";
 import { FaUser, FaAddressBook, FaWrench } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card } from "@/components/ui/Shared";
+import { Card, Select } from "@/components/ui/Shared";
 
 interface UserProfile {
     id: string;
@@ -68,10 +68,10 @@ export default function OwnerVendorsPage() {
                 </label>
                 <div className="relative">
                     <FaUser className="absolute left-4 top-3.5 text-slate-500" />
-                    <select
+                    <Select
                         value={selectedUserId}
                         onChange={(e) => setSelectedUserId(e.target.value)}
-                        className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-3 text-foreground focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer transition-colors"
+                        className="w-full pl-10"
                     >
                         <option value="">-- Choose User --</option>
                         {users.map(u => (
@@ -79,7 +79,7 @@ export default function OwnerVendorsPage() {
                                 {u.email} {u.companyName ? `(${u.companyName})` : ""}
                             </option>
                         ))}
-                    </select>
+                    </Select>
                 </div>
             </div>
 

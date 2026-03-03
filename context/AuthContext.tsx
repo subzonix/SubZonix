@@ -38,6 +38,7 @@ interface AuthContextType {
     merchantId: string | null;
     isStaff: boolean;
     staffPermissions?: StaffPermissions;
+    invoiceDomain: string;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -59,7 +60,7 @@ const AuthContext = createContext<AuthContextType>({
     colorPart1: "#3b82f6",
     colorPart2: "#10b981",
     themePreset: "indigo",
-    supportEmail: "",
+    supportEmail: "subzonix@gmail.com",
     brandDisclaimer: "",
     sidebarLight: "card",
     sidebarDark: "card",
@@ -68,7 +69,8 @@ const AuthContext = createContext<AuthContextType>({
     dataRetentionMonths: undefined,
     merchantId: null,
     isStaff: false,
-    staffPermissions: undefined
+    staffPermissions: undefined,
+    invoiceDomain: "subzonix.cloud"
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -87,7 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [appLogoUrl, setAppLogoUrl] = useState("");
     const [accentColor, setAccentColor] = useState("#0066FF");
     const [themePreset, setThemePreset] = useState("indigo");
-    const [supportEmail, setSupportEmail] = useState("");
+    const [supportEmail, setSupportEmail] = useState("subzonix@gmail.com");
     const [brandDisclaimer, setBrandDisclaimer] = useState("");
     const [sidebarLight, setSidebarLight] = useState("card");
     const [sidebarDark, setSidebarDark] = useState("card");
@@ -100,6 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [merchantId, setMerchantId] = useState<string | null>(null);
     const [isStaff, setIsStaff] = useState(false);
     const [staffPermissions, setStaffPermissions] = useState<StaffPermissions | undefined>(undefined);
+    const [invoiceDomain, setInvoiceDomain] = useState("subzonix.cloud");
     const [appConfig, setAppConfig] = useState<any>(null); // Optimization
 
     const { setTheme } = useTheme();
@@ -124,6 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 if (data.brandDisclaimer) setBrandDisclaimer(data.brandDisclaimer);
                 if (data.sidebarLight) setSidebarLight(data.sidebarLight);
                 if (data.sidebarDark) setSidebarDark(data.sidebarDark);
+                if (data.invoiceDomain) setInvoiceDomain(data.invoiceDomain);
             },
             (err) => {
                 console.error("Error fetching app config:", err);
@@ -297,8 +301,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 if (!pathname.startsWith("/login") &&
                     pathname !== "/" &&
                     !pathname.startsWith("/shop") &&
+                    !pathname.startsWith("/features") &&
                     !pathname.startsWith("/how-it-works") &&
-                    !pathname.startsWith("/about")
+                    !pathname.startsWith("/about") &&
+                    !pathname.startsWith("/blog") &&
+                    !pathname.startsWith("/careers") &&
+                    !pathname.startsWith("/terms") &&
+                    !pathname.startsWith("/privacy-policy") &&
+                    !pathname.startsWith("/contact")
                 ) {
                     router.push("/login");
                 }
@@ -368,7 +378,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return (
         <AuthContext.Provider value={{
             user, loading, logout, role, status, planName, salesLimit, currentSalesCount, planFeatures, planExpiry,
-            appName, appLogoUrl, accentColor, appNamePart1, appNamePart2, colorPart1, colorPart2, themePreset, supportEmail, brandDisclaimer, sidebarLight, sidebarDark, sidebarMode, setSidebarMode, dataRetentionMonths, merchantId, isStaff, staffPermissions
+            appName, appLogoUrl, accentColor, appNamePart1, appNamePart2, colorPart1, colorPart2, themePreset, supportEmail, brandDisclaimer, sidebarLight, sidebarDark, sidebarMode, setSidebarMode, dataRetentionMonths, merchantId, isStaff, staffPermissions, invoiceDomain
         }}>
             {children}
         </AuthContext.Provider>

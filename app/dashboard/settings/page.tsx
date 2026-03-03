@@ -77,6 +77,8 @@ export default function SettingsPage() {
         bankName: "",
         accountHolder: "",
         shopEnabled: true,
+        sidebarMode: "auto" as "auto" | "light" | "dark",
+        dataRetentionMonths: 0,
         exportPreferences: {
             "Activation Date": true,
             "Client": true,
@@ -99,10 +101,6 @@ export default function SettingsPage() {
     });
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [savingSidebarMode, setSavingSidebarMode] = useState(false);
-    const [sidebarModeLocal, setSidebarModeLocal] = useState<"auto" | "light" | "dark">(sidebarMode || "auto");
-    const [savingRetention, setSavingRetention] = useState(false);
-    const [dataRetentionMonthsLocal, setDataRetentionMonthsLocal] = useState<number>(0);
     const [isDirty, setIsDirty] = useState(false);
     const [lastSavedSettings, setLastSavedSettings] = useState("");
 
@@ -122,32 +120,21 @@ export default function SettingsPage() {
                     bankName: data.bankName || "",
                     accountHolder: data.accountHolder || "",
                     shopEnabled: data.shopEnabled !== false,
+                    sidebarMode: (data.sidebarMode === "light" || data.sidebarMode === "dark" || data.sidebarMode === "auto") ? data.sidebarMode : "auto",
+                    dataRetentionMonths: Number(data.dataRetentionMonths || 0),
                     exportPreferences: { ...settings.exportPreferences, ...data.exportPreferences },
                 };
                 setSettings(loadedSettings);
+                setSidebarMode(loadedSettings.sidebarMode);
                 setLastSavedSettings(JSON.stringify(loadedSettings));
                 setIsDirty(false);
-
-                const mode = (data.sidebarMode === "light" || data.sidebarMode === "dark" || data.sidebarMode === "auto") ? data.sidebarMode : "auto";
-                setSidebarModeLocal(mode);
-                setSidebarMode(mode);
-
-                const rm = Number(data.dataRetentionMonths || 0);
-                setDataRetentionMonthsLocal(Number.isFinite(rm) ? rm : 0);
             } else {
                 setLastSavedSettings(JSON.stringify(settings));
-                setSidebarModeLocal("auto");
                 setSidebarMode("auto");
-                setDataRetentionMonthsLocal(0);
             }
         };
         load();
     }, [merchantId]);
-
-    useEffect(() => {
-        if (!sidebarMode) return;
-        setSidebarModeLocal(sidebarMode);
-    }, [sidebarMode]);
 
     useEffect(() => {
         if (!lastSavedSettings) return;
@@ -190,6 +177,7 @@ export default function SettingsPage() {
             }
 
             setLastSavedSettings(JSON.stringify(settings));
+            setSidebarMode(settings.sidebarMode);
             setIsDirty(false);
             showToast("Settings saved successfully!", "success");
         } catch (e: any) {
@@ -680,6 +668,56 @@ export default function SettingsPage() {
                     </SettingsAccordionCard>
 
                     <SettingsAccordionCard
+                        title="Interface & Personalization"
+                        icon={FaPalette}
+                        iconClassName="text-indigo-500"
+                        open={expandedSections.interface}
+                        onToggle={() => setExpandedSections(prev => ({ ...prev, interface: !prev.interface }))}
+                    >
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Sidebar Theme Mode</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(["auto", "light", "dark"] as const).map((mode) => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => {
+                                                setSettings(prev => ({ ...prev, sidebarMode: mode }));
+                                                setIsDirty(true);
+                                            }}
+                                            className={clsx(
+                                                "py-2 px-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
+                                                settings.sidebarMode === mode
+                                                    ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-600/20"
+                                                    : "bg-slate-50 dark:bg-slate-800/50 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-indigo-400"
+                                            )}
+                                        >
+                                            {mode}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-[9px] text-slate-400 leading-tight">
+                                    Choose how the sidebar appearance should behave. "Auto" follows your system/app theme.
+                                </p>
+                            </div>
+
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                                <div>
+                                    <div className="font-bold text-xs text-foreground">App Theme Toggle</div>
+                                    <div className="text-[10px] text-muted-foreground">Quickly switch between light and dark</div>
+                                </div>
+                                <Button
+                                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                                    variant="secondary"
+                                    className="min-h-9 px-3 py-1.5 text-[10px]"
+                                >
+                                    {resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}
+                                </Button>
+                            </div>
+                        </div>
+                    </SettingsAccordionCard>
+
+                    <SettingsAccordionCard
                         title="Export Preferences"
                         icon={FaFileCsv}
                         iconClassName="text-emerald-500"
@@ -779,59 +817,6 @@ export default function SettingsPage() {
                         </div>
                     </SettingsAccordionCard>
 
-                    <SettingsAccordionCard
-                        title="Interface & Experience"
-                        icon={FaPalette}
-                        iconClassName="text-indigo-500"
-                        open={expandedSections.interface}
-                        onToggle={() => setExpandedSections(prev => ({ ...prev, interface: !prev.interface }))}
-                    >
-                        <div className="space-y-4">
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-border p-4">
-                                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <div className="w-1 h-3 bg-indigo-500 rounded-full" /> Sidebar Appearance Mode
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                    {([
-                                        { key: "auto", label: "Auto Theme" },
-                                        { key: "light", label: "Always Light" },
-                                        { key: "dark", label: "Always Dark" },
-                                    ] as const).map((opt) => (
-                                        <button
-                                            key={opt.key}
-                                            type="button"
-                                            disabled={savingSidebarMode}
-                                            onClick={async () => {
-                                                if (!merchantId) return;
-                                                setSidebarMode(opt.key);
-                                                setSidebarModeLocal(opt.key);
-                                                setSavingSidebarMode(true);
-                                                try {
-                                                    await setDoc(doc(db, "users", merchantId, "settings", "general"), { sidebarMode: opt.key }, { merge: true });
-                                                    showToast("Sidebar mode updated", "success");
-                                                } catch (e: any) {
-                                                    showToast("Error: " + e.message, "error");
-                                                } finally {
-                                                    setSavingSidebarMode(false);
-                                                }
-                                            }}
-                                            className={clsx(
-                                                "px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2",
-                                                sidebarModeLocal === opt.key
-                                                    ? "bg-indigo-500 shadow-lg shadow-indigo-500/20 text-white border-indigo-500"
-                                                    : "bg-white dark:bg-slate-900 text-slate-500 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-900"
-                                            )}
-                                        >
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <p className="text-[10px] text-slate-500 mt-4 leading-relaxed italic">
-                                    Auto uses the owner’s sidebar colors for light/dark themes. Always Light/Always Dark keeps the sidebar consistent even when you switch theme.
-                                </p>
-                            </div>
-                        </div>
-                    </SettingsAccordionCard>
 
                     <SettingsAccordionCard
                         title="System Preferences"
@@ -878,6 +863,6 @@ export default function SettingsPage() {
                     </SettingsAccordionCard>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

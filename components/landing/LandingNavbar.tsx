@@ -31,10 +31,10 @@ export default function LandingNavbar() {
 
     const navLinks = [
         { label: "Home", href: "/#home" },
+        { label: "Features", href: "/features" },
         { label: "How It Works", href: "/how-it-works" },
         { label: "Pricing", href: "/#plans" },
         { label: "About", href: "/about" },
-        
     ];
 
     return (
@@ -51,7 +51,7 @@ export default function LandingNavbar() {
                 <div className={clsx(
                     "max-w-7xl mx-auto px-6 flex items-center justify-between transition-all duration-500 relative",
                     scrolled
-                        ? "bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 rounded-full shadow-lg shadow-black/5 py-3 pr-3 pl-6 mx-4 md:mx-auto"
+                        ? "bg-white/80 dark:bg-background/80 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 rounded-full shadow-lg shadow-black/5 py-3 pr-3 pl-6 mx-4 md:mx-auto"
                         : "bg-transparent"
                 )}>
                     <Link href="/" className="flex items-center gap-2 z-50 relative group">
@@ -115,7 +115,7 @@ export default function LandingNavbar() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-white/95 dark:bg-black/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center space-y-8 md:hidden"
+                        className="fixed inset-0 bg-white/95 dark:bg-background/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center space-y-8 md:hidden"
                     >
                         {navLinks.map((link, i) => (
                             <motion.div

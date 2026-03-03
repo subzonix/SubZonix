@@ -258,7 +258,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm"
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 dark:bg-background/80 backdrop-blur-sm"
                     >
                         {!requestSuccess ? (
                             <motion.div
@@ -290,7 +290,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                                             type="text"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
                                             placeholder="e.g. John Doe"
                                         />
                                     </div>
@@ -300,7 +300,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                                             type="email"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
                                             placeholder="e.g. john@company.com"
                                         />
                                     </div>
@@ -310,7 +310,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                                             type="tel"
                                             value={formData.whatsapp}
                                             onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors"
                                             placeholder="e.g. +1 234 567 8900"
                                         />
                                     </div>
@@ -355,7 +355,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
                                     Your request has been sent to the owner. Please complete the payment to receive your credentials.
                                 </p>
 
-                                <div className="bg-slate-50 dark:bg-black rounded-[2rem] p-8 text-left space-y-4 mb-10 border border-slate-100 dark:border-white/10 transition-colors">
+                                <div className="bg-slate-50 dark:bg-slate-800 rounded-[2rem] p-8 text-left space-y-4 mb-10 border border-slate-100 dark:border-white/10 transition-colors">
                                     <h4 className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
                                         <FaBuilding /> Owner Payment Info
                                     </h4>

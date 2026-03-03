@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useInventory } from "@/context/InventoryContext";
 import { Card, Button, Input, Select } from "@/components/ui/Shared";
-import { FaTrash, FaPen, FaPlus, FaBoxesStacked, FaTableList, FaAddressCard, FaFileImport } from "react-icons/fa6";
+import { FaTrash, FaPen, FaPlus, FaBoxesStacked, FaTableList, FaAddressCard, FaFileImport, FaMagnifyingGlass } from "react-icons/fa6";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
 import { InventoryItem } from "@/types";
 
@@ -16,6 +16,7 @@ export default function InventoryPage() {
     const [isEditing, setIsEditing] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<InventoryItem>>({});
     const [viewMode, setViewMode] = useState<"card" | "table">("card");
+    const [searchQuery, setSearchQuery] = useState("");
 
     // New Item State
     const [newItem, setNewItem] = useState<InventoryItem>({
@@ -57,26 +58,46 @@ export default function InventoryPage() {
         setEditForm(item);
     };
 
+    const filteredItems = useMemo(() => {
+        if (!searchQuery) return items;
+        const lowQuery = searchQuery.toLowerCase();
+        return items.filter(item =>
+            item.name.toLowerCase().includes(lowQuery) ||
+            (item.plan && item.plan.toLowerCase().includes(lowQuery))
+        );
+    }, [items, searchQuery]);
+
     return (
         <PlanFeatureGuard feature="inventory">
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h2 className="text-xl font-bold">Manage Inventory</h2>
-                    <div className="flex p-1.5 rounded-xl border border-border bg-card self-end sm:self-auto gap-1">
-                        <Button
-                            onClick={() => setViewMode("card")}
-                            variant={viewMode === "card" ? "primary" : "secondary"}
-                            className={clsx(viewMode !== "card" && "bg-transparent border-transparent shadow-none hover:bg-muted/60")}
-                        >
-                            <FaAddressCard /> Card View
-                        </Button>
-                        <Button
-                            onClick={() => setViewMode("table")}
-                            variant={viewMode === "table" ? "primary" : "secondary"}
-                            className={clsx(viewMode !== "table" && "bg-transparent border-transparent shadow-none hover:bg-muted/60")}
-                        >
-                            <FaTableList /> Table View
-                        </Button>
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-[250px]">
+                            <Input
+                                placeholder="Search inventory by name or plan..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 h-10 text-xs"
+                            />
+                            <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+                        </div>
+                        <div className="flex p-1.5 rounded-xl border border-border bg-card self-end sm:self-auto gap-1">
+                            <Button
+                                onClick={() => setViewMode("card")}
+                                variant={viewMode === "card" ? "primary" : "secondary"}
+                                className={clsx(viewMode !== "card" && "bg-transparent border-transparent shadow-none hover:bg-muted/60")}
+                            >
+                                <FaAddressCard /> Card View
+                            </Button>
+                            <Button
+                                onClick={() => setViewMode("table")}
+                                variant={viewMode === "table" ? "primary" : "secondary"}
+                                className={clsx(viewMode !== "table" && "bg-transparent border-transparent shadow-none hover:bg-muted/60")}
+                            >
+                                <FaTableList /> Table View
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -100,10 +121,11 @@ export default function InventoryPage() {
                     </button>
                 </Card>
 
+
                 {loading ? <div className="text-center py-20 text-slate-400">Loading Inventory...</div> :
                     viewMode === "card" ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {items.map(item => (
+                            {filteredItems.map(item => (
                                 <Card key={item.id} className="relative group transition-colors overflow-hidden">
                                     {isEditing === item.id ? (
                                         <div className="space-y-3">
@@ -173,7 +195,7 @@ export default function InventoryPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border">
-                                        {items.map(item => (
+                                        {filteredItems.map(item => (
                                             <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition group">
                                                 <td className="px-6 py-4 font-black text-foreground">{item.name}</td>
                                                 <td className="px-6 py-4  font-bold">{item.plan || "-"}</td>
