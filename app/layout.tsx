@@ -11,8 +11,16 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "SubZonix | Admin Panel",
   description: "Secure Cloud Sales Console",
+  manifest: "/manifest.json",
   icons: {
     icon: "/tabicon.png",
+    apple: "/icons/icon-192.png",
+    shortcut: "/tabicon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "SubZonix",
   },
   robots: {
     index: true,
@@ -26,6 +34,7 @@ export const metadata: Metadata = {
   },
   other: {
     "robots": "noai, noimageai",
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -38,8 +47,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="theme-color" content="#4F46E5" />
+        <meta name="msapplication-TileColor" content="#4F46E5" />
+        <meta name="msapplication-TileImage" content="/icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </head>
       <body className={`${outfit.variable} antialiased`} suppressHydrationWarning>
         <Providers>{children}</Providers>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );

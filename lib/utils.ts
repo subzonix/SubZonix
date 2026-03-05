@@ -467,3 +467,15 @@ export function importFromCSV(file: File): Promise<any[]> {
     });
 }
 
+
+export function sanitizeForWhatsApp(text: string): string {
+    if (!text) return "";
+    return text
+        // Remove the replacement character \uFFFD
+        .replace(/\uFFFD/g, "")
+        // Sometimes corrupted UTF-8 manifests as these characters individually
+        .replace(/\u00ef\u00bf\u00bd/g, "")
+        // Remove lone surrogates that cause URI errors or diamond characters
+        .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "")
+        .replace(/([\u0000-\uD7FF\uE000-\uFFFF]|^)[\uDC00-\uDFFF]/g, "$1");
+}

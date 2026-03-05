@@ -12,11 +12,13 @@ import { INSTRUCTION_TEXTS } from "@/lib/utils";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
 import clsx from "clsx";
 
+import { EMOJIS } from "@/lib/emojis";
+
 const TEMPLATE_DEFAULTS: any = {
-    "Renewal Reminder": "Dear [Client], 👋\n\nTo continue uninterrupted access to [Tool Name], kindly confirm your renewals. 📅 Your current plan expires on [Date].\n\n🔗 Login Link: [LoginLink]\n\nThank you! ✨",
-    "Payment Pending": "*💰 Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*. ⏳\n\n* 🛠️ Tool Name : [Tool Name]\n* 📧 Email : [Email]\n* *💵 Pending Amount: [PendingAmount]*\n\n📅 Expiry Date : [ExpiryDate]\n\n🔗 Login Link: [LoginLink]\n\nTo continue uninterrupted access, kindly clear all the dues. 🙏\n\n*🏦 Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]",
-    "Renewal Successful": "Dear [Client], 🎉\n\nYour [Tool Name] has been renewed successfully! Thank you for choosing us. ✅\n\n🔗 Login Link: [LoginLink]\n\nEnjoy your service! 🚀",
-    "Order Receipt": "*📦 Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date]. ⚡\n`Thank u for choosing and trusting [TrustText] [Company Name]`\n\n[ToolsList]\n\n🔗 Login Link: [LoginLink]\n\n*💳 Payment Summary*\n💰 Total : [Total]\n💎 Status : [Status]\n\n[AccountInfo] ✨"
+    "Renewal Reminder": `Dear [Client], ${EMOJIS.WAVING_HAND}\n\nTo continue uninterrupted access to [Tool Name], kindly confirm your renewals. ${EMOJIS.CALENDAR} Your current plan expires on [Date].\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nThank you! ${EMOJIS.SPARKLES}`,
+    "Payment Pending": `*${EMOJIS.MONEY_BAG} Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*. ${EMOJIS.HOURGLASS}\n\n* ${EMOJIS.WRENCH} Tool Name : [Tool Name]\n* ${EMOJIS.ENVELOPE} Email : [Email]\n* *${EMOJIS.BANKNOTE} Pending Amount: [PendingAmount]*\n\n${EMOJIS.CALENDAR} Expiry Date : [ExpiryDate]\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nTo continue uninterrupted access, kindly clear all the dues. 🙏\n\n*${EMOJIS.BANK} Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]`,
+    "Renewal Successful": `Dear [Client], ${EMOJIS.PARTY_POPPER}\n\nYour [Tool Name] has been renewed successfully! Thank you for choosing us. ${EMOJIS.CHECK_MARK}\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nEnjoy your service! ${EMOJIS.ROCKET}`,
+    "Order Receipt": `*${EMOJIS.PACKAGE} Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date]. ${EMOJIS.HIGH_VOLTAGE}\n\`Thank u for choosing and trusting [TrustText] [Company Name]\`\n\n[ToolsList]\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\n*${EMOJIS.CREDIT_CARD} Payment Summary*\n${EMOJIS.MONEY_BAG} Total : [Total]\n${EMOJIS.GEM_STONE} Status : [Status]\n\n[AccountInfo] ${EMOJIS.SPARKLES}`
 };
 
 const EditableTemplate = ({ title, icon: Icon, color, value, variables, onSave, onReset, renameInstruction, deleteInstruction, confirm, showToast }: any) => {

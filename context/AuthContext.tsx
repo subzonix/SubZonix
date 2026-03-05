@@ -286,15 +286,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                     // Status redirects... (Staff is always active so this is fine)
                     if (userStatus === "pending") {
-                        if (!pathname.startsWith("/verification-pending") && pathname !== "/" && !pathname.startsWith("/login")) {
+                        if (!pathname.startsWith("/verification-pending") && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/invoice")) {
                             router.push("/verification-pending");
                         }
                     } else if (userStatus === "paused") {
-                        if (!pathname.startsWith("/access-paused") && pathname !== "/" && !pathname.startsWith("/login")) {
+                        if (!pathname.startsWith("/access-paused") && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/invoice")) {
                             router.push("/access-paused");
                         }
                     } else if (userStatus === "active") {
-                        if (pathname.startsWith("/verification-pending") || pathname.startsWith("/access-paused") || pathname === "/") {
+                        // Allow access to /invoice without redirecting
+                        if (!pathname.startsWith("/invoice") && (pathname.startsWith("/verification-pending") || pathname.startsWith("/access-paused") || pathname === "/")) {
                             router.push("/dashboard");
                         }
                     }
@@ -315,6 +316,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 if (!pathname.startsWith("/login") &&
                     pathname !== "/" &&
                     !pathname.startsWith("/shop") &&
+                    !pathname.startsWith("/invoice") &&
                     !pathname.startsWith("/features") &&
                     !pathname.startsWith("/how-it-works") &&
                     !pathname.startsWith("/about") &&

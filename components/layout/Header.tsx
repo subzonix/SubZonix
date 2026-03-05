@@ -13,6 +13,7 @@ import Link from "next/link";
 import NotificationBanner from "@/components/admin/NotificationBanner";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed, hideNotifications = false }: { onMenuClick: () => void, onSidebarToggle?: () => void, sidebarCollapsed?: boolean, hideNotifications?: boolean }) {
     const { theme, setTheme, resolvedTheme } = useTheme();
@@ -134,6 +135,8 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                         </div>
                     </button>
 
+                    <PWAInstallPrompt />
+
                     <div className="relative" ref={profileRef}>
                         <button
                             onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -223,7 +226,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                         )}
                     </div>
                 </div>
-            </header>
+            </header >
 
             {showSaveReminder && (
                 <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-600 dark:text-amber-500 px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-widest backdrop-blur-sm sticky top-0 z-20">

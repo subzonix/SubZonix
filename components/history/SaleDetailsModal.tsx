@@ -2,7 +2,7 @@
 
 import { Sale, ToolItem } from "@/types";
 import { FaXmark, FaFilePdf, FaWhatsapp, FaUser, FaShop, FaCircleInfo, FaTags, FaMoneyBillWave } from "react-icons/fa6";
-import { generateInvoicePDF, cleanPhone } from "@/lib/utils";
+import { generateInvoicePDF, cleanPhone, sanitizeForWhatsApp } from "@/lib/utils";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useEffect, useState } from "react";
@@ -12,6 +12,7 @@ import { handleDownloadPDF as handleDownloadPDFUtil } from "@/lib/pdfUtils";
 
 import { useAuth } from "@/context/AuthContext";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
+import { EMOJIS } from "@/lib/emojis";
 
 interface SaleDetailsModalProps {
     sale: Sale;
@@ -54,13 +55,13 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
 
         if (includeInvoice && merchantId) {
             const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${sale.id}`;
-            message += `📄 *View Full Invoice:* ${invoiceLink}\n\n`;
+            message += `${EMOJIS.PAGE_FACING_UP} *View Full Invoice:* ${invoiceLink}\n\n`;
         }
 
         message += `*Sold By:* ${companyInfo?.companyName || "SubZonix"}\n`;
-        message += `_Powered by SubZonix_`;
+        message += `_Powered by subzonix.cloud_`;
 
-        const url = `https://wa.me/${cleanPhone(sale.client.phone)}?text=${encodeURIComponent(message)}`;
+        const url = `https://wa.me/${cleanPhone(sale.client.phone)}?text=${encodeURIComponent(sanitizeForWhatsApp(message))}`;
         window.open(url, "_blank");
     };
 

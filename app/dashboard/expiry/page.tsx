@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { Sale, ToolItem } from "@/types";
 import { Card, Button, Input } from "@/components/ui/Shared";
 import { FaWhatsapp, FaClock, FaCalendarDay, FaCircleInfo, FaReceipt, FaCheckDouble, FaTriangleExclamation, FaTableList, FaAddressCard, FaLock, FaMagnifyingGlass } from "react-icons/fa6";
-import { cleanPhone, toHumanDate } from "@/lib/utils";
+import { cleanPhone, toHumanDate, sanitizeForWhatsApp } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import clsx from "clsx";
@@ -104,7 +104,7 @@ export default function ExpiryPage() {
             .replace(/\[LoginLink\]/g, item.loginLink ? `\n🔗 Login Link: ${item.loginLink}` : "")
             .replace(/\[Company Name\]/g, settings?.companyName || "SubZonix");
 
-        window.open(`https://wa.me/${cleanPhone(item.clientPhone)}?text=${encodeURIComponent(msg)}`, '_blank');
+        window.open(`https://wa.me/${cleanPhone(item.clientPhone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
         showToast("WhatsApp opened for reminder", "info");
 
         // 2. Update Database Count

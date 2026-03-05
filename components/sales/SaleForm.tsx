@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useMemo } from "react";
 import { addMonths, addDays, addYears, format, parseISO } from "date-fns";
 import Link from "next/link";
@@ -9,7 +10,7 @@ import Autocomplete from "@/components/ui/Autocomplete";
 import ToolInput from "./ToolInput";
 import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen, FaCalendar, FaFaceSmile } from "react-icons/fa6";
 import EmojiPicker from "@/components/ui/EmojiPicker";
-import { cleanPhone, generateInvoicePDF } from "@/lib/utils";
+import { cleanPhone, generateInvoicePDF, sanitizeForWhatsApp } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useInventory } from "@/context/InventoryContext";
 import { useVendors } from "@/context/VendorContext";
@@ -18,6 +19,7 @@ import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { logAction } from "@/lib/logger";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
+import { EMOJIS } from "@/lib/emojis";
 
 
 export default function SaleForm() {
@@ -122,7 +124,18 @@ export default function SaleForm() {
         const loadSettings = async () => {
             if (!merchantId) return;
             const snap = await getDoc(doc(db, "users", merchantId, "settings", "general"));
-            if (snap.exists()) setCompanyInfo(snap.data() as any);
+            if (snap.exists()) {
+                const data = snap.data() as any;
+                // Auto-heal corrupted templates: if receipt template has \uFFFD (replacement char),
+                // regenerate it with fresh emojis from String.fromCodePoint() and save to Firestore.
+                if (data.receiptTemplate && data.receiptTemplate.includes('\uFFFD')) {
+                    const freshTemplate = `*${EMOJIS.PACKAGE} Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date]. ${EMOJIS.HIGH_VOLTAGE}\n\`Thank u for choosing and trusting [TrustText] [Company Name]\`\n\n[ToolsList]\n\n*${EMOJIS.CREDIT_CARD} Payment Summary*\n${EMOJIS.MONEY_BAG} Total : [Total]\n${EMOJIS.GEM_STONE} Status : [Status]\n\n[AccountInfo]\n\n> Thank you for trusting *[Company Name]*. ${EMOJIS.SPARKLES}\n_© Powered by subzonix.cloud_`;
+                    data.receiptTemplate = freshTemplate;
+                    // Persist the fixed template back to Firestore silently
+                    updateDoc(doc(db, "users", merchantId, "settings", "general"), { receiptTemplate: freshTemplate }).catch(() => { });
+                }
+                setCompanyInfo(data);
+            }
         };
         loadSettings();
 
@@ -482,17 +495,17 @@ export default function SaleForm() {
                 // Build Tools List
                 let toolsList = "";
                 tools.forEach((t, i) => {
-                    toolsList += `*🛠️ Tool # ${i + 1}*\n`;
+                    toolsList += `*${EMOJIS.WRENCH} Tool # ${i + 1}*\n`;
                     toolsList += `* Tool Name : ${t.name}${t.type === 'Shared' ? ' (Shared)' : ''}\n`;
                     if (t.plan) toolsList += `* Plan : ${t.plan}\n`;
-                    toolsList += `*🔐 Credentials*\n`;
+                    toolsList += `*${EMOJIS.LOCK_KEY} Credentials*\n`;
                     toolsList += `* Email : ${t.email || "N/A"}\n`;
                     toolsList += `* Password : ${t.pass || "N/A"}\n`;
                     if (t.profileName) toolsList += `* Profile : ${t.profileName}\n`;
                     if (t.profilePin) toolsList += `* Pin : ${t.profilePin}\n`;
-                    if (t.loginLink) toolsList += `* 🔗 Login Link : ${t.loginLink}\n`;
-                    toolsList += `* 💰 Price : ${t.sell}\n`;
-                    toolsList += `📅 Expiry Date : *${formatDate(t.eDate)}*\n\n`;
+                    if (t.loginLink) toolsList += `* ${EMOJIS.LINK} Login Link : ${t.loginLink}\n`;
+                    toolsList += `* ${EMOJIS.MONEY_BAG} Price : ${t.sell}\n`;
+                    toolsList += `${EMOJIS.CALENDAR} Expiry Date : *${formatDate(t.eDate)}*\n\n`;
                 });
 
                 // Build Status & Account Info
@@ -505,10 +518,12 @@ export default function SaleForm() {
                     accountInfo += `* IBAN or Account No.: ${companyInfo.iban || companyInfo.accountNumber || "user not set yet"}`;
                 }
 
-                // Get Template
-                let templateText = companyInfo.receiptTemplate || "*Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date].\n`Thank u for choosing and trusting [TrustText] [Company Name]`\n\n[ToolsList]\n\n*Payment Summary*\nTotal : [Total]\nStatus : [Status]\n\n[AccountInfo]\n\n> Thank you for trusting *[Company Name]*.\n_© Powered by SubZonix_";
+                // Get Template - use fresh default with correct emojis
+                const defaultReceiptTemplate = `*${EMOJIS.PACKAGE} Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date]. ${EMOJIS.HIGH_VOLTAGE}\n\`Thank u for choosing and trusting [TrustText] [Company Name]\`\n\n[ToolsList]\n\n*${EMOJIS.CREDIT_CARD} Payment Summary*\n${EMOJIS.MONEY_BAG} Total : [Total]\n${EMOJIS.GEM_STONE} Status : [Status]\n\n[AccountInfo]\n\n> Thank you for trusting *[Company Name]*. ${EMOJIS.SPARKLES}\n_© Powered by subzonix.cloud_`;
+                let templateText = companyInfo.receiptTemplate || defaultReceiptTemplate;
 
                 // Replace Variables
+                const saleLoginLink = tools[0]?.loginLink || "";
                 let msg = templateText
                     .replace(/\[Client\]/g, clientName)
                     .replace(/\[ActionType\]/g, actionText)
@@ -518,7 +533,8 @@ export default function SaleForm() {
                     .replace(/\[ToolsList\]/g, toolsList.trim())
                     .replace(/\[Total\]/g, String(totalSell))
                     .replace(/\[Status\]/g, statusText)
-                    .replace(/\[AccountInfo\]/g, accountInfo);
+                    .replace(/\[AccountInfo\]/g, accountInfo)
+                    .replace(/\[LoginLink\]/g, saleLoginLink);
 
                 // Handle Instructions
                 if (instructions && instructions !== "No Instructions") {
@@ -527,10 +543,10 @@ export default function SaleForm() {
 
                 if ((action as string) === "invoice" && savedId) {
                     const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${savedId}`;
-                    msg += `\n\n📄 *View Invoice:* ${invoiceLink}`;
+                    msg += `\n\n${EMOJIS.PAGE_FACING_UP} *View Invoice:* ${invoiceLink}`;
                 }
 
-                window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(msg)}`, '_blank');
+                window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
                 showToast((action as string) === "invoice" ? "WhatsApp opened with Invoice link" : "WhatsApp opened for receipt", "info");
             }
 

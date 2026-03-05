@@ -7,7 +7,7 @@ import { Sale } from "@/types";
 import { Card, Input, Button } from "@/components/ui/Shared";
 import { FaTrash, FaPen, FaFilePdf, FaEye, FaWhatsapp, FaChevronDown, FaChevronUp, FaUser, FaCartShopping, FaFileCsv } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
-import { cleanPhone, exportToCSV, toHumanDate, formatDateSafe } from "@/lib/utils";
+import { cleanPhone, exportToCSV, toHumanDate, formatDateSafe, sanitizeForWhatsApp } from "@/lib/utils";
 import { handleDownloadPDF } from "@/lib/pdfUtils";
 import clsx from "clsx";
 import SaleDetailsModal from "@/components/history/SaleDetailsModal";
@@ -20,7 +20,7 @@ import { addDoc } from "firebase/firestore";
 import { useSales } from "@/context/SalesContext";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard"; // Import PlanFeatureGuard
 import ToolLogo from "@/components/ui/ToolLogo";
-
+import { EMOJIS } from "@/lib/emojis";
 
 
 export default function HistoryPage() {
@@ -225,13 +225,13 @@ export default function HistoryPage() {
 
         if (includeInvoice && merchantId) {
             const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${sale.id}`;
-            message += `📄 *View Full Invoice:* ${invoiceLink}\n\n`;
+            message += `${EMOJIS.PAGE_FACING_UP} *View Full Invoice:* ${invoiceLink}\n\n`;
         }
 
         message += `*Sold By:* ${companyInfo.companyName || "SubZonix"}\n`;
-        message += `_Powered by SubZonix_`;
+        message += `_Powered by subzonix.cloud_`;
 
-        window.open(`https://wa.me/${cleanPhone(sale.client?.phone || "")}?text=${encodeURIComponent(message)}`, '_blank');
+        window.open(`https://wa.me/${cleanPhone(sale.client?.phone || "")}?text=${encodeURIComponent(sanitizeForWhatsApp(message))}`, '_blank');
         showToast(includeInvoice ? "WhatsApp opened with Invoice link" : "WhatsApp opened with Credentials", "info");
     };
 

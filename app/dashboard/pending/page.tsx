@@ -6,13 +6,14 @@ import { db } from "@/lib/firebase";
 import { Sale } from "@/types";
 import { Card, Button } from "@/components/ui/Shared";
 import { FaWhatsapp, FaCheck, FaPhone, FaTableList, FaAddressCard } from "react-icons/fa6";
-import { cleanPhone } from "@/lib/utils";
+import { cleanPhone, sanitizeForWhatsApp } from "@/lib/utils";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard";
 
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSales } from "@/context/SalesContext";
 import { useMemo } from "react";
+import { EMOJIS } from "@/lib/emojis";
 
 export default function PendingPage() {
     const { sales: allSales, loading } = useSales();
@@ -66,7 +67,8 @@ export default function PendingPage() {
         const loginLinks = s.items.map(i => i.loginLink ? `- ${i.name}: ${i.loginLink}` : "").filter(Boolean).join("\n");
         const firstExpiry = s.items[0]?.eDate ? formatDate(s.items[0].eDate) : "N/A";
 
-        let template = settings?.pendingTemplate || `*Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*.\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n[LoginLinks]\n* *Pending Amount: [PendingAmount]*\n\nExpiry Date : [ExpiryDate]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> *Sent by [Company Name]*\n_© Powered by ${useAuth().appName || "SubZonix"}_`;
+        let template = settings?.pendingTemplate || `*${EMOJIS.MONEY_BAG} Payment Reminder*\\n\\nDear *[Client]*,\\n\\nThe following memberships you activated on [ActivationDate]. Dues are *pending*. ${EMOJIS.HOURGLASS}\\n\\n* ${EMOJIS.WRENCH} Tool Name : [Tool Name]\\n* ${EMOJIS.ENVELOPE} Email : [Email]\\n[LoginLinks]\\n* *${EMOJIS.BANKNOTE} Pending Amount: [PendingAmount]*\\n\\n${EMOJIS.CALENDAR} Expiry Date : [ExpiryDate]\\n\\nTo continue uninterrupted access, kindly clear all the dues.\\n\\n*${EMOJIS.BANK} Account Information:*\\n* Bank Name: [Bank Name]\\n* Holder Name: [Holder Name]\\n* IBAN or Account No.: [Account No]\\n\\n> *Sent by [Company Name]*\\n_© Powered by subzonix.cloud_`;
+
 
         let msg = template
             .replace(/\[Client\]/g, s.client.name)
@@ -81,7 +83,7 @@ export default function PendingPage() {
             .replace(/\[Account No\]/g, settings?.iban || settings?.accountNumber || "user not set yet")
             .replace(/\[Company Name\]/g, settings?.companyName || "SubZonix");
 
-        window.open(`https://wa.me/${cleanPhone(s.client.phone)}?text=${encodeURIComponent(msg)}`, '_blank');
+        window.open(`https://wa.me/${cleanPhone(s.client.phone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
     };
 
     return (
