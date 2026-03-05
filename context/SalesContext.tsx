@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { collection, query, onSnapshot, orderBy, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Sale } from "@/types";
+import { getLocalIsoDate } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
 interface SalesContextType {
@@ -63,7 +64,7 @@ export const SalesProvider = ({ children }: { children: React.ReactNode }) => {
             setSales(data);
 
             // Calculate Counts & Shared Tool Cost Distribution
-            const todayStr = new Date().toISOString().slice(0, 10);
+            const todayStr = getLocalIsoDate();
             let expiry = 0;
             let clientPending = 0;
             let vendorDue = 0;

@@ -7,6 +7,7 @@ import { FaUserCheck, FaUserSlash, FaClockRotateLeft, FaMagnifyingGlass, FaTrash
 import UserHistoryModal from "@/components/admin/UserHistoryModal";
 import { useToast } from "@/context/ToastContext";
 import { Card, Button, Input, Select } from "@/components/ui/Shared";
+import { getLocalIsoDate } from "@/lib/utils";
 import clsx from "clsx";
 import { useSearchParams } from "next/navigation";
 
@@ -41,7 +42,7 @@ export default function UserManagementPage() {
     const [selectedUserForPlan, setSelectedUserForPlan] = useState<UserProfile | null>(null);
     const [planForm, setPlanForm] = useState({
         planId: "",
-        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        expiryDate: getLocalIsoDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
     });
     const { showToast } = useToast();
     const searchParams = useSearchParams();

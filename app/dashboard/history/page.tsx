@@ -7,7 +7,7 @@ import { Sale } from "@/types";
 import { Card, Input, Button } from "@/components/ui/Shared";
 import { FaTrash, FaPen, FaFilePdf, FaEye, FaWhatsapp, FaChevronDown, FaChevronUp, FaUser, FaCartShopping, FaFileCsv } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
-import { cleanPhone, exportToCSV, toHumanDate, formatDateSafe, sanitizeForWhatsApp } from "@/lib/utils";
+import { cleanPhone, exportToCSV, toHumanDate, formatDateSafe, sanitizeForWhatsApp, getLocalIsoDate } from "@/lib/utils";
 import { handleDownloadPDF } from "@/lib/pdfUtils";
 import clsx from "clsx";
 import SaleDetailsModal from "@/components/history/SaleDetailsModal";
@@ -28,12 +28,12 @@ export default function HistoryPage() {
     const [search, setSearch] = useState("");
     const [expandedClient, setExpandedClient] = useState<string | null>(null);
     const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-    const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().slice(0, 10));
+    const [purchaseDate, setPurchaseDate] = useState(getLocalIsoDate());
     const [showDailyPurchasing, setShowDailyPurchasing] = useState(false);
     const [groupMode, setGroupMode] = useState<"customer" | "tool">("customer");
     const [showExportModal, setShowExportModal] = useState(false);
-    const [exportFrom, setExportFrom] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)); // Default last 30 days
-    const [exportTo, setExportTo] = useState(new Date().toISOString().slice(0, 10));
+    const [exportFrom, setExportFrom] = useState(getLocalIsoDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))); // Default last 30 days
+    const [exportTo, setExportTo] = useState(getLocalIsoDate());
     const [exportPreferences, setExportPreferences] = useState<Record<string, boolean> | undefined>(undefined);
     const [companyInfo, setCompanyInfo] = useState({ companyName: "", slogan: "", logoUrl: "", accountNumber: "", iban: "", bankName: "", accountHolder: "", });
     const router = useRouter();
@@ -155,7 +155,7 @@ export default function HistoryPage() {
     };
 
     const handleGroupExport = (groupSales: Sale[], name: string) => {
-        exportToCSV(groupSales, `Sales_${name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}`, exportPreferences);
+        exportToCSV(groupSales, `Sales_${name.replace(/\s+/g, '_')}_${getLocalIsoDate()}`, exportPreferences);
         showToast(`Exported ${groupSales.length} records for ${name}`, "success");
     };
 

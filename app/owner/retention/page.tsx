@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, query, onSnapshot, doc, getDocs, where, writeBatch, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/context/ToastContext";
-import { exportToCSV, toHumanDate, isValidDate, formatDateSafe } from "@/lib/utils";
+import { exportToCSV, toHumanDate, isValidDate, formatDateSafe, getLocalIsoDate } from "@/lib/utils";
 import Link from "next/link";
 import { FaTrash, FaClock, FaDownload, FaUserShield, FaTriangleExclamation } from "react-icons/fa6";
 
@@ -76,7 +76,7 @@ export default function RetentionReviewPage() {
 
     const handleExportOld = () => {
         if (!selectedUser) return;
-        exportToCSV(salesOld as any, `retention_old_${selectedUser.email}_${new Date().toISOString().slice(0, 10)}.csv`);
+        exportToCSV(salesOld as any, `retention_old_${selectedUser.email}_${getLocalIsoDate()}.csv`);
         showToast("Exported old records", "success");
     };
 

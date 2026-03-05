@@ -5,6 +5,7 @@ import { db } from "@/lib/firebase";
 import { Sale } from "@/types";
 import { Card, Input } from "@/components/ui/Shared";
 import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
+import { getLocalIsoDate, getLocalIsoMonth } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
 import {
@@ -21,8 +22,8 @@ export default function AnalyticsPage() {
     const [sales, setSales] = useState<Sale[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("thisMonth");
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
+    const [fromDate, setFromDate] = useState(getLocalIsoDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1)));
+    const [toDate, setToDate] = useState(getLocalIsoDate());
 
     // Monthly Profit Trend (Last 12 Months)
     const months = useMemo(() => {
@@ -31,7 +32,7 @@ export default function AnalyticsPage() {
             const d = new Date();
             d.setMonth(d.getMonth() - i);
             result.push({
-                key: d.toISOString().slice(0, 7), // YYYY-MM
+                key: getLocalIsoMonth(d), // YYYY-MM
                 label: d.toLocaleDateString([], { month: 'short', year: 'numeric' })
             });
         }
@@ -91,24 +92,24 @@ export default function AnalyticsPage() {
         let toDateStr = "";
 
         if (filter === "custom") {
-            fromDateStr = fromDate || new Date(sales[sales.length - 1]?.createdAt || Date.now()).toISOString().split('T')[0];
-            toDateStr = toDate || new Date().toISOString().split('T')[0];
+            fromDateStr = fromDate || getLocalIsoDate(new Date(sales[sales.length - 1]?.createdAt || Date.now()));
+            toDateStr = toDate || getLocalIsoDate();
         } else {
             const now = new Date();
             if (filter === "thisMonth") {
-                fromDateStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-                toDateStr = now.toISOString().split('T')[0];
+                fromDateStr = getLocalIsoDate(new Date(now.getFullYear(), now.getMonth(), 1));
+                toDateStr = getLocalIsoDate(now);
             } else if (filter === "lastMonth") {
-                fromDateStr = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-                toDateStr = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+                fromDateStr = getLocalIsoDate(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+                toDateStr = getLocalIsoDate(new Date(now.getFullYear(), now.getMonth(), 0));
             } else if (filter === "thisYear") {
-                fromDateStr = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-                toDateStr = now.toISOString().split('T')[0];
+                fromDateStr = getLocalIsoDate(new Date(now.getFullYear(), 0, 1));
+                toDateStr = getLocalIsoDate(now);
             } else {
                 // All time
                 const oldest = sales.length > 0 ? Math.min(...sales.map(s => s.createdAt)) : Date.now();
-                fromDateStr = new Date(oldest).toISOString().split('T')[0];
-                toDateStr = now.toISOString().split('T')[0];
+                fromDateStr = getLocalIsoDate(new Date(oldest));
+                toDateStr = getLocalIsoDate(now);
             }
         }
 
@@ -124,7 +125,7 @@ export default function AnalyticsPage() {
             const start = new Date(fromDateStr);
             const end = new Date(toDateStr);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const dateKey = d.toISOString().split('T')[0];
+                const dateKey = getLocalIsoDate(d);
                 timeData[dateKey] = { revenue: 0, profit: 0, cost: 0 };
             }
         }
@@ -134,7 +135,7 @@ export default function AnalyticsPage() {
             const date = new Date(s.createdAt);
             const key = isSingleDay
                 ? `${date.getHours().toString().padStart(2, '0')}:00`
-                : date.toISOString().split('T')[0];
+                : getLocalIsoDate(date);
 
             if (timeData[key]) {
                 timeData[key].revenue += s.finance.totalSell;
@@ -225,7 +226,7 @@ export default function AnalyticsPage() {
     const monthlyProfitData = months.map((m: { key: string }) => {
         let profit = 0;
         sales.forEach(s => {
-            const sDate = new Date(s.createdAt).toISOString().slice(0, 7);
+            const sDate = getLocalIsoMonth(new Date(s.createdAt));
             if (sDate === m.key) profit += s.finance.totalProfit;
         });
         return profit;

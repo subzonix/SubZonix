@@ -150,7 +150,7 @@ export default function PWAInstallPrompt() {
                                     </div>
                                     <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2 tracking-tight">Install SubZonix</h3>
                                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 px-2">
-                                        Install our app on your device for quick access, offline support, and a better experience.
+                                        Install our app on your device for quick access and a better experience.
                                     </p>
                                     <div className="w-full flex flex-col gap-2">
                                         <button

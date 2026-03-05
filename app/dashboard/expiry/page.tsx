@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { Sale, ToolItem } from "@/types";
 import { Card, Button, Input } from "@/components/ui/Shared";
 import { FaWhatsapp, FaClock, FaCalendarDay, FaCircleInfo, FaReceipt, FaCheckDouble, FaTriangleExclamation, FaTableList, FaAddressCard, FaLock, FaMagnifyingGlass } from "react-icons/fa6";
-import { cleanPhone, toHumanDate, sanitizeForWhatsApp } from "@/lib/utils";
+import { cleanPhone, toHumanDate, sanitizeForWhatsApp, getLocalIsoDate } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import clsx from "clsx";
@@ -19,10 +19,10 @@ export default function ExpiryPage() {
     const [loading, setLoading] = useState(true);
     const [settings, setSettings] = useState<any>(null);
     const [appConfig, setAppConfig] = useState<any>(null);
-    const [expiryDate, setExpiryDate] = useState(new Date().toISOString().slice(0, 10));
+    const [expiryDate, setExpiryDate] = useState(getLocalIsoDate());
     const [dateRange, setDateRange] = useState({
-        from: new Date().toISOString().slice(0, 10),
-        to: new Date().toISOString().slice(0, 10)
+        from: getLocalIsoDate(),
+        to: getLocalIsoDate()
     });
     const [viewMode, setViewMode] = useState<"table" | "card">("table");
     const [searchQuery, setSearchQuery] = useState("");

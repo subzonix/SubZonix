@@ -9,7 +9,7 @@ import { useToast } from "@/context/ToastContext";
 import clsx from "clsx";
 import { Sale, ToolItem } from "@/types";
 import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
-import { formatDateSafe } from "@/lib/utils";
+import { formatDateSafe, getLocalIsoDate } from "@/lib/utils";
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -62,8 +62,8 @@ export default function OwnerDashboardPage() {
     const [dashboardUser, setDashboardUser] = useState<string>("");
     const [sales, setSales] = useState<Sale[]>([]);
     const [salesLoading, setSalesLoading] = useState(false);
-    const [fromDate, setFromDate] = useState(new Date().toISOString().slice(0, 10));
-    const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10));
+    const [fromDate, setFromDate] = useState(getLocalIsoDate());
+    const [toDate, setToDate] = useState(getLocalIsoDate());
     const [appliedFilter, setAppliedFilter] = useState({ from: fromDate, to: toDate });
     const [viewMode, setViewMode] = useState<"stats" | "charts">("stats");
 
@@ -155,7 +155,7 @@ export default function OwnerDashboardPage() {
             const start = new Date(appliedFilter.from);
             const end = new Date(appliedFilter.to);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const dateKey = d.toISOString().split('T')[0];
+                const dateKey = getLocalIsoDate(d);
                 timeData[dateKey] = { revenue: 0, profit: 0, cost: 0 };
             }
         }
@@ -164,7 +164,7 @@ export default function OwnerDashboardPage() {
             const date = new Date(s.createdAt);
             const key = isSingleDay
                 ? `${date.getHours().toString().padStart(2, '0')}:00`
-                : date.toISOString().split('T')[0];
+                : getLocalIsoDate(date);
 
             if (timeData[key]) {
                 timeData[key].revenue += s.finance.totalSell;

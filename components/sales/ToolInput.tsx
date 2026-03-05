@@ -3,9 +3,11 @@
 import { ToolItem, InventoryItem } from "@/types";
 import { FaTrash, FaPlus } from "react-icons/fa6";
 import { Card, Input, Select } from "@/components/ui/Shared";
+import { CalendarDatePicker } from "@/components/ui/CalendarDatePicker";
 import Autocomplete from "@/components/ui/Autocomplete";
 import { useState, useEffect } from "react";
 import { format, addMonths, addDays, addYears, parseISO } from "date-fns";
+import { getLocalIsoDate } from "@/lib/utils";
 
 interface Props {
     // ... existing Props continue ...
@@ -82,7 +84,7 @@ export default function ToolInput({
         const days = parseInt(value);
         if (isNaN(days)) return;
 
-        const pDateStr = data.pDate || new Date().toISOString().slice(0, 10);
+        const pDateStr = data.pDate || getLocalIsoDate();
         const pDate = parseISO(pDateStr);
         let eDate: Date;
 
@@ -223,71 +225,60 @@ export default function ToolInput({
             {/* Custom Duration Dates */}
             {isCustomDuration && (
                 <div className="grid grid-cols-2 gap-3 mb-3 animate-in fade-in duration-300">
-                    {/* Purchase Date */}
-                    <div>
-                        <Input
-                            label="Purchase Date"
-                            type="date"
-                            value={data.pDate}
-                            onChange={(e) => onChange("pDate", e.target.value)}
-                        />
-                        {data.pDate && (
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                                {formatDate(data.pDate)}
-                            </div>
-                        )}
-                    </div>
+                    <CalendarDatePicker
+                        label="Purchase Date"
+                        value={data.pDate}
+                        onChange={(val) => onChange("pDate", val)}
+                        className="bg-white dark:bg-slate-900"
+                    />
 
-                    {/* Expiry Date */}
-                    <div>
-                        <Input
-                            label="Expiry Date"
-                            type="date"
-                            value={data.eDate}
-                            onChange={(e) => onChange("eDate", e.target.value)}
-                        />
-                        {data.eDate && (
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                                {formatDate(data.eDate)}
-                            </div>
-                        )}
-                    </div>
+                    <CalendarDatePicker
+                        label="Expiry Date"
+                        value={data.eDate}
+                        onChange={(val) => onChange("eDate", val)}
+                        className="bg-white dark:bg-slate-900"
+                    />
                 </div>
             )}
 
             {/* Login Fields */}
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-3 mb-3">
                 <Input
                     label="Login Email"
                     placeholder="email@example.com"
                     value={data.email || ""}
                     onChange={(e) => onChange("email", e.target.value)}
+                    className="col-span-1 md:col-span-1"
                 />
                 <Input
                     label="Login Password"
                     placeholder="password"
                     value={data.pass || ""}
                     onChange={(e) => onChange("pass", e.target.value)}
+                    className="col-span-1 md:col-span-1"
                 />
 
-                <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="col-span-2 grid grid-cols-2 md:grid-cols-3 gap-3">
                     <Input
                         label="Login Link / URL"
                         placeholder="https://..."
                         value={data.loginLink || ""}
                         onChange={(e) => onChange("loginLink", e.target.value)}
+                        className="col-span-2 md:col-span-1"
                     />
                     <Input
                         label="Mail Access (Optional)"
                         placeholder="mail link or info"
                         value={data.mailAccess || ""}
                         onChange={(e) => onChange("mailAccess", e.target.value)}
+                        className="col-span-1 md:col-span-1"
                     />
                     <Input
                         label="Mail Password (Optional)"
                         placeholder="mail pass"
                         value={data.mailAccessPassword || ""}
                         onChange={(e) => onChange("mailAccessPassword", e.target.value)}
+                        className="col-span-1 md:col-span-1"
                     />
                 </div>
             </div>

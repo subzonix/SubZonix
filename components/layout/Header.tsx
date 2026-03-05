@@ -117,9 +117,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                     )}
                     <div>
                         <h1 className="text-sm font-black tracking-tight text-[var(--foreground)]">{getTitle()}</h1>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </div>
+                        <HeaderClock />
                     </div>
                 </div>
 
@@ -235,5 +233,24 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
             )
             }
         </div >
+    );
+}
+
+function HeaderClock() {
+    const [time, setTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+            {time.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+            <span className="mx-1 opacity-50">•</span>
+            {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+        </div>
     );
 }

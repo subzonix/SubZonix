@@ -57,10 +57,28 @@ export function isValidDate(val: any): boolean {
 export function formatDateSafe(val: any, fallback = ""): string {
     if (!isValidDate(val)) return fallback;
     try {
-        return new Date(val).toISOString().slice(0, 10);
+        const d = new Date(val);
+        // Using local components to avoid UTC day shift
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
     } catch (e) {
         return fallback;
     }
+}
+
+export function getLocalIsoDate(d: Date = new Date()): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+export function getLocalIsoMonth(d: Date = new Date()): string {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
 }
 
 export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slogan?: string, logo?: string, contact?: string, account?: string, iban?: string, bankName?: string, accountHolder?: string, loginLink?: string }) {

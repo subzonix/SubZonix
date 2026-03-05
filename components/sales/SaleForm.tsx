@@ -6,11 +6,12 @@ import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, limi
 import { db } from "@/lib/firebase";
 import { ToolItem, Sale, InventoryItem, Client } from "@/types";
 import { Button, Input, Select, Card } from "@/components/ui/Shared";
+import { CalendarDatePicker } from "@/components/ui/CalendarDatePicker";
 import Autocomplete from "@/components/ui/Autocomplete";
 import ToolInput from "./ToolInput";
 import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen, FaCalendar, FaFaceSmile } from "react-icons/fa6";
 import EmojiPicker from "@/components/ui/EmojiPicker";
-import { cleanPhone, generateInvoicePDF, sanitizeForWhatsApp } from "@/lib/utils";
+import { cleanPhone, generateInvoicePDF, sanitizeForWhatsApp, getLocalIsoDate } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useInventory } from "@/context/InventoryContext";
 import { useVendors } from "@/context/VendorContext";
@@ -42,7 +43,7 @@ export default function SaleForm() {
     const [pendingAmount, setPendingAmount] = useState(0);
     const [instructions, setInstructions] = useState("");
     const [isDirty, setIsDirty] = useState(false);
-    const [saleDate, setSaleDate] = useState(new Date().toISOString().slice(0, 10));
+    const [saleDate, setSaleDate] = useState(getLocalIsoDate());
     const [tools, setTools] = useState<ToolItem[]>([]);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [existingClients, setExistingClients] = useState<Client[]>([]);
@@ -51,8 +52,8 @@ export default function SaleForm() {
     const [selectedVendorId, setSelectedVendorId] = useState("");
     const [errors, setErrors] = useState<string[]>([]);
 
-    const today = new Date().toISOString().slice(0, 10);
-    const nextMonth = new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().slice(0, 10);
+    const today = getLocalIsoDate();
+    const nextMonth = getLocalIsoDate(new Date(new Date().setDate(new Date().getDate() + 30)));
 
 
 
@@ -108,7 +109,7 @@ export default function SaleForm() {
                         setInstructions(data.instructions);
                     }
                     if (data.createdAt) {
-                        setSaleDate(new Date(data.createdAt).toISOString().slice(0, 10));
+                        setSaleDate(getLocalIsoDate(new Date(data.createdAt)));
                     }
                     if (data.items) {
                         setTools(data.items);
@@ -623,18 +624,13 @@ export default function SaleForm() {
                     </div>
 
                     {/* Date Input */}
-                    <div className="flex-1 w-full sm:w-auto">
-                        <label className="hidden sm:block text-[10px] font-black text-indigo-700 dark:text-indigo-300 uppercase tracking-widest mb-2">
-                            Sale Date
-                        </label>
-                        <Input
-                            type="date"
-                            value={saleDate}
-                            onChange={(e) => handleSaleDateChange(e.target.value)}
-                            required
-                            className="bg-white dark:bg-slate-900 max-w-xs"
-                        />
-                    </div>
+                    <CalendarDatePicker
+                        label="Sale Date"
+                        value={saleDate}
+                        onChange={(val) => handleSaleDateChange(val)}
+                        required
+                        className="bg-white dark:bg-slate-900 max-w-xs"
+                    />
 
                     {/* Info Text */}
                     <div className="hidden sm:flex flex-col items-end text-right bg-white/60 dark:bg-slate-700/40 px-4 py-2 rounded-xl border border-indigo-100 dark:border-indigo-700/30 backdrop-blur-sm">

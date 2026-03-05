@@ -9,7 +9,7 @@ import { FaChartLine, FaCalendarDay, FaUserClock, FaShop } from "react-icons/fa6
 import clsx from "clsx";
 import { Sale, ToolItem } from "@/types";
 import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
-import { formatDateSafe } from "@/lib/utils";
+import { formatDateSafe, getLocalIsoDate } from "@/lib/utils";
 
 export default function DashboardPage() {
     const { sales, loading } = useSales();
@@ -50,8 +50,8 @@ export default function DashboardPage() {
         }
     }, [isStaff, staffPermissions, router, user]);
 
-    const [fromDate, setFromDate] = useState(new Date().toISOString().slice(0, 10));
-    const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10));
+    const [fromDate, setFromDate] = useState(getLocalIsoDate());
+    const [toDate, setToDate] = useState(getLocalIsoDate());
     const [appliedFilter, setAppliedFilter] = useState({ from: fromDate, to: toDate });
 
     const filteredSales = useMemo(() => {
@@ -114,7 +114,7 @@ export default function DashboardPage() {
             const start = new Date(appliedFilter.from);
             const end = new Date(appliedFilter.to);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const dateKey = d.toISOString().split('T')[0];
+                const dateKey = getLocalIsoDate(d);
                 timeData[dateKey] = { revenue: 0, profit: 0, cost: 0 };
             }
         }
@@ -124,7 +124,7 @@ export default function DashboardPage() {
             const date = new Date(s.createdAt);
             const key = isSingleDay
                 ? `${date.getHours().toString().padStart(2, '0')}:00`
-                : date.toISOString().split('T')[0];
+                : getLocalIsoDate(date);
 
             if (timeData[key]) {
                 timeData[key].revenue += s.finance.totalSell;
