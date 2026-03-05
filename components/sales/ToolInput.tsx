@@ -269,12 +269,25 @@ export default function ToolInput({
                     value={data.pass || ""}
                     onChange={(e) => onChange("pass", e.target.value)}
                 />
-                <div className="col-span-2">
+
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
                     <Input
                         label="Login Link / URL"
                         placeholder="https://..."
                         value={data.loginLink || ""}
                         onChange={(e) => onChange("loginLink", e.target.value)}
+                    />
+                    <Input
+                        label="Mail Access (Optional)"
+                        placeholder="mail link or info"
+                        value={data.mailAccess || ""}
+                        onChange={(e) => onChange("mailAccess", e.target.value)}
+                    />
+                    <Input
+                        label="Mail Password (Optional)"
+                        placeholder="mail pass"
+                        value={data.mailAccessPassword || ""}
+                        onChange={(e) => onChange("mailAccessPassword", e.target.value)}
                     />
                 </div>
             </div>

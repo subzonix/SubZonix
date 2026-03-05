@@ -205,7 +205,7 @@ export default function HistoryPage() {
         setImporting(false);
     };
 
-    const handleWhatsAppAction = (sale: Sale, includeInvoice: boolean = false) => {
+    const handleWhatsAppAction = (sale: Sale) => {
         let message = `*Hello ${sale.client.name}, here are your credentials for your recent purchase:* \n\n`;
 
         sale.items.forEach((item, idx) => {
@@ -216,6 +216,8 @@ export default function HistoryPage() {
             if (item.profileName) message += `Profile: ${item.profileName}\n`;
             if (item.profilePin) message += `PIN: ${item.profilePin}\n`;
             if (item.loginLink) message += `Link: ${item.loginLink}\n`;
+            if (item.mailAccess) message += `Mail Access: ${item.mailAccess}\n`;
+            if (item.mailAccessPassword) message += `Mail Password: ${item.mailAccessPassword}\n`;
             message += `Expiry: ${item.eDate}\n\n`;
         });
 
@@ -223,16 +225,11 @@ export default function HistoryPage() {
             message += `*Instructions & Warranty:*\n${sale.instructions}\n\n`;
         }
 
-        if (includeInvoice && merchantId) {
-            const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${sale.id}`;
-            message += `${EMOJIS.PAGE_FACING_UP} *View Full Invoice:* ${invoiceLink}\n\n`;
-        }
-
         message += `*Sold By:* ${companyInfo.companyName || "SubZonix"}\n`;
         message += `_Powered by subzonix.cloud_`;
 
         window.open(`https://wa.me/${cleanPhone(sale.client?.phone || "")}?text=${encodeURIComponent(sanitizeForWhatsApp(message))}`, '_blank');
-        showToast(includeInvoice ? "WhatsApp opened with Invoice link" : "WhatsApp opened with Credentials", "info");
+        showToast("WhatsApp opened with Credentials", "info");
     };
 
     return (
@@ -592,16 +589,7 @@ export default function HistoryPage() {
 
                                                         <PlanFeatureGuard feature="whatsappAlerts" fallback={<button className="icon-whatsapp cursor-not-allowed opacity-50" disabled><FaWhatsapp /></button>}>
                                                             <div className="flex gap-1">
-                                                                <button onClick={() => handleWhatsAppAction(s, false)} className="icon-whatsapp" title="Send Credentials (WA)"><FaWhatsapp /></button>
-                                                                <Button
-                                                                    onClick={() => handleWhatsAppAction(s, true)}
-                                                                    variant="success"
-                                                                    className="min-h-9 px-3"
-                                                                    title="Send Invoice (WA)"
-                                                                >
-                                                                    <FaWhatsapp />
-                                                                    <span className="text-[10px] font-black uppercase hidden lg:inline">Invoice</span>
-                                                                </Button>
+                                                                <button onClick={() => handleWhatsAppAction(s)} className="icon-whatsapp" title="Send Credentials (WA)"><FaWhatsapp /></button>
                                                             </div>
                                                         </PlanFeatureGuard>
 
@@ -707,16 +695,7 @@ export default function HistoryPage() {
 
                                                             <PlanFeatureGuard feature="whatsappAlerts" fallback={<button className="icon-whatsapp cursor-not-allowed opacity-50" disabled><FaWhatsapp /></button>}>
                                                                 <div className="flex gap-1">
-                                                                    <button onClick={() => handleWhatsAppAction(s, false)} className="icon-whatsapp" title="Send Credentials (WA)"><FaWhatsapp /></button>
-                                                                    <Button
-                                                                        onClick={() => handleWhatsAppAction(s, true)}
-                                                                        variant="success"
-                                                                        className="min-h-9 px-3"
-                                                                        title="Send Invoice (WA)"
-                                                                    >
-                                                                        <FaWhatsapp />
-                                                                        <span className="text-[10px] font-black uppercase hidden lg:inline">Invoice</span>
-                                                                    </Button>
+                                                                    <button onClick={() => handleWhatsAppAction(s)} className="icon-whatsapp" title="Send Credentials (WA)"><FaWhatsapp /></button>
                                                                 </div>
                                                             </PlanFeatureGuard>
 

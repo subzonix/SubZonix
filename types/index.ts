@@ -33,6 +33,8 @@ export interface ToolItem {
     remindersSent?: number;
     shares?: number; // For cost division
     loginLink?: string;
+    mailAccess?: string;
+    mailAccessPassword?: string;
     duration?: string; // "30", "60", "365", "custom"
 }
 

@@ -351,7 +351,7 @@ export default function SaleForm() {
         return errs;
     };
 
-    const handleSave = async (action: "save" | "whatsapp" | "pdf" | "invoice") => {
+    const handleSave = async (action: "save" | "whatsapp" | "pdf") => {
         const newErrors = validate();
         if (newErrors.length > 0) {
             showToast("Please fill all required fields", "warning");
@@ -479,7 +479,7 @@ export default function SaleForm() {
                     accountHolder: companyInfo.accountHolder,
                     loginLink: saleData.loginLink
                 });
-            } else if (action === "whatsapp" || action === "invoice") {
+            } else if (action === "whatsapp") {
                 const isRenew = existingClients.some(c => c.phone === clientPhone);
                 const actionText = isRenew ? "renewed" : "succesfully activated";
                 const trustText = isRenew ? "again" : "";
@@ -504,6 +504,8 @@ export default function SaleForm() {
                     if (t.profileName) toolsList += `* Profile : ${t.profileName}\n`;
                     if (t.profilePin) toolsList += `* Pin : ${t.profilePin}\n`;
                     if (t.loginLink) toolsList += `* ${EMOJIS.LINK} Login Link : ${t.loginLink}\n`;
+                    if (t.mailAccess) toolsList += `* ${EMOJIS.ENVELOPE} Mail Access : ${t.mailAccess}\n`;
+                    if (t.mailAccessPassword) toolsList += `* ${EMOJIS.LOCK_KEY} Mail Password : ${t.mailAccessPassword}\n`;
                     toolsList += `* ${EMOJIS.MONEY_BAG} Price : ${t.sell}\n`;
                     toolsList += `${EMOJIS.CALENDAR} Expiry Date : *${formatDate(t.eDate)}*\n\n`;
                 });
@@ -541,13 +543,8 @@ export default function SaleForm() {
                     msg += `\n\n*Note:* ${instructions}`;
                 }
 
-                if ((action as string) === "invoice" && savedId) {
-                    const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${savedId}`;
-                    msg += `\n\n${EMOJIS.PAGE_FACING_UP} *View Invoice:* ${invoiceLink}`;
-                }
-
                 window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
-                showToast((action as string) === "invoice" ? "WhatsApp opened with Invoice link" : "WhatsApp opened for receipt", "info");
+                showToast("WhatsApp opened for receipt", "info");
             }
 
             showToast("Transaction saved successfully", "success");
@@ -1041,13 +1038,6 @@ export default function SaleForm() {
                                         className="btn-whatsapp"
                                     >
                                         <FaWhatsapp /> Send
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleSave("invoice")}
-                                        variant="success"
-                                        disabled={loading}
-                                    >
-                                        <FaWhatsapp /> Invoice
                                     </Button>
                                 </div>
                             </PlanFeatureGuard>

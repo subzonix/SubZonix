@@ -162,9 +162,16 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
         doc.setTextColor(100);
         doc.text(`Type: ${item.type}`, 25, y + 14);
         doc.text(`Login: ${item.email || '-'} / ${item.pass || '-'}`, 25, y + 20);
+
+        let linkYOffset = 26;
+        if (item.mailAccess) {
+            doc.text(`Mail: ${item.mailAccess} / ${item.mailAccessPassword || '-'}`, 25, y + linkYOffset);
+            linkYOffset += 6;
+        }
+
         if (item.loginLink) {
             doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.text(`Link: ${item.loginLink}`, 25, y + 26);
+            doc.text(`Link: ${item.loginLink}`, 25, y + linkYOffset);
             doc.setTextColor(100);
         }
 

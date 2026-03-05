@@ -35,7 +35,7 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
 
     if (!isOpen) return null;
 
-    const handleWhatsApp = (includeInvoice: boolean = false) => {
+    const handleWhatsApp = () => {
         let message = `*Hello ${sale.client.name}, here are your credentials for your recent purchase:* \n\n`;
 
         sale.items.forEach((item, idx) => {
@@ -46,16 +46,13 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
             if (item.profileName) message += `Profile: ${item.profileName}\n`;
             if (item.profilePin) message += `PIN: ${item.profilePin}\n`;
             if (item.loginLink) message += `Link: ${item.loginLink}\n`;
+            if (item.mailAccess) message += `Mail Access: ${item.mailAccess}\n`;
+            if (item.mailAccessPassword) message += `Mail Password: ${item.mailAccessPassword}\n`;
             message += `Expiry: ${item.eDate}\n\n`;
         });
 
         if (sale.instructions && sale.instructions !== "No Instructions") {
             message += `*Instructions & Warranty:*\n${sale.instructions}\n\n`;
-        }
-
-        if (includeInvoice && merchantId) {
-            const invoiceLink = `https://${invoiceDomain}/invoice/${merchantId}/${sale.id}`;
-            message += `${EMOJIS.PAGE_FACING_UP} *View Full Invoice:* ${invoiceLink}\n\n`;
         }
 
         message += `*Sold By:* ${companyInfo?.companyName || "SubZonix"}\n`;
@@ -203,22 +200,13 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
                             </button>
                         }
                     >
-                        <div className="flex-1 flex gap-2">
-                            <Button
-                                onClick={() => handleWhatsApp(false)}
-                                variant="outline"
-                                className="flex-1 min-h-11 rounded-2xl text-[10px]"
-                            >
-                                <FaWhatsapp className="text-lg text-emerald-500" /> Send Details
-                            </Button>
-                            <Button
-                                onClick={() => handleWhatsApp(true)}
-                                variant="success"
-                                className="flex-1 min-h-11 rounded-2xl text-[10px]"
-                            >
-                                <FaWhatsapp className="text-lg" /> Invoice (WA)
-                            </Button>
-                        </div>
+                        <Button
+                            onClick={() => handleWhatsApp()}
+                            variant="outline"
+                            className="flex-1 min-h-11 rounded-2xl text-[10px]"
+                        >
+                            <FaWhatsapp className="text-lg text-emerald-500" /> Send Details
+                        </Button>
                     </PlanFeatureGuard>
 
                     <PlanFeatureGuard

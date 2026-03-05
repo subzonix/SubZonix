@@ -112,6 +112,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter();
     const pathname = usePathname();
 
+    // Max 3 seconds loader timing
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
     useEffect(() => {
         const unsub = onSnapshot(
             doc(db, "settings", "app_config"),
