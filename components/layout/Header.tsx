@@ -21,7 +21,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
     const [appName, setAppName] = useState("SubZonix");
     const profileRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
-    const { user, planName, salesLimit, currentSalesCount } = useAuth();
+    const { user, planName, salesLimit, currentSalesCount, plansEnabled } = useAuth();
 
     useEffect(() => {
         setMounted(true);
@@ -141,7 +141,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                         >
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center shadow-md ring-2 ring-white dark:ring-slate-900 relative">
                                 <span className="font-bold text-[10px]">{(user?.email?.[0] || "A").toUpperCase()}</span>
-                                {planName && (
+                                {planName && plansEnabled && (
                                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border border-white dark:border-slate-900 flex items-center justify-center shadow-sm">
                                         <FaGem className="text-[6px] text-white" />
                                     </div>
@@ -149,9 +149,11 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                             </div>
                             <div className="hidden sm:flex flex-col items-start -space-y-0.5">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Account</span>
-                                <span className="text-[9px] font-bold text-amber-500 flex items-center gap-0.5 uppercase">
-                                    {planName || "Free"}
-                                </span>
+                                {plansEnabled && (
+                                    <span className="text-[9px] font-bold text-amber-500 flex items-center gap-0.5 uppercase">
+                                        {planName || "Free"}
+                                    </span>
+                                )}
                             </div>
                             <FaChevronDown className={clsx("text-[10px] text-slate-400 transition-transform duration-300", showProfileMenu && "rotate-180")} />
                         </button>
@@ -161,7 +163,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                                 <div className="p-4 border-b border-[var(--border)] bg-slate-50/50 dark:bg-slate-800/20">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Signed in as</p>
                                     <p className="text-xs font-semibold text-[var(--foreground)] truncate">{user?.email}</p>
-                                    {planName && (
+                                    {planName && plansEnabled && (
                                         <div className="mt-2 flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-md w-fit">
                                             <FaGem className="text-[10px] text-amber-500" />
                                             <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-wider">{planName}</span>
@@ -170,33 +172,42 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
                                 </div>
                                 <div className="p-4 border-b border-[var(--border)] bg-slate-50/50 dark:bg-slate-800/20">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Usage Analytics</p>
-                                    <div className="space-y-3">
+                                    {plansEnabled ? (
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center text-[10px]">
+                                                <span className="font-bold text-slate-500">Sales Usage</span>
+                                                <span className="font-black text-indigo-500">{currentSalesCount || 0} / {salesLimit || "∞"}</span>
+                                            </div>
+                                            <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className={clsx(
+                                                        "h-full transition-all duration-500 ease-out",
+                                                        (salesLimit && currentSalesCount && (currentSalesCount / salesLimit) > 0.9) ? "bg-rose-500" : "bg-indigo-500"
+                                                    )}
+                                                    style={{ width: `${salesLimit ? Math.min(100, ((currentSalesCount || 0) / salesLimit) * 100) : 0}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
                                         <div className="flex justify-between items-center text-[10px]">
                                             <span className="font-bold text-slate-500">Sales Usage</span>
-                                            <span className="font-black text-indigo-500">{currentSalesCount || 0} / {salesLimit || "∞"}</span>
+                                            <span className="font-black text-emerald-500">{currentSalesCount || 0} / ∞ Unlimited</span>
                                         </div>
-                                        <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                                            <div
-                                                className={clsx(
-                                                    "h-full transition-all duration-500 ease-out",
-                                                    (salesLimit && currentSalesCount && (currentSalesCount / salesLimit) > 0.9) ? "bg-rose-500" : "bg-indigo-500"
-                                                )}
-                                                style={{ width: `${salesLimit ? Math.min(100, ((currentSalesCount || 0) / salesLimit) * 100) : 0}%` }}
-                                            />
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                                 <div className="p-2 space-y-1">
-                                    <Link
-                                        href="/dashboard/plans"
-                                        onClick={() => setShowProfileMenu(false)}
-                                        className="w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl transition"
-                                    >
-                                        <div className="w-7 h-7 flex items-center justify-center bg-amber-100 dark:bg-amber-500/20 rounded-lg">
-                                            <FaArrowUp className="text-[11px]" />
-                                        </div>
-                                        Upgrade Plan
-                                    </Link>
+                                    {plansEnabled && (
+                                        <Link
+                                            href="/dashboard/plans"
+                                            onClick={() => setShowProfileMenu(false)}
+                                            className="w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl transition"
+                                        >
+                                            <div className="w-7 h-7 flex items-center justify-center bg-amber-100 dark:bg-amber-500/20 rounded-lg">
+                                                <FaArrowUp className="text-[11px]" />
+                                            </div>
+                                            Upgrade Plan
+                                        </Link>
+                                    )}
                                     <div className="h-px bg-[var(--border)] my-1 mx-2" />
                                     <button
                                         onClick={handleLogout}

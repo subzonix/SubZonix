@@ -5,7 +5,11 @@ import { InteractiveButton } from "@/components/ui/InteractiveButton";
 import { motion } from "framer-motion";
 import { FaShieldHalved, FaUsers, FaChartLine } from "react-icons/fa6";
 
-export default function HeroSection() {
+interface HeroSectionProps {
+    plansEnabled?: boolean;
+}
+
+export default function HeroSection({ plansEnabled = true }: HeroSectionProps) {
     return (
         <div id="home">
             <HeroGeometric
@@ -30,8 +34,8 @@ export default function HeroSection() {
                     transition={{ delay: 0.5 }}
                     className="flex flex-col sm:flex-row items-center justify-center gap-4"
                 >
-                    <InteractiveButton href="#plans" variant="primary">
-                        Start Free Trial
+                    <InteractiveButton href={plansEnabled ? "#plans" : "/login"} variant="primary">
+                        {plansEnabled ? "Start Free Trial" : "Get Started"}
                     </InteractiveButton>
                     <InteractiveButton href="/how-it-works?play=1" variant="secondary">
                         Watch Demo

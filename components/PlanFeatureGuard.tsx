@@ -12,7 +12,15 @@ interface PlanFeatureGuardProps {
 }
 
 export default function PlanFeatureGuard({ feature, children, fallback }: PlanFeatureGuardProps) {
-    const { planFeatures, role, isStaff, staffPermissions } = useAuth();
+    const { planFeatures, role, isStaff, staffPermissions, plansEnabled } = useAuth();
+
+    // When plans are completely disabled by the admin:
+    // - importData (CSV Import) remains hidden entirely
+    // - all other features are unlocked (show children)
+    if (!plansEnabled) {
+        if (feature === 'importData') return null;
+        return <>{children}</>;
+    }
 
     // Owner always has access to all features (unless it's a plan limit, but normally owner is unrestricted by role, restricted by plan)
     // Actually, Owner is restricted by Plan.

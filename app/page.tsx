@@ -29,7 +29,7 @@ import { useLandingAnimations } from "@/hooks/useLandingAnimations";
 export default function HomePage() {
     const [appConfig, setAppConfig] = useState<any>(null);
     const [loading, setLoading] = useState(false);
-    const { user } = useAuth();
+    const { user, plansEnabled } = useAuth();
 
     // Initialize GSAP Animations
     const containerRef = useLandingAnimations();
@@ -59,16 +59,16 @@ export default function HomePage() {
             <div ref={containerRef} className="min-h-screen overflow-y-auto transition-colors duration-500 bg-white dark:bg-background">
                 <LandingNavbar />
 
-                <SectionCursorGlow><HeroSection /></SectionCursorGlow>
+                <SectionCursorGlow><HeroSection plansEnabled={plansEnabled} /></SectionCursorGlow>
                 <SectionCursorGlow><LogoMarquee /></SectionCursorGlow>
                 <SectionCursorGlow><HowItWorks /></SectionCursorGlow>
                 <SectionCursorGlow><PainPoints /></SectionCursorGlow>
                 <SectionCursorGlow><SolutionSection /></SectionCursorGlow>
                 <SectionCursorGlow><StatsSection /></SectionCursorGlow>
                 <SectionCursorGlow><ReviewsSection /></SectionCursorGlow>
-                <SectionCursorGlow><PricingSection appConfig={appConfig} /></SectionCursorGlow>
+                {plansEnabled && <SectionCursorGlow><PricingSection appConfig={appConfig} /></SectionCursorGlow>}
                 <SectionCursorGlow><FAQSection /></SectionCursorGlow>
-                <SectionCursorGlow><CTASection /></SectionCursorGlow>
+                <SectionCursorGlow><CTASection plansEnabled={plansEnabled} /></SectionCursorGlow>
 
                 <FloatingActionButtons />
                 <SectionCursorGlow><Footer /></SectionCursorGlow>

@@ -12,7 +12,7 @@ import { BrandLogo } from "@/components/ui/BrandLogo";
 export default function LandingNavbar() {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { user, appName, appLogoUrl, accentColor } = useAuth();
+    const { user, appName, appLogoUrl, accentColor, plansEnabled } = useAuth();
 
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, {
@@ -29,13 +29,14 @@ export default function LandingNavbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const navLinks = [
+    const allNavLinks = [
         { label: "Home", href: "/#home" },
         { label: "Features", href: "/features" },
         { label: "How It Works", href: "/how-it-works" },
         { label: "Pricing", href: "/#plans" },
         { label: "About", href: "/about" },
     ];
+    const navLinks = allNavLinks.filter(link => !(link.label === "Pricing" && !plansEnabled));
 
     return (
         <>

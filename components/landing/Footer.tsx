@@ -6,15 +6,17 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Footer() {
-    const { appName, appLogoUrl, accentColor, supportEmail } = useAuth();
+    const { appName, appLogoUrl, accentColor, supportEmail, plansEnabled } = useAuth();
+    const allProductLinks = [
+        { label: "Features", href: "/#features" },
+        { label: "How it Works", href: "/how-it-works" },
+        { label: "Pricing", href: "/#plans", planOnly: true },
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Watch Demo", href: "/how-it-works?play=1" },
+    ];
     const footerLinks = {
-        product: [
-            { label: "Features", href: "/#features" },
-            { label: "How it Works", href: "/how-it-works" },
-            { label: "Pricing", href: "/#plans" },
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "Watch Demo", href: "/how-it-works?play=1" },
-        ],
+        product: allProductLinks.filter(l => !(l as any).planOnly || plansEnabled),
+
         company: [
             { label: "About Us", href: "/about" },
             { label: "Blog", href: "/blog" },

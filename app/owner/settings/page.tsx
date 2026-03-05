@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, getDocs } from "firebase/firestore";
+
 import { db, storage } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { Card, Button, Input, Select } from "@/components/ui/Shared";
 import { useToast } from "@/context/ToastContext";
-import { FaFloppyDisk, FaUpload, FaWhatsapp, FaBuilding, FaPalette, FaUserPlus } from "react-icons/fa6";
+import { FaFloppyDisk, FaUpload, FaWhatsapp, FaBuilding, FaPalette, FaUserPlus, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Plan } from "@/types";
 import clsx from "clsx";
 
@@ -33,7 +34,8 @@ export default function OwnerSettingsPage() {
         sidebarDark: "card",
         defaultSignupPlanId: "free_trial_plan",
         trialDurationMonths: 1,
-        invoiceDomain: "subzonix.cloud"
+        invoiceDomain: "subzonix.cloud",
+        plansEnabled: true,
     });
 
     useEffect(() => {
@@ -112,6 +114,60 @@ export default function OwnerSettingsPage() {
                     <FaFloppyDisk className="mr-2" /> Save Settings
                 </Button>
             </div>
+
+            {/* Plan Visibility Toggle */}
+            <Card className="p-6 bg-card border-border">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                        <div className={clsx(
+                            "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300",
+                            settings.plansEnabled
+                                ? "bg-indigo-500/10 text-indigo-500"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                        )}>
+                            {settings.plansEnabled ? <FaEye className="text-xl" /> : <FaEyeSlash className="text-xl" />}
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Plan Visibility</h3>
+                            <p className="text-[11px] text-slate-500 font-medium mt-1 max-w-md leading-relaxed">
+                                When <span className="font-bold text-rose-500">disabled</span>, all plan badges, pricing sections, upgrade prompts, and the Plans page are completely hidden from all users. All features are unlocked for free (except CSV import).
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            const next = !settings.plansEnabled;
+                            setSettings(prev => ({ ...prev, plansEnabled: next }));
+                            try {
+                                await updateDoc(doc(db, "settings", "app_config"), { plansEnabled: next });
+                            } catch {
+                                // if doc doesn't exist, create it
+                                await setDoc(doc(db, "settings", "app_config"), { plansEnabled: next }, { merge: true });
+                            }
+                        }}
+                        className={clsx(
+                            "relative w-14 h-7 rounded-full transition-all duration-300 focus:outline-none shrink-0",
+                            settings.plansEnabled
+                                ? "bg-indigo-500 shadow-lg shadow-indigo-500/30"
+                                : "bg-slate-300 dark:bg-slate-700"
+                        )}
+                        title={settings.plansEnabled ? "Plans are ENABLED — click to disable" : "Plans are DISABLED — click to enable"}
+                    >
+                        <span className={clsx(
+                            "absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300",
+                            settings.plansEnabled ? "translate-x-7" : "translate-x-0"
+                        )} />
+                    </button>
+                </div>
+                <div className={clsx(
+                    "mt-4 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all",
+                    settings.plansEnabled
+                        ? "bg-indigo-500/5 text-indigo-500 border border-indigo-500/10"
+                        : "bg-rose-500/5 text-rose-500 border border-rose-500/10"
+                )}>
+                    {settings.plansEnabled ? "✓ Plans are currently ENABLED — plan UI visible to users" : "✗ Plans are currently DISABLED — running in free-access mode"}
+                </div>
+            </Card>
 
             <div className="grid md:grid-cols-2 gap-8">
                 {/* Branding Section */}

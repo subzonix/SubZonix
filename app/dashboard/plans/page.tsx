@@ -9,6 +9,7 @@ import { useToast } from "@/context/ToastContext";
 import { FaGem, FaCheck, FaWhatsapp, FaBuilding, FaCircleInfo, FaArrowLeft, FaXmark, FaCircleCheck, FaHashtag, FaGlobe, FaUser, FaBuildingColumns, FaShield, FaPaperPlane } from "react-icons/fa6";
 import { MorphingSquare } from "@/components/ui/morphing-square";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import clsx from "clsx";
 
 import { PlanFeatures, Plan } from "@/types";
@@ -25,8 +26,9 @@ const FEATURE_ORDER = [
 ];
 
 export default function PlansPage() {
-    const { user, planName } = useAuth();
+    const { user, planName, plansEnabled } = useAuth();
     const { showToast } = useToast();
+    const router = useRouter();
     const [plans, setPlans] = useState<Plan[]>([]);
     const [appConfig, setAppConfig] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -38,6 +40,11 @@ export default function PlansPage() {
     const [requestSuccess, setRequestSuccess] = useState(false);
 
     useEffect(() => {
+        if (plansEnabled === false) {
+            router.push('/dashboard');
+            return;
+        }
+
         const load = async () => {
             try {
                 // Load Plans
@@ -62,7 +69,7 @@ export default function PlansPage() {
             }
         };
         load();
-    }, []);
+    }, [plansEnabled, router, showToast]);
 
     const handleRequestUpgrade = (plan: Plan) => {
         setSelectedPlanForReq(plan);

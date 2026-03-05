@@ -55,7 +55,7 @@ function SettingsAccordionCard({
 }
 
 export default function SettingsPage() {
-    const { user, merchantId, planName, salesLimit, currentSalesCount, planFeatures, sidebarMode, setSidebarMode, dataRetentionMonths } = useAuth();
+    const { user, merchantId, planName, salesLimit, currentSalesCount, planFeatures, sidebarMode, setSidebarMode, dataRetentionMonths, plansEnabled } = useAuth();
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { showToast, confirm } = useToast();
     const [expandedSections, setExpandedSections] = useState({
@@ -242,44 +242,48 @@ export default function SettingsPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-6 pb-20">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="bg-card border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-                    <div className="flex justify-between items-start relative z-10">
-                        <div>
-                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Account Health</p>
-                            <h3 className="text-lg font-black text-foreground">{(salesLimit && currentSalesCount && currentSalesCount > salesLimit * 0.9) ? "Critical" : "Good"}</h3>
-                        </div>
-                        <div className={clsx("p-2 rounded-xl", (salesLimit && currentSalesCount && currentSalesCount > salesLimit * 0.9) ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500")}>
-                            <FaCircleInfo className="text-sm" />
-                        </div>
-                    </div>
-                    <div className="mt-3 relative z-10">
-                        {(salesLimit && currentSalesCount) ? (
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <div className={clsx("h-full", currentSalesCount > salesLimit * 0.9 ? "bg-rose-500" : "bg-emerald-500")} style={{ width: `${Math.min(100, (currentSalesCount / salesLimit) * 100)}%` }} />
+                {plansEnabled && (
+                    <>
+                        <div className="bg-card border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                            <div className="flex justify-between items-start relative z-10">
+                                <div>
+                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Account Health</p>
+                                    <h3 className="text-lg font-black text-foreground">{(salesLimit && currentSalesCount && currentSalesCount > salesLimit * 0.9) ? "Critical" : "Good"}</h3>
                                 </div>
-                                <span className="text-[9px] font-bold text-slate-400">{Math.round((currentSalesCount / salesLimit) * 100)}%</span>
+                                <div className={clsx("p-2 rounded-xl", (salesLimit && currentSalesCount && currentSalesCount > salesLimit * 0.9) ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500")}>
+                                    <FaCircleInfo className="text-sm" />
+                                </div>
                             </div>
-                        ) : (
-                            <p className="text-[10px] text-slate-400">Unlimited Capacity</p>
-                        )}
-                    </div>
-                </div>
+                            <div className="mt-3 relative z-10">
+                                {(salesLimit && currentSalesCount) ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div className={clsx("h-full", currentSalesCount > salesLimit * 0.9 ? "bg-rose-500" : "bg-emerald-500")} style={{ width: `${Math.min(100, (currentSalesCount / salesLimit) * 100)}%` }} />
+                                        </div>
+                                        <span className="text-[9px] font-bold text-slate-400">{Math.round((currentSalesCount / salesLimit) * 100)}%</span>
+                                    </div>
+                                ) : (
+                                    <p className="text-[10px] text-slate-400">Unlimited Capacity</p>
+                                )}
+                            </div>
+                        </div>
 
-                <div className="bg-card border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-                    <div className="flex justify-between items-start relative z-10">
-                        <div>
-                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Active Plan</p>
-                            <h3 className="text-lg font-black text-indigo-500 truncate max-w-[140px] uppercase italic">{planName || "Trial"}</h3>
+                        <div className="bg-card border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                            <div className="flex justify-between items-start relative z-10">
+                                <div>
+                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Active Plan</p>
+                                    <h3 className="text-lg font-black text-indigo-500 truncate max-w-[140px] uppercase italic">{planName || "Trial"}</h3>
+                                </div>
+                                <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl">
+                                    <FaGem className="text-sm" />
+                                </div>
+                            </div>
+                            <p className="mt-3 text-[10px] text-slate-400 font-medium relative z-10">
+                                {dataRetentionMonths ? `${dataRetentionMonths} Months Retention` : "No Retention Policy"}
+                            </p>
                         </div>
-                        <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-xl">
-                            <FaGem className="text-sm" />
-                        </div>
-                    </div>
-                    <p className="mt-3 text-[10px] text-slate-400 font-medium relative z-10">
-                        {dataRetentionMonths ? `${dataRetentionMonths} Months Retention` : "No Retention Policy"}
-                    </p>
-                </div>
+                    </>
+                )}
 
                 <div className="bg-card border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
                     <div className="flex justify-between items-start relative z-10">
@@ -461,18 +465,20 @@ export default function SettingsPage() {
                                 </div>
                             </Link>
 
-                            <Link
-                                href="/dashboard/plans"
-                                className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 hover:border-amber-400 transition-all group"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <FaGem className="text-sm" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-foreground">Subscriptions</div>
-                                    <div className="text-[10px] text-slate-500">Manage your plan</div>
-                                </div>
-                            </Link>
+                            {plansEnabled && (
+                                <Link
+                                    href="/dashboard/plans"
+                                    className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 hover:border-amber-400 transition-all group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <FaGem className="text-sm" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-foreground">Subscriptions</div>
+                                        <div className="text-[10px] text-slate-500">Manage your plan</div>
+                                    </div>
+                                </Link>
+                            )}
 
                             <Link
                                 href="/dashboard/support"
@@ -555,96 +561,98 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Subscription Plan Overview */}
-                    <Card className="bg-gradient-to-br from-slate-600 to-indigo-950/50 border-indigo-500/90 shadow-indigo-500/90 p-0 overflow-hidden">
-                        <button
-                            onClick={() => setExpandedSections(prev => ({ ...prev, plan: !prev.plan }))}
-                            className="rounded-2xl w-full flex justify-between items-center p-4 hover:bg-slate-900/30 transition-colors group"
-                        >
-                            <div>
-                                <h3 className="text-sm font-black text-indigo-400 uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                                    <FaGem className="text-amber-500" /> Subscription Plan
-                                </h3>
-                                <p className="text-xs text-slate-500 font-medium text-left">Your tier and limits</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                    {planName || "Trial / Free"}
-                                </span>
-                                <FaArrowRight className={clsx("text-xs transition-transform duration-300 text-indigo-400", expandedSections.plan ? "rotate-90" : "rotate-0")} />
-                            </div>
-                        </button>
-                        <div className={clsx("transition-all duration-300 ease-in-out", expandedSections.plan ? "p-4 max-h-[1000px] border-t border-indigo-500/10" : "max-h-0 opacity-0 overflow-hidden")}>
+                    {plansEnabled && (
+                        <Card className="bg-gradient-to-br from-slate-600 to-indigo-950/50 border-indigo-500/90 shadow-indigo-500/90 p-0 overflow-hidden">
+                            <button
+                                onClick={() => setExpandedSections(prev => ({ ...prev, plan: !prev.plan }))}
+                                className="rounded-2xl w-full flex justify-between items-center p-4 hover:bg-slate-900/30 transition-colors group"
+                            >
+                                <div>
+                                    <h3 className="text-sm font-black text-indigo-400 uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                                        <FaGem className="text-amber-500" /> Subscription Plan
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-medium text-left">Your tier and limits</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                        {planName || "Trial / Free"}
+                                    </span>
+                                    <FaArrowRight className={clsx("text-xs transition-transform duration-300 text-indigo-400", expandedSections.plan ? "rotate-90" : "rotate-0")} />
+                                </div>
+                            </button>
+                            <div className={clsx("transition-all duration-300 ease-in-out", expandedSections.plan ? "p-4 max-h-[1000px] border-t border-indigo-500/10" : "max-h-0 opacity-0 overflow-hidden")}>
 
-                            <div className="space-y-6">
-                                <div className="p-4 bg-slate-700 rounded-2xl border border-slate-700/30">
-                                    <div className="flex justify-between items-end mb-3">
-                                        <div>
-                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Sales Limit Usage</p>
-                                            <div className="flex items-center gap-2">
-                                                <FaChartLine className="text-indigo-400 text-xs" />
-                                                <span className="text-lg font-black text-slate-100">{currentSalesCount || 0} <span className="text-xs text-slate-500 font-medium">/ {salesLimit || "∞"} Sales</span></span>
+                                <div className="space-y-6">
+                                    <div className="p-4 bg-slate-700 rounded-2xl border border-slate-700/30">
+                                        <div className="flex justify-between items-end mb-3">
+                                            <div>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Sales Limit Usage</p>
+                                                <div className="flex items-center gap-2">
+                                                    <FaChartLine className="text-indigo-400 text-xs" />
+                                                    <span className="text-lg font-black text-slate-100">{currentSalesCount || 0} <span className="text-xs text-slate-500 font-medium">/ {salesLimit || "∞"} Sales</span></span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Status</p>
+                                                <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 justify-end">
+                                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Active
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Status</p>
-                                            <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1 justify-end">
-                                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Active
-                                            </span>
+                                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-1 shadow-inner">
+                                            <div
+                                                className={clsx(
+                                                    "h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]",
+                                                    ((currentSalesCount || 0) / (salesLimit || 1)) > 0.9 ? "bg-rose-500" : "bg-indigo-500"
+                                                )}
+                                                style={{ width: `${Math.min(100, ((currentSalesCount || 0) / (salesLimit || 1)) * 100)}%` }}
+                                            ></div>
                                         </div>
+                                        <p className="text-[9px] text-slate-500 mt-2 font-medium">
+                                            Account will be automatically paused if you exceed {salesLimit || "unlimited"} sales details.
+                                        </p>
                                     </div>
-                                    <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-1 shadow-inner">
-                                        <div
-                                            className={clsx(
-                                                "h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]",
-                                                ((currentSalesCount || 0) / (salesLimit || 1)) > 0.9 ? "bg-rose-500" : "bg-indigo-500"
-                                            )}
-                                            style={{ width: `${Math.min(100, ((currentSalesCount || 0) / (salesLimit || 1)) * 100)}%` }}
-                                        ></div>
+
+                                    <div className="bg-indigo-300 border border-indigo-500/10 rounded-xl p-3 flex items-start gap-3">
+                                        <FaCircleInfo className="text-indigo-400 text-sm mt-0.5" />
+                                        <p className="text-[10px] text-slate-600 leading-relaxed font-medium flex-1">
+                                            To upgrade your plan or increase your sales limit, please view our available plans or contact the administrator.
+                                        </p>
+                                        <Link href="/dashboard/plans" className="shrink-0 flex items-center gap-1 text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:text-indigo-400 transition-colors">
+                                            View Plans <FaArrowRight className="text-[8px]" />
+                                        </Link>
                                     </div>
-                                    <p className="text-[9px] text-slate-500 mt-2 font-medium">
-                                        Account will be automatically paused if you exceed {salesLimit || "unlimited"} sales details.
-                                    </p>
-                                </div>
 
-                                <div className="bg-indigo-300 border border-indigo-500/10 rounded-xl p-3 flex items-start gap-3">
-                                    <FaCircleInfo className="text-indigo-400 text-sm mt-0.5" />
-                                    <p className="text-[10px] text-slate-600 leading-relaxed font-medium flex-1">
-                                        To upgrade your plan or increase your sales limit, please view our available plans or contact the administrator.
-                                    </p>
-                                    <Link href="/dashboard/plans" className="shrink-0 flex items-center gap-1 text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:text-indigo-400 transition-colors">
-                                        View Plans <FaArrowRight className="text-[8px]" />
-                                    </Link>
-                                </div>
-
-                                <div className="space-y-3 pt-2 border-t border-slate-700/50">
-                                    <p className="text-[10px] text-slate-800 font-bold uppercase tracking-widest">Plan Features</p>
-                                    <div className="grid grid-cols-2 gap-2 text-[11px]">
-                                        {[
-                                            { key: 'export', label: 'Export Data' },
-                                            { key: 'pdf', label: 'PDF Invoices' },
-                                            { key: 'whatsappAlerts', label: 'WhatsApp Alerts' },
-                                            { key: 'editReminders', label: 'Custom Reminders' },
-                                            { key: 'support', label: 'Priority Support' },
-                                            { key: 'exportPreference', label: 'Custom Export' },
-                                            { key: 'importData', label: 'Import CSV' },
-                                            { key: 'dateRangeFilter', label: 'Date Filters' },
-                                        ].map(({ key, label }) => {
-                                            const isEnabled = planFeatures?.[key as keyof typeof planFeatures];
-                                            return (
-                                                <div key={key} className={clsx(
-                                                    "flex items-center gap-2",
-                                                    isEnabled ? "text-green-300" : "text-black line-through decoration-rose-500/50 decoration-1"
-                                                )}>
-                                                    <div className={clsx("w-1.5 h-1.5 rounded-full", isEnabled ? "bg-emerald-500" : "bg-red-800")} />
-                                                    {label}
-                                                </div>
-                                            );
-                                        })}
+                                    <div className="space-y-3 pt-2 border-t border-slate-700/50">
+                                        <p className="text-[10px] text-slate-800 font-bold uppercase tracking-widest">Plan Features</p>
+                                        <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                            {[
+                                                { key: 'export', label: 'Export Data' },
+                                                { key: 'pdf', label: 'PDF Invoices' },
+                                                { key: 'whatsappAlerts', label: 'WhatsApp Alerts' },
+                                                { key: 'editReminders', label: 'Custom Reminders' },
+                                                { key: 'support', label: 'Priority Support' },
+                                                { key: 'exportPreference', label: 'Custom Export' },
+                                                { key: 'importData', label: 'Import CSV' },
+                                                { key: 'dateRangeFilter', label: 'Date Filters' },
+                                            ].map(({ key, label }) => {
+                                                const isEnabled = planFeatures?.[key as keyof typeof planFeatures];
+                                                return (
+                                                    <div key={key} className={clsx(
+                                                        "flex items-center gap-2",
+                                                        isEnabled ? "text-green-300" : "text-black line-through decoration-rose-500/50 decoration-1"
+                                                    )}>
+                                                        <div className={clsx("w-1.5 h-1.5 rounded-full", isEnabled ? "bg-emerald-500" : "bg-red-800")} />
+                                                        {label}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
+                        </Card>
+                    )}
 
                     <SettingsAccordionCard
                         title="Administrative Security"
@@ -736,9 +744,11 @@ export default function SettingsPage() {
                                             <div className="flex-1">
                                                 <div className="font-black text-sm text-foreground">Data Retention Locked</div>
                                                 <div className="text-[11px] text-muted-foreground">Upgrade your plan to enable export and automatic retention cleanup.</div>
-                                                <Link href="/dashboard/plans" className="inline-flex items-center gap-1 mt-3 text-[10px] font-black uppercase tracking-widest text-amber-600 hover:underline">
-                                                    Upgrade Plan <FaArrowRight className="text-[9px]" />
-                                                </Link>
+                                                {plansEnabled && (
+                                                    <Link href="/dashboard/plans" className="inline-flex items-center gap-1 mt-3 text-[10px] font-black uppercase tracking-widest text-amber-600 hover:underline">
+                                                        Upgrade Plan <FaArrowRight className="text-[9px]" />
+                                                    </Link>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -749,7 +759,10 @@ export default function SettingsPage() {
                                         <div>
                                             <div className="text-xs font-black uppercase tracking-widest text-foreground">Data Retention</div>
                                             <div className="text-[10px] text-muted-foreground">
-                                                Your plan retains data for <span className="font-bold">{(dataRetentionMonths ?? 0)} month(s)</span>. Older records are reviewed by the Owner.
+                                                {plansEnabled
+                                                    ? <>Your plan retains data for <span className="font-bold">{(dataRetentionMonths ?? 0)} month(s)</span>. </>
+                                                    : <>Data is retained for <span className="font-bold">{(dataRetentionMonths ?? 0)} month(s)</span>. </>
+                                                }
                                             </div>
                                             {(dataRetentionMonths ?? 0) > 0 && (
                                                 <div className="text-[10px] text-muted-foreground mt-2">
@@ -759,7 +772,9 @@ export default function SettingsPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        <Link href="/dashboard/plans" className="btn-view text-[10px] px-3">Upgrade Plan</Link>
+                                        {plansEnabled && (
+                                            <Link href="/dashboard/plans" className="btn-view text-[10px] px-3">Upgrade Plan</Link>
+                                        )}
                                     </div>
                                 </div>
                             </PlanFeatureGuard>
@@ -773,9 +788,11 @@ export default function SettingsPage() {
                                         </div>
                                         <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-1">Export Preferences Locked</h3>
                                         <p className="text-xs text-slate-500 max-w-xs mx-auto mb-4">Upgrade your plan to customize your CSV export columns.</p>
-                                        <Link href="/dashboard/plans" className="text-xs font-black text-amber-600 uppercase tracking-widest hover:underline flex items-center gap-1">
-                                            Upgrade Plan <FaArrowRight className="text-[9px]" />
-                                        </Link>
+                                        {plansEnabled && (
+                                            <Link href="/dashboard/plans" className="text-xs font-black text-amber-600 uppercase tracking-widest hover:underline flex items-center gap-1">
+                                                Upgrade Plan <FaArrowRight className="text-[9px]" />
+                                            </Link>
+                                        )}
                                     </div>
                                 }
                             >

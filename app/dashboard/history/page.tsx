@@ -19,6 +19,8 @@ import { parseCSVToSales } from "@/lib/csvParser";
 import { addDoc } from "firebase/firestore";
 import { useSales } from "@/context/SalesContext";
 import PlanFeatureGuard from "@/components/PlanFeatureGuard"; // Import PlanFeatureGuard
+import ToolLogo from "@/components/ui/ToolLogo";
+
 
 
 export default function HistoryPage() {
@@ -372,9 +374,10 @@ export default function HistoryPage() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex flex-wrap gap-1">
+                                                    <div className="flex flex-wrap gap-1 mb-3">
                                                         {sale.items.map((item: any, k: number) => (
-                                                            <span key={k} className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-[9px] font-black border border-indigo-100 dark:border-indigo-800/30">
+                                                            <span key={k} className="flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-[9px] font-black border border-indigo-100 dark:border-indigo-800/30">
+                                                                <ToolLogo name={item.name} size="sm" className="w-4 h-4 border-0" />
                                                                 {item.name}
                                                             </span>
                                                         ))}
@@ -552,7 +555,12 @@ export default function HistoryPage() {
                                                                 <tbody className="divide-y divide-border text-slate-600 dark:text-slate-400">
                                                                     {s.items.map((i, k) => (
                                                                         <tr key={k} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                                                                            <td className="py-2.5 pr-4 font-black text-foreground">{i.name}</td>
+                                                                            <td className="py-2.5 pr-4 font-black text-foreground">
+                                                                                <span className="flex items-center gap-1.5">
+                                                                                    <ToolLogo name={i.name} size="sm" />
+                                                                                    {i.name}
+                                                                                </span>
+                                                                            </td>
                                                                             <td className="py-2.5 pr-4 uppercase font-bold text-slate-400">{i.type}</td>
                                                                             <td className="py-2.5 pr-4 max-w-[80px] truncate" title={i.plan}>{i.plan || "-"}</td>
                                                                             <td className="py-2.5 pr-4 whitespace-nowrap text-[9px] font-bold text-slate-500">
@@ -615,9 +623,7 @@ export default function HistoryPage() {
                                     className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-800/20 group-hover:scale-110 transition-transform">
-                                            <FaCartShopping />
-                                        </div>
+                                        <ToolLogo name={group.tool} size="md" />
                                         <div>
                                             <div className="font-black text-sm text-foreground tracking-tight uppercase">{group.tool}</div>
                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Sales Occurrences</div>

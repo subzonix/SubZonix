@@ -9,6 +9,7 @@ import VideoModal from "@/components/ui/VideoModal";
 import { useState, Suspense } from "react";
 import SectionCursorGlow from "@/components/ui/SectionCursorGlow";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 const steps = [
     {
@@ -55,6 +56,7 @@ export default function HowItWorks() {
 
 function HowItWorksContent() {
     const [videoOpen, setVideoOpen] = useState(false);
+    const { plansEnabled } = useAuth();
     const YOUTUBE_VIDEO_ID = "y8mHzXid0oI";
 
     return (
@@ -102,10 +104,10 @@ function HowItWorksContent() {
                             <FaYoutube className="text-xl" /> Watch Demo
                         </button>
                         <Link
-                            href="/#plans"
+                            href={plansEnabled ? "/#plans" : "/login"}
                             className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-xl shadow-indigo-500/25"
                         >
-                            Get Started Now
+                            {plansEnabled ? "Get Started Now" : "Get Started"}
                         </Link>
                     </motion.div>
                 </div>
@@ -187,10 +189,10 @@ function HowItWorksContent() {
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <Link
-                                href="/#plans"
+                                href={plansEnabled ? "/#plans" : "/login"}
                                 className="w-full sm:w-auto px-10 py-5 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 transition-transform"
                             >
-                                Get Started Free
+                                {plansEnabled ? "Get Started Free" : "Get Started"}
                             </Link>
                             <Link
                                 href="/contact"

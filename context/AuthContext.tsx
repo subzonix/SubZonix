@@ -39,6 +39,7 @@ interface AuthContextType {
     isStaff: boolean;
     staffPermissions?: StaffPermissions;
     invoiceDomain: string;
+    plansEnabled: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -70,7 +71,8 @@ const AuthContext = createContext<AuthContextType>({
     merchantId: null,
     isStaff: false,
     staffPermissions: undefined,
-    invoiceDomain: "subzonix.cloud"
+    invoiceDomain: "subzonix.cloud",
+    plansEnabled: true,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -103,6 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isStaff, setIsStaff] = useState(false);
     const [staffPermissions, setStaffPermissions] = useState<StaffPermissions | undefined>(undefined);
     const [invoiceDomain, setInvoiceDomain] = useState("subzonix.cloud");
+    const [plansEnabled, setPlansEnabled] = useState(true);
     const [appConfig, setAppConfig] = useState<any>(null); // Optimization
 
     const { setTheme } = useTheme();
@@ -128,6 +131,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 if (data.sidebarLight) setSidebarLight(data.sidebarLight);
                 if (data.sidebarDark) setSidebarDark(data.sidebarDark);
                 if (data.invoiceDomain) setInvoiceDomain(data.invoiceDomain);
+                // plansEnabled defaults to true if field is absent
+                setPlansEnabled(data.plansEnabled !== false);
             },
             (err) => {
                 console.error("Error fetching app config:", err);
@@ -198,6 +203,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     if (userEmail && ownerEmailEnv && userEmail === ownerEmailEnv) {
                         userRole = "owner";
                         userStatus = "active";
+                        // Owner always has all features unlocked
+                        setPlanFeatures({
+                            export: true, pdf: true, whatsappAlerts: true, editReminders: true,
+                            support: true, exportPreference: true, importData: true, dateRangeFilter: true,
+                            customBranding: true, mart: true, dashboard: true, newSale: true, expiry: true,
+                            pending: true, vendors: true, inventory: true, history: true, customers: true,
+                            analytics: true, settings: true,
+                        });
+                        setDataRetentionMonths(12);
                     } else {
                         const userDoc = await getDoc(doc(db, "users", effectiveUid));
                         if (userDoc.exists()) {
@@ -375,10 +389,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         );
     }
 
+    // When plans are disabled, override planFeatures to unlock everything EXCEPT importData
+    const effectivePlanFeatures: PlanFeatures | undefined = !plansEnabled
+        ? {
+            export: true, pdf: true, whatsappAlerts: true, editReminders: true,
+            support: true, exportPreference: true, importData: false, dateRangeFilter: true,
+            customBranding: true, mart: true, dashboard: true, newSale: true, expiry: true,
+            pending: true, vendors: true, inventory: true, history: true, customers: true,
+            analytics: true, settings: true,
+        }
+        : planFeatures;
+
+    const effectiveDataRetention = !plansEnabled ? 12 : dataRetentionMonths;
+
     return (
         <AuthContext.Provider value={{
-            user, loading, logout, role, status, planName, salesLimit, currentSalesCount, planFeatures, planExpiry,
-            appName, appLogoUrl, accentColor, appNamePart1, appNamePart2, colorPart1, colorPart2, themePreset, supportEmail, brandDisclaimer, sidebarLight, sidebarDark, sidebarMode, setSidebarMode, dataRetentionMonths, merchantId, isStaff, staffPermissions, invoiceDomain
+            user, loading, logout, role, status, planName, salesLimit, currentSalesCount,
+            planFeatures: effectivePlanFeatures, planExpiry,
+            appName, appLogoUrl, accentColor, appNamePart1, appNamePart2, colorPart1, colorPart2, themePreset, supportEmail, brandDisclaimer, sidebarLight, sidebarDark, sidebarMode, setSidebarMode,
+            dataRetentionMonths: effectiveDataRetention, merchantId, isStaff, staffPermissions, invoiceDomain, plansEnabled
         }}>
             {children}
         </AuthContext.Provider>

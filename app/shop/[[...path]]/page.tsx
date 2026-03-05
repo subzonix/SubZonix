@@ -32,6 +32,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { MorphingSquare } from "@/components/ui/morphing-square";
+import ToolLogo from "@/components/ui/ToolLogo";
+
 
 interface MerchantSettings {
     companyName: string;
@@ -340,14 +342,14 @@ export default function PublicShopPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                                     {products.map((p) => (
                                         <div key={p.id} className="group relative bg-white border border-slate-100 rounded-[2rem] p-6 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-                                            <div className="aspect-square bg-slate-50 rounded-2xl overflow-hidden mb-6 relative">
-                                                {p.imageUrl ? (
-                                                    <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center opacity-10">
-                                                        <FaShop className="text-6xl" />
-                                                    </div>
-                                                )}
+                                            <div className="aspect-square bg-slate-50 rounded-2xl overflow-hidden mb-6 relative flex items-center justify-center">
+                                                <ToolLogo
+                                                    name={p.name}
+                                                    imageUrl={p.imageUrl || undefined}
+                                                    size="lg"
+                                                    variant="card"
+                                                    className="w-full h-full rounded-none border-0 group-hover:scale-110 transition-transform duration-700"
+                                                />
                                                 <div className="absolute top-4 left-4">
                                                     <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-[8px] font-black uppercase tracking-widest text-indigo-600 rounded-full shadow-sm">Verified Tool</span>
                                                 </div>
@@ -413,8 +415,14 @@ export default function PublicShopPage() {
                                 ) : (
                                     cart.map((item) => (
                                         <div key={item.id} className="flex gap-4 group">
-                                            <div className="w-20 h-20 bg-slate-50 rounded-2xl shrink-0 overflow-hidden">
-                                                {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />}
+                                            <div className="w-20 h-20 bg-slate-50 rounded-2xl shrink-0 overflow-hidden flex items-center justify-center">
+                                                <ToolLogo
+                                                    name={item.name}
+                                                    imageUrl={item.imageUrl || undefined}
+                                                    size="lg"
+                                                    variant="card"
+                                                    className="w-full h-full rounded-none border-0"
+                                                />
                                             </div>
                                             <div className="flex-1 space-y-1">
                                                 <div className="flex justify-between">

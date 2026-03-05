@@ -9,6 +9,8 @@ import { InventoryItem } from "@/types";
 
 import { useToast } from "@/context/ToastContext";
 import clsx from "clsx";
+import ToolLogo from "@/components/ui/ToolLogo";
+
 
 export default function InventoryPage() {
     const { items, loading, addItem, updateItem, deleteItem } = useInventory();
@@ -144,7 +146,7 @@ export default function InventoryPage() {
                                         <>
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
+                                                    <ToolLogo name={item.name} size="sm" />
                                                     <h4 className="font-black text-[11px] uppercase tracking-widest text-foreground truncate">
                                                         {item.name}
                                                     </h4>
@@ -185,6 +187,7 @@ export default function InventoryPage() {
                                 <table className="w-full text-left text-[11px]">
                                     <thead className="bg-slate-5 dark:bg-slate-800/50 text-slate-500 font-black uppercase tracking-widest">
                                         <tr>
+                                            <th className="px-6 py-4">Logo</th>
                                             <th className="px-6 py-4">Tool Name</th>
                                             <th className="px-6 py-4">Plan</th>
                                             <th className="px-6 py-4">Type</th>
@@ -197,6 +200,9 @@ export default function InventoryPage() {
                                     <tbody className="divide-y divide-border">
                                         {filteredItems.map(item => (
                                             <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition group">
+                                                <td className="px-6 py-4">
+                                                    <ToolLogo name={item.name} size="sm" />
+                                                </td>
                                                 <td className="px-6 py-4 font-black text-foreground">{item.name}</td>
                                                 <td className="px-6 py-4  font-bold">{item.plan || "-"}</td>
                                                 <td className="px-6 py-4">

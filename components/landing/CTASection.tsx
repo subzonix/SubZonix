@@ -4,7 +4,11 @@ import { motion } from "framer-motion";
 import { FaArrowRight, FaRocket, FaStar, FaFire } from "react-icons/fa6";
 import Link from "next/link";
 
-export default function CTASection() {
+interface CTASectionProps {
+    plansEnabled?: boolean;
+}
+
+export default function CTASection({ plansEnabled = true }: CTASectionProps) {
     return (
         <section className="py-28 relative overflow-hidden bg-white dark:bg-background transition-colors duration-500">
             {/* Layered background */}
@@ -22,10 +26,12 @@ export default function CTASection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                 >
-                    {/* Badge */}
-                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-6 border border-indigo-200 dark:border-indigo-500/20">
-                        <FaFire className="text-orange-500 text-xs" /> Limited Time — Free Trial
-                    </span>
+                    {/* Badge - hidden when plans disabled */}
+                    {plansEnabled && (
+                        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-6 border border-indigo-200 dark:border-indigo-500/20">
+                            <FaFire className="text-orange-500 text-xs" /> Limited Time — Free Trial
+                        </span>
+                    )}
 
                     {/* Stars */}
                     <div className="flex items-center justify-center gap-1 mb-6">
@@ -50,11 +56,11 @@ export default function CTASection() {
                     {/* CTAs */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
-                            href="#plans"
+                            href={plansEnabled ? "#plans" : "/login"}
                             className="group w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-2xl text-sm font-black uppercase tracking-wider shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95"
                         >
                             <FaRocket className="group-hover:rotate-12 transition-transform" />
-                            Start Free Trial
+                            {plansEnabled ? "Start Free Trial" : "Get Started"}
                         </Link>
                         <Link
                             href="/how-it-works?play=1"

@@ -10,6 +10,7 @@ import Footer from "@/components/landing/Footer";
 import CustomCursor from "@/components/ui/CustomCursor";
 import SectionCursorGlow from "@/components/ui/SectionCursorGlow";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 const FeatureImage = ({ src, alt }: { src: string; alt: string }) => (
     <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl overflow-hidden bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 group">
@@ -61,6 +62,7 @@ const items = [
 ];
 
 export default function FeaturesPage() {
+    const { plansEnabled } = useAuth();
     return (
         <div className="min-h-screen bg-white dark:bg-background transition-colors duration-500">
             <CustomCursor />
@@ -130,10 +132,10 @@ export default function FeaturesPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                         <Link
-                            href="/#plans"
+                            href={plansEnabled ? "/#plans" : "/login"}
                             className="w-full sm:w-auto px-10 py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 transition-transform"
                         >
-                            View Pricing
+                            {plansEnabled ? "View Pricing" : "Get Started"}
                         </Link>
                         <Link
                             href="/how-it-works"
