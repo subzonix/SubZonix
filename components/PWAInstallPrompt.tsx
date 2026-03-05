@@ -87,7 +87,7 @@ export default function PWAInstallPrompt() {
                     <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
 
                     <div className="relative w-5 h-5 flex-shrink-0">
-                        <Image src="/tabicon.png" alt="SubZonix" fill className="object-contain rounded-sm" />
+                        <Image src="/tabicon2.png" alt="SubZonix" fill className="object-contain rounded-sm" />
                     </div>
 
                     <div className="flex flex-col items-start leading-none">

@@ -1,6 +1,6 @@
 // SubZonix Service Worker
 const CACHE_NAME = "subzonix-v1";
-const STATIC_ASSETS = ["/", "/dashboard", "/icons/icon-192.png", "/icons/icon-512.png", "/tabicon.png"];
+const STATIC_ASSETS = ["/", "/dashboard", "/icons/icon-192.png", "/icons/icon-512.png", "/tabicon2.png"];
 
 self.addEventListener("install", (event) => {
     event.waitUntil(

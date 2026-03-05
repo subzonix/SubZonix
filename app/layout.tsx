@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   description: "Secure Cloud Sales Console",
   manifest: "/manifest.json",
   icons: {
-    icon: "/tabicon.png",
+    icon: "/tabicon2.png",
     apple: "/icons/icon-192.png",
-    shortcut: "/tabicon.png",
+    shortcut: "/tabicon2.png",
   },
   appleWebApp: {
     capable: true,
