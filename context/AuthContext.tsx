@@ -39,7 +39,7 @@ interface AuthContextType {
     isStaff: boolean;
     staffPermissions?: StaffPermissions;
     invoiceDomain: string;
-    plansEnabled: boolean;
+    plansEnabled: boolean | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -72,7 +72,7 @@ const AuthContext = createContext<AuthContextType>({
     isStaff: false,
     staffPermissions: undefined,
     invoiceDomain: "subzonix.cloud",
-    plansEnabled: true,
+    plansEnabled: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [planFeatures, setPlanFeatures] = useState<PlanFeatures | undefined>(undefined);
     const [planExpiry, setPlanExpiry] = useState<number | undefined>(undefined);
     const [appName, setAppName] = useState("SubZonix");
-    const [appLogoUrl, setAppLogoUrl] = useState("");
+    const [appLogoUrl, setAppLogoUrl] = useState("/tabicon2.png");
     const [accentColor, setAccentColor] = useState("#0066FF");
     const [themePreset, setThemePreset] = useState("indigo");
     const [supportEmail, setSupportEmail] = useState("subzonix@gmail.com");
@@ -105,76 +105,74 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isStaff, setIsStaff] = useState(false);
     const [staffPermissions, setStaffPermissions] = useState<StaffPermissions | undefined>(undefined);
     const [invoiceDomain, setInvoiceDomain] = useState("subzonix.cloud");
-    const [plansEnabled, setPlansEnabled] = useState(true);
-    const [appConfig, setAppConfig] = useState<any>(null); // Optimization
+    const [plansEnabled, setPlansEnabled] = useState<boolean | null>(null);
+
+    const [appConfigLoaded, setAppConfigLoaded] = useState(false);
+    const [authInitialized, setAuthInitialized] = useState(false);
 
     const { setTheme } = useTheme();
     const router = useRouter();
     const pathname = usePathname();
 
-    // Max 3 seconds loader timing
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, []);
-
     useEffect(() => {
         const unsub = onSnapshot(
             doc(db, "settings", "app_config"),
             (snap) => {
-                if (!snap.exists()) return;
-                const data = snap.data();
-                if (data.appName) setAppName(data.appName);
-                if (data.appLogoUrl) setAppLogoUrl(data.appLogoUrl);
-                if (data.accentColor) setAccentColor(data.accentColor);
-                if (data.appNamePart1) setAppNamePart1(data.appNamePart1);
-                if (data.appNamePart2) setAppNamePart2(data.appNamePart2);
-                if (data.colorPart1) setColorPart1(data.colorPart1);
-                if (data.colorPart2) setColorPart2(data.colorPart2);
-                if (data.themePreset) setThemePreset(data.themePreset);
-                if (data.supportEmail) setSupportEmail(data.supportEmail);
-                if (data.brandDisclaimer) setBrandDisclaimer(data.brandDisclaimer);
-                if (data.sidebarLight) setSidebarLight(data.sidebarLight);
-                if (data.sidebarDark) setSidebarDark(data.sidebarDark);
-                if (data.invoiceDomain) setInvoiceDomain(data.invoiceDomain);
-                // plansEnabled defaults to true if field is absent
-                setPlansEnabled(data.plansEnabled !== false);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (data.appName) setAppName(data.appName);
+                    if (data.appLogoUrl) setAppLogoUrl(data.appLogoUrl);
+                    if (data.accentColor) setAccentColor(data.accentColor);
+                    if (data.appNamePart1) setAppNamePart1(data.appNamePart1);
+                    if (data.appNamePart2) setAppNamePart2(data.appNamePart2);
+                    if (data.colorPart1) setColorPart1(data.colorPart1);
+                    if (data.colorPart2) setColorPart2(data.colorPart2);
+                    if (data.themePreset) setThemePreset(data.themePreset);
+                    if (data.supportEmail) setSupportEmail(data.supportEmail);
+                    if (data.brandDisclaimer) setBrandDisclaimer(data.brandDisclaimer);
+                    if (data.sidebarLight) setSidebarLight(data.sidebarLight);
+                    if (data.sidebarDark) setSidebarDark(data.sidebarDark);
+                    if (data.invoiceDomain) setInvoiceDomain(data.invoiceDomain);
+                    // plansEnabled defaults to true if field is absent
+                    setPlansEnabled(data.plansEnabled !== false);
+                }
+                setAppConfigLoaded(true);
             },
             (err) => {
                 console.error("Error fetching app config:", err);
+                setAppConfigLoaded(true);
             }
         );
 
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                const now = Date.now();
-                const savedLoginTime = localStorage.getItem("loginTime");
+            try {
+                if (currentUser) {
+                    const now = Date.now();
+                    const savedLoginTime = localStorage.getItem("loginTime");
 
-                if (savedLoginTime && now - parseInt(savedLoginTime) > 6 * 60 * 60 * 1000) {
-                    // Session expired
-                    await firebaseSignOut(auth);
-                    localStorage.removeItem("loginTime");
-                    setUser(null);
-                    setRole(null);
-                    setStatus(null);
-                    router.push("/login");
-                    return;
-                }
+                    if (savedLoginTime && now - parseInt(savedLoginTime) > 6 * 60 * 60 * 1000) {
+                        // Session expired
+                        await firebaseSignOut(auth);
+                        localStorage.removeItem("loginTime");
+                        setUser(null);
+                        setRole(null);
+                        setStatus(null);
+                        router.push("/login");
+                        setAuthInitialized(true);
+                        return;
+                    }
 
-                if (!savedLoginTime) {
-                    localStorage.setItem("loginTime", now.toString());
-                }
+                    if (!savedLoginTime) {
+                        localStorage.setItem("loginTime", now.toString());
+                    }
 
-                // --- Staff & Role Check ---
-                let userRole: "owner" | "user" = "user";
-                let userStatus: "active" | "pending" | "paused" = "pending";
-                let effectiveUid = currentUser.uid;
-                let isStaffMember = false;
-                let permissions: StaffPermissions | undefined = undefined;
+                    // --- Staff & Role Check ---
+                    let userRole: "owner" | "user" = "user";
+                    let userStatus: "active" | "pending" | "paused" = "pending";
+                    let effectiveUid = currentUser.uid;
+                    let isStaffMember = false;
+                    let permissions: StaffPermissions | undefined = undefined;
 
-                try {
                     // 1. Check if user is a staff member
                     const staffDocRef = doc(db, "staff_accounts", currentUser.uid);
                     const staffSnap = await getDoc(staffDocRef);
@@ -199,12 +197,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     // DEBUG: Check values
                     const ownerEmailEnv = process.env.NEXT_PUBLIC_OWNER_EMAIL?.trim().toLowerCase();
                     const userEmail = currentUser.email?.trim().toLowerCase();
-
-                    console.log("[AuthContext] Checking Owner:", {
-                        userEmail,
-                        ownerEmailEnv,
-                        match: userEmail === ownerEmailEnv
-                    });
 
                     // 2. Fetch User/Owner Data (for Plan & Status)
                     // If staff, we fetch the OWNER's data to get the plan limits and features
@@ -266,81 +258,88 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                             }
                         }
                     }
-                } catch (error) {
-                    console.error("Error fetching profile:", error);
-                }
 
-                setRole(userRole);
-                setStatus(userStatus);
-                setUser(currentUser);
+                    // Set state AFTER all async work is done
+                    setRole(userRole);
+                    setStatus(userStatus);
+                    setUser(currentUser);
 
-                // --- Protected Route Logic ---
-                if (pathname.startsWith("/login")) {
-                    if (userRole === "owner") router.push("/owner");
-                    else router.push("/dashboard");
-                }
-
-                // Owner Redirects
-                if (userRole === "owner") {
-                    if (pathname === "/" || pathname === "/dashboard") {
-                        router.push("/owner");
-                    }
-                }
-
-                // User/Staff Redirects
-                if (userRole !== "owner") {
-                    if (pathname.startsWith("/owner") || pathname.startsWith("/admin")) {
-                        router.push("/dashboard");
-                    }
-                    // Status redirects... (Staff is always active so this is fine)
-                    if (userStatus === "pending") {
-                        if (!pathname.startsWith("/verification-pending") && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/invoice")) {
-                            router.push("/verification-pending");
-                        }
-                    } else if (userStatus === "paused") {
-                        if (!pathname.startsWith("/access-paused") && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/invoice")) {
-                            router.push("/access-paused");
-                        }
-                    } else if (userStatus === "active") {
-                        // Allow access to /invoice without redirecting
-                        if (!pathname.startsWith("/invoice") && (pathname.startsWith("/verification-pending") || pathname.startsWith("/access-paused") || pathname === "/")) {
+                    // Redirect logic
+                    if (pathname.startsWith("/login")) {
+                        if (userRole === "owner") router.push("/owner");
+                        else router.push("/dashboard");
+                    } else if (userRole === "owner") {
+                        if (pathname === "/" || pathname === "/dashboard") router.push("/owner");
+                    } else {
+                        if (pathname.startsWith("/owner") || pathname.startsWith("/admin")) {
                             router.push("/dashboard");
                         }
+                        if (userStatus === "pending") {
+                            if (!pathname.startsWith("/verification-pending") && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/invoice")) {
+                                router.push("/verification-pending");
+                            }
+                        } else if (userStatus === "paused") {
+                            if (!pathname.startsWith("/access-paused") && pathname !== "/" && !pathname.startsWith("/login") && !pathname.startsWith("/invoice")) {
+                                router.push("/access-paused");
+                            }
+                        } else if (userStatus === "active") {
+                            if (!pathname.startsWith("/invoice") && (pathname.startsWith("/verification-pending") || pathname.startsWith("/access-paused") || pathname === "/")) {
+                                router.push("/dashboard");
+                            }
+                        }
+                    }
+                } else {
+                    // Not logged in
+                    localStorage.removeItem("loginTime");
+                    setUser(null);
+                    setRole(null);
+                    setStatus(null);
+                    setMerchantId(null);
+                    setIsStaff(false);
+                    setStaffPermissions(undefined);
+                    setPlanName(undefined);
+                    setSalesLimit(undefined);
+                    setCurrentSalesCount(undefined);
+                    setPlanFeatures(undefined);
+
+                    if (!pathname.startsWith("/login") &&
+                        pathname !== "/" &&
+                        !pathname.startsWith("/shop") &&
+                        !pathname.startsWith("/invoice") &&
+                        !pathname.startsWith("/features") &&
+                        !pathname.startsWith("/how-it-works") &&
+                        !pathname.startsWith("/about") &&
+                        !pathname.startsWith("/blog") &&
+                        !pathname.startsWith("/careers") &&
+                        !pathname.startsWith("/terms") &&
+                        !pathname.startsWith("/privacy-policy") &&
+                        !pathname.startsWith("/contact")
+                    ) {
+                        router.push("/login");
                     }
                 }
-
-            } else {
-                localStorage.removeItem("loginTime");
-                setUser(null);
-                setRole(null);
-                setStatus(null);
-                setMerchantId(null);
-                setIsStaff(false);
-                setStaffPermissions(undefined);
-                setPlanName(undefined);
-                setSalesLimit(undefined);
-                setCurrentSalesCount(undefined);
-                setPlanFeatures(undefined);
-                if (!pathname.startsWith("/login") &&
-                    pathname !== "/" &&
-                    !pathname.startsWith("/shop") &&
-                    !pathname.startsWith("/invoice") &&
-                    !pathname.startsWith("/features") &&
-                    !pathname.startsWith("/how-it-works") &&
-                    !pathname.startsWith("/about") &&
-                    !pathname.startsWith("/blog") &&
-                    !pathname.startsWith("/careers") &&
-                    !pathname.startsWith("/terms") &&
-                    !pathname.startsWith("/privacy-policy") &&
-                    !pathname.startsWith("/contact")
-                ) {
-                    router.push("/login");
-                }
+            } catch (error) {
+                console.error("Error in auth/profile resolution:", error);
+            } finally {
+                setAuthInitialized(true);
             }
-            setLoading(false);
         });
 
-        // periodic check every minute
+        return () => {
+            unsub();
+            unsubscribe();
+        };
+    }, [pathname, router]);
+
+    // Update loading state only when both config and auth are ready
+    useEffect(() => {
+        if (appConfigLoaded && authInitialized) {
+            setLoading(false);
+        }
+    }, [appConfigLoaded, authInitialized]);
+
+    // Session check effect
+    useEffect(() => {
         const interval = setInterval(() => {
             const savedLoginTime = localStorage.getItem("loginTime");
             if (savedLoginTime && Date.now() - parseInt(savedLoginTime) > 6 * 60 * 60 * 1000) {
@@ -351,13 +350,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 });
             }
         }, 60000);
-
-        return () => {
-            unsub();
-            unsubscribe();
-            clearInterval(interval);
-        };
-    }, [pathname, router]);
+        return () => clearInterval(interval);
+    }, [router]);
 
     const logout = async () => {
         localStorage.removeItem("loginTime");
@@ -400,7 +394,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     // When plans are disabled, override planFeatures to unlock everything EXCEPT importData
-    const effectivePlanFeatures: PlanFeatures | undefined = !plansEnabled
+    const effectivePlanFeatures: PlanFeatures | undefined = plansEnabled === false
         ? {
             export: true, pdf: true, whatsappAlerts: true, editReminders: true,
             support: true, exportPreference: true, importData: false, dateRangeFilter: true,
@@ -410,7 +404,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         : planFeatures;
 
-    const effectiveDataRetention = !plansEnabled ? 12 : dataRetentionMonths;
+    const effectiveDataRetention = plansEnabled === false ? 12 : dataRetentionMonths;
 
     return (
         <AuthContext.Provider value={{

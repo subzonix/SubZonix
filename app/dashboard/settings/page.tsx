@@ -59,13 +59,13 @@ export default function SettingsPage() {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { showToast, confirm } = useToast();
     const [expandedSections, setExpandedSections] = useState({
-        branding: typeof window !== 'undefined' ? window.innerWidth > 768 : true,
+        branding: typeof window !== 'undefined' ? window.innerWidth > 768 : false,
         plan: false,
         security: false,
         export: false,
         system: false,
         interface: false,
-        quick: false
+        quick: true
     });
 
     useEffect(() => {
@@ -457,6 +457,55 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-6">
+                    {/* Quick Access Section - Always Open */}
+                    <Card className="p-4 overflow-hidden border-orange-200 dark:border-orange-500/20 bg-orange-50/10 dark:bg-orange-500/5 shadow-sm">
+                        <div className="flex items-center gap-2 mb-4">
+                            <FaLink className="text-orange-500" />
+                            <h3 className="text-sm font-black text-foreground uppercase tracking-widest">Quick Access</h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <Link
+                                href="/dashboard/reminders"
+                                className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-orange-400 dark:hover:border-orange-500 transition-all shadow-sm hover:shadow-md group"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                                    <FaMessage className="text-sm" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-foreground">Templates</div>
+                                    <div className="text-[10px] text-slate-500">Manage your message templates</div>
+                                </div>
+                            </Link>
+
+                            {plansEnabled && (
+                                <Link
+                                    href="/dashboard/plans"
+                                    className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-orange-400 transition-all shadow-sm hover:shadow-md group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                                        <FaGem className="text-sm" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-foreground">Subscriptions</div>
+                                        <div className="text-[10px] text-slate-500">Manage your plan</div>
+                                    </div>
+                                </Link>
+                            )}
+
+                            <Link
+                                href="/dashboard/support"
+                                className="flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-orange-400 transition-all shadow-sm hover:shadow-md group col-span-1 sm:col-span-2"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+                                    <FaHeadset className="text-sm" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-foreground">Support Center</div>
+                                    <div className="text-[10px] text-slate-500">Submit queries and get help</div>
+                                </div>
+                            </Link>
+                        </div>
+                    </Card>
                     {/* Public Shop Link */}
                     <Card className=" border-indigo-500/20 shadow-xl overflow-hidden group p-6">
                         <div className="flex justify-between items-start mb-4">
@@ -613,57 +662,6 @@ export default function SettingsPage() {
                             </div>
                         </Card>
                     )}
-
-                    <SettingsAccordionCard
-                        title="Quick Access"
-                        icon={FaLink}
-                        iconClassName="text-amber-500"
-                        open={expandedSections.quick}
-                        onToggle={() => setExpandedSections(prev => ({ ...prev, quick: !prev.quick }))}
-                    >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <Link
-                                href="/dashboard/reminders"
-                                className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all group"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <FaMessage className="text-sm" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-foreground">Templates</div>
-                                    <div className="text-[10px] text-slate-500">Manage your message templates</div>
-                                </div>
-                            </Link>
-
-                            {plansEnabled && (
-                                <Link
-                                    href="/dashboard/plans"
-                                    className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 hover:border-amber-400 transition-all group"
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <FaGem className="text-sm" />
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-foreground">Subscriptions</div>
-                                        <div className="text-[10px] text-slate-500">Manage your plan</div>
-                                    </div>
-                                </Link>
-                            )}
-
-                            <Link
-                                href="/dashboard/support"
-                                className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-900/30 hover:border-emerald-400 transition-all group col-span-1 sm:col-span-2"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <FaHeadset className="text-sm" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-foreground">Support Center</div>
-                                    <div className="text-[10px] text-slate-500">Submit queries and get help</div>
-                                </div>
-                            </Link>
-                        </div>
-                    </SettingsAccordionCard>
 
                     <SettingsAccordionCard
                         title="Administrative Security"
@@ -889,6 +887,8 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </SettingsAccordionCard>
+
+
                 </div>
             </div>
         </div >

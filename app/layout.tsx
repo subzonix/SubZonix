@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: "/tabicon2.png",
-    apple: "/icons/icon-192.png",
     shortcut: "/tabicon2.png",
+    apple: "/icons/icon-192.png",
   },
   appleWebApp: {
     capable: true,
@@ -47,12 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="theme-color" content="#4F46E5" />
-        <meta name="msapplication-TileColor" content="#4F46E5" />
-        <meta name="msapplication-TileImage" content="/icons/icon-192.png" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-      </head>
+      <head />
       <body className={`${outfit.variable} antialiased`} suppressHydrationWarning>
         <Providers>{children}</Providers>
         <script

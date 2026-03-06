@@ -55,11 +55,15 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
             message += `*Instructions & Warranty:*\n${sale.instructions}\n\n`;
         }
 
-        message += `*Sold By:* ${companyInfo?.companyName || "SubZonix"}\n`;
-        message += `_Powered by subzonix.cloud_`;
+        // Add footer if missing (must be at last)
+        const footer = `\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`.replace("[Company Name]", companyInfo?.companyName || "SubZonix");
+        if (!message.includes("© Powered by SubZonix")) {
+            message += footer;
+        }
 
         const url = `https://wa.me/${cleanPhone(sale.client.phone)}?text=${encodeURIComponent(sanitizeForWhatsApp(message))}`;
         window.open(url, "_blank");
+
     };
 
     const handleDownloadPDF = () => {

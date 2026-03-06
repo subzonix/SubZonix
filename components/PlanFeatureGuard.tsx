@@ -14,10 +14,15 @@ interface PlanFeatureGuardProps {
 export default function PlanFeatureGuard({ feature, children, fallback }: PlanFeatureGuardProps) {
     const { planFeatures, role, isStaff, staffPermissions, plansEnabled } = useAuth();
 
+    // While plansEnabled is still loading (null), show a skeleton or nothing
+    if (plansEnabled === null) {
+        return <div className="w-full h-full min-h-[200px] animate-pulse bg-slate-100 dark:bg-slate-900/50 rounded-2xl" />;
+    }
+
     // When plans are completely disabled by the admin:
     // - importData (CSV Import) remains hidden entirely
     // - all other features are unlocked (show children)
-    if (!plansEnabled) {
+    if (plansEnabled === false) {
         if (feature === 'importData') return null;
         return <>{children}</>;
     }

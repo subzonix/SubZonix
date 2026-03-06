@@ -11,6 +11,7 @@ import { Sale, ToolItem } from "@/types";
 import { CalendarDateRangePicker } from "@/components/ui/CalendarDateRangePicker";
 import { formatDateSafe, getLocalIsoDate } from "@/lib/utils";
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { useAuth } from "@/context/AuthContext";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -53,6 +54,7 @@ interface UserProfile {
 }
 
 export default function OwnerDashboardPage() {
+    const { plansEnabled } = useAuth();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -326,10 +328,18 @@ export default function OwnerDashboardPage() {
                         <div className="flex-1">
                             <label className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1 block">Plan Info</label>
                             <div className="text-sm font-medium text-foreground">
-                                {users.find(u => u.id === dashboardUser)?.planName || "No Plan"}
-                                <span className="text-muted-foreground text-xs ml-2">
-                                    ({users.find(u => u.id === dashboardUser)?.currentSalesCount || 0}/{users.find(u => u.id === dashboardUser)?.salesLimit || "∞"})
-                                </span>
+                                {plansEnabled === false ? (
+                                    <span className="text-emerald-500 uppercase tracking-tighter">
+                                        {users.find(u => u.id === dashboardUser)?.currentSalesCount || 0} / Unlimited
+                                    </span>
+                                ) : (
+                                    <>
+                                        {users.find(u => u.id === dashboardUser)?.planName || "No Plan"}
+                                        <span className="text-muted-foreground text-xs ml-2">
+                                            ({users.find(u => u.id === dashboardUser)?.currentSalesCount || 0}/{users.find(u => u.id === dashboardUser)?.salesLimit || "∞"})
+                                        </span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}

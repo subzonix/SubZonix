@@ -10,6 +10,7 @@ import { Card, Button, Input, Select } from "@/components/ui/Shared";
 import { getLocalIsoDate } from "@/lib/utils";
 import clsx from "clsx";
 import { useSearchParams } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 interface UserProfile {
     id: string;
@@ -32,6 +33,7 @@ interface Plan {
 }
 
 export default function UserManagementPage() {
+    const { plansEnabled } = useAuth();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -40,10 +42,10 @@ export default function UserManagementPage() {
     // Plan Management
     const [plans, setPlans] = useState<Plan[]>([]);
     const [selectedUserForPlan, setSelectedUserForPlan] = useState<UserProfile | null>(null);
-    const [planForm, setPlanForm] = useState({
+    const [planForm, setPlanForm] = useState(() => ({
         planId: "",
         expiryDate: getLocalIsoDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
-    });
+    }));
     const { showToast } = useToast();
     const searchParams = useSearchParams();
 
@@ -247,7 +249,9 @@ export default function UserManagementPage() {
                                             {u.role !== 'owner' && (
                                                 <div className="flex items-center gap-1">
                                                     <FaGem className="text-[10px] text-amber-500" />
-                                                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase">{u.planName || 'No Plan'}</span>
+                                                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase">
+                                                        {plansEnabled === false ? 'Unlocked (Global)' : (u.planName || 'No Plan')}
+                                                    </span>
                                                 </div>
                                             )}
                                         </div>
@@ -260,19 +264,31 @@ export default function UserManagementPage() {
                                                         'bg-amber-500/20 text-amber-400'}`}>
                                                 {u.status}
                                             </span>
-                                            {u.role !== 'owner' && u.salesLimit && (
-                                                <div className="w-24">
-                                                    <div className="flex justify-between text-[8px] font-bold text-slate-500 uppercase mb-1">
-                                                        <span>Usage</span>
-                                                        <span>{u.currentSalesCount || 0}/{u.salesLimit}</span>
+                                            {u.role !== 'owner' && (
+                                                plansEnabled === false ? (
+                                                    <div className="flex flex-col gap-1 mt-1">
+                                                        <div className="flex justify-between text-[8px] font-bold text-emerald-600/60 uppercase">
+                                                            <span>Sales</span>
+                                                            <span>{u.currentSalesCount || 0} / Unlimited</span>
+                                                        </div>
+                                                        <div className="h-1 w-full bg-emerald-500/20 rounded-full overflow-hidden">
+                                                            <div className="h-full w-full bg-emerald-500 antialiased opacity-50"></div>
+                                                        </div>
                                                     </div>
-                                                    <div className="h-1 bg-muted rounded-full overflow-hidden">
-                                                        <div
-                                                            className={clsx("h-full transition-all", (u.currentSalesCount || 0) / u.salesLimit > 0.9 ? "bg-rose-500" : "bg-emerald-500")}
-                                                            style={{ width: `${Math.min(100, ((u.currentSalesCount || 0) / u.salesLimit) * 100)}%` }}
-                                                        ></div>
+                                                ) : u.salesLimit ? (
+                                                    <div className="w-24">
+                                                        <div className="flex justify-between text-[8px] font-bold text-slate-500 uppercase mb-1">
+                                                            <span>Usage</span>
+                                                            <span>{u.currentSalesCount || 0}/{u.salesLimit}</span>
+                                                        </div>
+                                                        <div className="h-1 bg-muted rounded-full overflow-hidden">
+                                                            <div
+                                                                className={clsx("h-full transition-all", (u.currentSalesCount || 0) / u.salesLimit > 0.9 ? "bg-rose-500" : "bg-emerald-500")}
+                                                                style={{ width: `${Math.min(100, ((u.currentSalesCount || 0) / u.salesLimit) * 100)}%` }}
+                                                            ></div>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                ) : null
                                             )}
                                         </div>
                                     </td>

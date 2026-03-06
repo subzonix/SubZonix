@@ -23,8 +23,8 @@ const contactInfo = [
     {
         icon: FaWhatsapp,
         label: "WhatsApp",
-        value: "+92 325 1250404",
-        href: "https://wa.me/923251250404",
+        value: "+447771063739",
+        href: "https://wa.me/447771063739",
         color: "from-green-500 to-emerald-600",
         bg: "bg-green-50 dark:bg-green-500/10",
     },

@@ -104,7 +104,13 @@ export default function ExpiryPage() {
             .replace(/\n?.*\[LoginLink\].*/g, (match: string) => item.loginLink ? match.replace("[LoginLink]", item.loginLink) : "")
             .replace(/\[Company Name\]/g, settings?.companyName || "SubZonix");
 
+        const footer = `\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`.replace("[Company Name]", settings?.companyName || "SubZonix");
+        if (!msg.includes("© Powered by SubZonix")) {
+            msg += footer;
+        }
+
         window.open(`https://wa.me/${cleanPhone(item.clientPhone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
+
         showToast("WhatsApp opened for reminder", "info");
 
         // 2. Update Database Count

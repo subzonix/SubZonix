@@ -15,11 +15,12 @@ import clsx from "clsx";
 import { EMOJIS } from "@/lib/emojis";
 
 const TEMPLATE_DEFAULTS: any = {
-    "Renewal Reminder": `Dear [Client], ${EMOJIS.WAVING_HAND}\n\nTo continue uninterrupted access to [Tool Name], kindly confirm your renewals. ${EMOJIS.CALENDAR} Your current plan expires on [Date].\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nThank you! ${EMOJIS.SPARKLES}`,
-    "Payment Pending": `*${EMOJIS.MONEY_BAG} Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*. ${EMOJIS.HOURGLASS}\n\n* ${EMOJIS.WRENCH} Tool Name : [Tool Name]\n* ${EMOJIS.ENVELOPE} Email : [Email]\n* *${EMOJIS.BANKNOTE} Pending Amount: [PendingAmount]*\n\n${EMOJIS.CALENDAR} Expiry Date : [ExpiryDate]\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nTo continue uninterrupted access, kindly clear all the dues. 🙏\n\n*${EMOJIS.BANK} Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]`,
-    "Renewal Successful": `Dear [Client], ${EMOJIS.PARTY_POPPER}\n\nYour [Tool Name] has been renewed successfully! Thank you for choosing us. ${EMOJIS.CHECK_MARK}\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nEnjoy your service! ${EMOJIS.ROCKET}`,
-    "Order Receipt": `*${EMOJIS.PACKAGE} Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date]. ${EMOJIS.HIGH_VOLTAGE}\n\`Thank u for choosing and trusting [TrustText] [Company Name]\`\n\n[ToolsList]\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\n*${EMOJIS.CREDIT_CARD} Payment Summary*\n${EMOJIS.MONEY_BAG} Total : [Total]\n${EMOJIS.GEM_STONE} Status : [Status]\n\n[AccountInfo] ${EMOJIS.SPARKLES}`
+    "Renewal Reminder": `Dear [Client],\n\nTo continue uninterrupted access to [Tool Name], kindly confirm your renewals. Your current plan expires on [Date].\n\nLogin Link: [LoginLink]\n\nThank you!\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`,
+    "Payment Pending": `*Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*.\n\n* Tool Name : [Tool Name]\n* Email : [Email]\n* *Pending Amount: [PendingAmount]*\n\nExpiry Date : [ExpiryDate]\n\nLogin Link: [LoginLink]\n\nTo continue uninterrupted access, kindly clear all the dues. 🙏\n\n*Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`,
+    "Renewal Successful": `Dear [Client],\n\nYour [Tool Name] has been renewed successfully! Thank you for choosing us.\n\nLogin Link: [LoginLink]\n\nEnjoy your service!\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`,
+    "Order Receipt": `*Order Receipt*\n\nDear *[Client]*,\n\nThe following memberships are [ActionType] on [Date].\n\`Thank u for choosing and trusting [TrustText] [Company Name]\`\n\n[ToolsList]\n\nLogin Link: [LoginLink]\n\n*Payment Summary*\nTotal : [Total]\nStatus : [Status]\n\n[AccountInfo]\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`
 };
+
 
 const EditableTemplate = ({ title, icon: Icon, color, value, variables, onSave, onReset, renameInstruction, deleteInstruction, confirm, showToast }: any) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -501,36 +502,35 @@ export default function RemindersPage() {
         <PlanFeatureGuard feature="editReminders">
             <div className="space-y-6 pb-20">
                 {/* Header */}
-                <div className="flex items-center justify-between bg-card p-4 rounded-2xl border border-border shadow-sm  z-40 backdrop-blur-md">
+                <div className="flex flex-col md:flex-row md:items-center justify-between bg-card p-4 rounded-2xl border border-border shadow-sm z-40 backdrop-blur-md gap-4">
                     <h1 className="text-sm font-black text-foreground uppercase tracking-widest flex items-center gap-2">
                         <FaBell className="text-indigo-500" /> Message & Instruction Templates
                     </h1>
-                    <div className="flex items-center gap-2">
-                        <div className="flex p-1.5 rounded-xl  border border-slate-200 dark:border-slate-700/50 self-end sm:self-auto">
+                    <div className="flex flex-wrap items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+                        <div className="flex p-1.5 rounded-xl border border-slate-200 dark:border-slate-700/50">
                             <button
                                 onClick={() => setViewMode("card")}
-                                className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                                className={`p-2 px-3 sm:px-4 rounded-lg flex items-center gap-2 text-[10px] sm:text-xs font-bold transition cursor-pointer ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
                             >
-                                <FaAddressCard /> Card View
+                                <FaAddressCard /> <span className="hidden xs:inline">Card View</span>
                             </button>
                             <button
                                 onClick={() => setViewMode("table")}
-                                className={`p-2 px-4 rounded-lg flex items-center gap-2 text-xs font-bold transition cursor-pointer ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                                className={`p-2 px-3 sm:px-4 rounded-lg flex items-center gap-2 text-[10px] sm:text-xs font-bold transition cursor-pointer ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/30 shadow-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
                             >
-                                <FaTable /> Table View
+                                <FaTable /> <span className="hidden xs:inline">Table View</span>
                             </button>
-
                         </div>
                         {isDirty && (
-                            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest animate-pulse">
-                                <FaCircleInfo className="text-[10px]" /> Unsaved Changes
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest animate-pulse">
+                                <FaCircleInfo className="text-[10px]" /> <span className="hidden sm:inline">Unsaved Changes</span><span className="sm:hidden">Unsaved</span>
                             </div>
                         )}
                         <button
                             onClick={handleSave}
                             disabled={loading}
                             className={clsx(
-                                "btn-save",
+                                "btn-save py-2 px-4 text-[10px] sm:text-xs",
                                 !isDirty && "opacity-50 grayscale cursor-not-allowed"
                             )}
                         >

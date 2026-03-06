@@ -543,7 +543,14 @@ export default function SaleForm() {
                     msg += `\n\n*Note:* ${instructions}`;
                 }
 
+                // Add footer if missing (must be at last)
+                const footer = `\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`.replace("[Company Name]", companyInfo.companyName || "SubZonix");
+                if (!msg.includes("© Powered by SubZonix")) {
+                    msg += footer;
+                }
+
                 window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
+
                 showToast("WhatsApp opened for receipt", "info");
             }
 
