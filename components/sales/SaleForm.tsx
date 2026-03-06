@@ -536,7 +536,7 @@ export default function SaleForm() {
                     .replace(/\[Total\]/g, String(totalSell))
                     .replace(/\[Status\]/g, statusText)
                     .replace(/\[AccountInfo\]/g, accountInfo)
-                    .replace(/\[LoginLink\]/g, saleLoginLink);
+                    .replace(/\n?.*\[LoginLink\].*/g, (match: string) => saleLoginLink ? match.replace("[LoginLink]", saleLoginLink) : "");
 
                 // Handle Instructions
                 if (instructions && instructions !== "No Instructions") {

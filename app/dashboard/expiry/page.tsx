@@ -101,7 +101,7 @@ export default function ExpiryPage() {
             .replace(/\[DayLabel\]/g, dayLabel ? ` (${dayLabel})` : "")
             .replace(/\[Tool Name\]/g, item.name)
             .replace(/\[Email\]/g, item.email || "N/A")
-            .replace(/\[LoginLink\]/g, item.loginLink ? `\n🔗 Login Link: ${item.loginLink}` : "")
+            .replace(/\n?.*\[LoginLink\].*/g, (match: string) => item.loginLink ? match.replace("[LoginLink]", item.loginLink) : "")
             .replace(/\[Company Name\]/g, settings?.companyName || "SubZonix");
 
         window.open(`https://wa.me/${cleanPhone(item.clientPhone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
