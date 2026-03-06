@@ -6,7 +6,6 @@ import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, limi
 import { db } from "@/lib/firebase";
 import { ToolItem, Sale, InventoryItem, Client } from "@/types";
 import { Button, Input, Select, Card } from "@/components/ui/Shared";
-import { CalendarDatePicker } from "@/components/ui/CalendarDatePicker";
 import Autocomplete from "@/components/ui/Autocomplete";
 import ToolInput from "./ToolInput";
 import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen, FaCalendar, FaFaceSmile } from "react-icons/fa6";
@@ -624,13 +623,18 @@ export default function SaleForm() {
                     </div>
 
                     {/* Date Input */}
-                    <CalendarDatePicker
-                        label="Sale Date"
-                        value={saleDate}
-                        onChange={(val) => handleSaleDateChange(val)}
-                        required
-                        className="bg-white dark:bg-slate-900 max-w-xs"
-                    />
+                    <div className="flex-1 w-full sm:w-auto">
+                        <label className="hidden sm:block text-[10px] font-black text-indigo-700 dark:text-indigo-300 uppercase tracking-widest mb-2">
+                            Sale Date
+                        </label>
+                        <Input
+                            type="date"
+                            value={saleDate}
+                            onChange={(e) => handleSaleDateChange(e.target.value)}
+                            required
+                            className="bg-white dark:bg-slate-900 max-w-xs"
+                        />
+                    </div>
 
                     {/* Info Text */}
                     <div className="hidden sm:flex flex-col items-end text-right bg-white/60 dark:bg-slate-700/40 px-4 py-2 rounded-xl border border-indigo-100 dark:border-indigo-700/30 backdrop-blur-sm">
