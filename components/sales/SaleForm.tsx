@@ -351,7 +351,7 @@ export default function SaleForm() {
         return errs;
     };
 
-    const handleSave = async (action: "save" | "whatsapp" | "pdf") => {
+    const handleSave = async (action: "save" | "whatsapp" | "whatsappInvoice" | "pdf") => {
         const newErrors = validate();
         if (newErrors.length > 0) {
             showToast("Please fill all required fields", "warning");
@@ -479,7 +479,7 @@ export default function SaleForm() {
                     accountHolder: companyInfo.accountHolder,
                     loginLink: saleData.loginLink
                 });
-            } else if (action === "whatsapp") {
+            } else if (action === "whatsapp" || (action as string) === "whatsappInvoice") {
                 const isRenew = existingClients.some(c => c.phone === clientPhone);
                 const actionText = isRenew ? "renewed" : "succesfully activated";
                 const trustText = isRenew ? "again" : "";
@@ -543,15 +543,20 @@ export default function SaleForm() {
                     msg += `\n\n*Note:* ${instructions}`;
                 }
 
+                if (action === "whatsappInvoice") {
+                    const saleLink = `https://${invoiceDomain || 'subzonix.cloud'}/invoice/${merchantId}/${savedId}`;
+                    msg += `\n\n*View Invoice:* ${saleLink}`;
+                }
+
                 // Add footer if missing (must be at last)
-                const footer = `\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`.replace("[Company Name]", companyInfo.companyName || "SubZonix");
+                const footer = `\n\n> Thank you for trusting *${companyInfo.companyName || "SubZonix"}*\n_© Powered by SubZonix.cloud_`;
                 if (!msg.includes("© Powered by SubZonix")) {
                     msg += footer;
                 }
 
                 window.open(`https://wa.me/${cleanPhone(clientPhone)}?text=${encodeURIComponent(sanitizeForWhatsApp(msg))}`, '_blank');
 
-                showToast("WhatsApp opened for receipt", "info");
+                showToast(`WhatsApp opened for ${action === "whatsappInvoice" ? "invoice" : "receipt"}`, "info");
             }
 
             showToast("Transaction saved successfully", "success");
@@ -1037,14 +1042,22 @@ export default function SaleForm() {
                                     </span>
                                 }
                             >
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 w-full sm:w-auto">
                                     <Button
                                         onClick={() => handleSave("whatsapp")}
                                         variant="secondary"
                                         disabled={loading}
-                                        className="btn-whatsapp"
+                                        className="btn-whatsapp flex-1"
                                     >
-                                        <FaWhatsapp /> Send
+                                        <FaWhatsapp /> Send Details
+                                    </Button>
+                                    <Button
+                                        onClick={() => handleSave("whatsappInvoice")}
+                                        variant="outline"
+                                        disabled={loading}
+                                        className="btn-whatsapp flex-1"
+                                    >
+                                        <FaWhatsapp /> Send Invoice
                                     </Button>
                                 </div>
                             </PlanFeatureGuard>

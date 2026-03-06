@@ -67,7 +67,7 @@ export default function PendingPage() {
         const loginLinks = s.items.map(i => i.loginLink ? `- ${i.name}: ${i.loginLink}` : "").filter(Boolean).join("\n");
         const firstExpiry = s.items[0]?.eDate ? formatDate(s.items[0].eDate) : "N/A";
 
-        let template = settings?.pendingTemplate || `*${EMOJIS.MONEY_BAG} Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*. ${EMOJIS.HOURGLASS}\n\n* ${EMOJIS.WRENCH} Tool Name : [Tool Name]\n* ${EMOJIS.ENVELOPE} Email : [Email]\n\n${EMOJIS.CALENDAR} Expiry Date : [ExpiryDate]\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*${EMOJIS.BANK} Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> *Sent by [Company Name]*\n_© Powered by subzonix.cloud_`;
+        let template = settings?.pendingTemplate || `*${EMOJIS.MONEY_BAG} Payment Reminder*\n\nDear *[Client]*,\n\nThe following memberships you activated on [ActivationDate]. Dues are *pending*. ${EMOJIS.HOURGLASS}\n\n* ${EMOJIS.WRENCH} Tool Name : [Tool Name]\n* ${EMOJIS.ENVELOPE} Email : [Email]\n\n${EMOJIS.CALENDAR} Expiry Date : [ExpiryDate]\n\n${EMOJIS.LINK} Login Link: [LoginLink]\n\nTo continue uninterrupted access, kindly clear all the dues.\n\n*${EMOJIS.BANK} Account Information:*\n* Bank Name: [Bank Name]\n* Holder Name: [Holder Name]\n* IBAN or Account No.: [Account No]\n\n> Thank you for trusting *[Company Name]*\n_© Powered by SubZonix.cloud_`;
 
 
         let msg = template
@@ -80,10 +80,11 @@ export default function PendingPage() {
             .replace(/\[ExpiryDate\]/g, firstExpiry)
             .replace(/\[Bank Name\]/g, settings?.bankName || "user not set yet")
             .replace(/\[Holder Name\]/g, settings?.accountHolder || "user not set yet")
+            .replace(/\[Account No\]/g, settings?.iban || settings?.accountNumber || "user not set yet")
             .replace(/\[Company Name\]/g, settings?.companyName || "SubZonix")
             .replace(/\n?.*\[LoginLink\].*/g, (match: string) => loginLinks ? match.replace("[LoginLink]", loginLinks) : "");
 
-        const footer = `\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`.replace("[Company Name]", settings?.companyName || "SubZonix");
+        const footer = `\n\n> Thank you for trusting *${settings?.companyName || "SubZonix"}*\n_© Powered by SubZonix.cloud_`;
         if (!msg.includes("© Powered by SubZonix")) {
             msg += footer;
         }

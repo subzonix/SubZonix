@@ -216,13 +216,62 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
     y += 10;
     if (y > 230) { doc.addPage(); y = 20; }
 
-    const panelHeight = 50;
-    const panelY = y;
+    let panelY = y;
 
-    // -- Left Panel: Payment Info --
+    // -- Top Panel: Instructions & Warranty --
+    let instructionsText = sale.instructions || "No specific instructions.";
+    if (instructionsText === "No Instructions") instructionsText = "Standard terms apply.";
+
+    const cleanInstr = instructionsText.replace(/\*/g, '');
+    const splitInstr = doc.splitTextToSize(cleanInstr, 160);
+
+    // Calculate required height based on line count and whether there is a login link
+    let instrHeight = Math.max(30, (splitInstr.length * 4) + 15);
+    let linkY = 0;
+    let splitLink: string[] = [];
+    if (companyInfo?.loginLink) {
+        splitLink = doc.splitTextToSize(companyInfo.loginLink, 160);
+        linkY = panelY + 18 + (splitInstr.length * 4) + 2;
+        instrHeight += (splitLink.length * 4) + 10;
+    }
+
+    if (panelY + instrHeight > 270) { doc.addPage(); panelY = 20; }
+
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(20, panelY, 80, panelHeight, 3, 3, 'FD');
+    doc.roundedRect(20, panelY, 170, instrHeight, 3, 3, 'FD');
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("INSTRUCTIONS / WARRANTY", 25, panelY + 10);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(70);
+
+    doc.text(splitInstr, 25, panelY + 18);
+
+    // Login Link (if present)
+    if (companyInfo?.loginLink && splitLink.length > 0) {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text("LOGIN LINK:", 25, linkY);
+
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0, 0, 255); // Blue link color
+        doc.setFontSize(8);
+        doc.text(splitLink, 25, linkY + 4);
+    }
+
+    // -- Bottom Panel: Payment Info --
+    panelY += instrHeight + 5;
+    if (panelY > 230) { doc.addPage(); panelY = 20; }
+
+    const paymentPanelHeight = 40;
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(20, panelY, 170, paymentPanelHeight, 3, 3, 'FD');
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
@@ -236,95 +285,30 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
     let paymentY = panelY + 18;
 
     if (companyInfo?.bankName) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        doc.setTextColor(100);
-        doc.text("Bank:", 25, paymentY);
-        doc.setFont("helvetica", "normal");
-        doc.text(companyInfo.bankName, 25, paymentY + 4);
-        paymentY += 10;
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text("Bank:", 25, paymentY);
+        doc.setFont("helvetica", "normal"); doc.text(companyInfo.bankName, 25, paymentY + 5);
+    }
+    if (companyInfo?.accountHolder) {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text("Account Holder:", 80, paymentY);
+        doc.setFont("helvetica", "normal"); doc.text(companyInfo.accountHolder, 80, paymentY + 5);
     }
 
-    if (companyInfo?.accountHolder) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        doc.setTextColor(100);
-        doc.text("Account Holder:", 25, paymentY);
-        doc.setFont("helvetica", "normal");
-        doc.text(companyInfo.accountHolder, 25, paymentY + 4);
-        paymentY += 10;
-    }
+    let secondRowY = paymentY + 12;
 
     if (companyInfo?.iban) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        doc.setTextColor(100);
-        doc.text("IBAN:", 25, paymentY);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text("IBAN:", 25, secondRowY);
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
-        const splitIban = doc.splitTextToSize(companyInfo.iban, 70);
-        doc.text(splitIban, 25, paymentY + 4);
-        paymentY += (splitIban.length * 3) + 4;
+        doc.setFontSize(8); doc.text(companyInfo.iban, 25, secondRowY + 5);
     }
-
     if (companyInfo?.account) {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(8);
-        doc.setTextColor(100);
-        doc.text("Account:", 25, paymentY);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        const splitAccount = doc.splitTextToSize(companyInfo.account, 70);
-        doc.text(splitAccount, 25, paymentY + 4);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text("Account Number:", 80, secondRowY);
+        doc.setFont("helvetica", "normal"); doc.text(companyInfo.account, 80, secondRowY + 5);
     }
 
     if (!companyInfo?.bankName && !companyInfo?.accountHolder && !companyInfo?.iban && !companyInfo?.account) {
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
-        doc.setTextColor(70);
-        const accountDetails = "Contact administrator for details.";
-        const splitAccount = doc.splitTextToSize(accountDetails, 70);
-        doc.text(splitAccount, 25, panelY + 18);
-    }
-
-
-    // -- Right Panel: Instructions & Branding --
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(110, panelY, 80, panelHeight, 3, 3, 'FD');
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text("INSTRUCTIONS / WARRANTY", 115, panelY + 10);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(70);
-
-    let instructionsText = sale.instructions || "No specific instructions.";
-    if (instructionsText === "No Instructions") instructionsText = "Standard terms apply.";
-
-    const cleanInstr = instructionsText.replace(/\*/g, '');
-    const splitInstr = doc.splitTextToSize(cleanInstr, 70);
-    const maxLines = 8;
-    const renderInstr = splitInstr.length > maxLines ? splitInstr.slice(0, maxLines).concat(["..."]) : splitInstr;
-
-    doc.text(renderInstr, 115, panelY + 18);
-
-    // Login Link (if present)
-    if (companyInfo?.loginLink) {
-        const linkY = panelY + 18 + (renderInstr.length * 4) + 4;
-        if (linkY < panelY + panelHeight - 5) {
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.text("LOGIN LINK:", 115, linkY);
-
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 255); // Blue link color
-            doc.setFontSize(8);
-            const splitLink = doc.splitTextToSize(companyInfo.loginLink, 70);
-            doc.text(splitLink, 115, linkY + 4);
-        }
+        doc.text("Contact administrator for details.", 25, panelY + 18);
     }
 
     // --- Document Footer with Indigo Background ---
@@ -343,7 +327,7 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
 
     // Company name - left side
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
+    doc.setFontSize(12);
     doc.text(`© ${year} ${companyName}`, 20, footerY + 8);
 
     // WhatsApp contact - below company name
@@ -359,9 +343,9 @@ export function generateInvoicePDF(sale: any, companyInfo?: { name?: string, slo
     doc.text(slogan, 105, footerY + 11, { align: "center" });
 
     // Generated by - right side
-    doc.setFont("helvetica", "normal");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.text(`Generated by ${companyName}`, 190, footerY + 11, { align: "right" });
+    doc.text(`Powered by SubZonix.cloud`, 190, footerY + 11, { align: "right" });
 
     const safeFileName = sale.client.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     doc.save(`Invoice_${safeFileName}_${Date.now()}.pdf`);

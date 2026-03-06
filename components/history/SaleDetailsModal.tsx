@@ -56,7 +56,7 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
         }
 
         // Add footer if missing (must be at last)
-        const footer = `\n\n> Thank u for trusting *[Company Name]* _© Powered by SubZonix_`.replace("[Company Name]", companyInfo?.companyName || "SubZonix");
+        const footer = `\n\n> Thank you for trusting *${companyInfo?.companyName || "SubZonix"}*\n_© Powered by SubZonix.cloud_`;
         if (!message.includes("© Powered by SubZonix")) {
             message += footer;
         }
@@ -64,6 +64,38 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
         const url = `https://wa.me/${cleanPhone(sale.client.phone)}?text=${encodeURIComponent(sanitizeForWhatsApp(message))}`;
         window.open(url, "_blank");
 
+    };
+
+    const handleWhatsAppInvoice = () => {
+        const link = `https://${invoiceDomain || 'subzonix.cloud'}/invoice/${merchantId}/${sale.id}`;
+        let message = `*Hello ${sale.client.name}, here are your credentials for your recent purchase:* \n\n`;
+
+        sale.items.forEach((item, idx) => {
+            message += `*Tool #${idx + 1}: ${item.name} (${item.type})*\n`;
+            if (item.plan) message += `Plan: ${item.plan}\n`;
+            if (item.email) message += `Email: ${item.email}\n`;
+            if (item.pass) message += `Password: ${item.pass}\n`;
+            if (item.profileName) message += `Profile: ${item.profileName}\n`;
+            if (item.profilePin) message += `PIN: ${item.profilePin}\n`;
+            if (item.loginLink) message += `Link: ${item.loginLink}\n`;
+            if (item.mailAccess) message += `Mail Access: ${item.mailAccess}\n`;
+            if (item.mailAccessPassword) message += `Mail Password: ${item.mailAccessPassword}\n`;
+            message += `Expiry: ${item.eDate}\n\n`;
+        });
+
+        if (sale.instructions && sale.instructions !== "No Instructions") {
+            message += `*Instructions & Warranty:*\n${sale.instructions}\n\n`;
+        }
+
+        message += `*View Invoice:* ${link}`;
+
+        const footer = `\n\n> Thank you for trusting *${companyInfo?.companyName || "SubZonix"}*\n_© Powered by SubZonix.cloud_`;
+        if (!message.includes("© Powered by SubZonix")) {
+            message += footer;
+        }
+
+        const url = `https://wa.me/${cleanPhone(sale.client.phone)}?text=${encodeURIComponent(sanitizeForWhatsApp(message))}`;
+        window.open(url, "_blank");
     };
 
     const handleDownloadPDF = () => {
@@ -204,13 +236,22 @@ export default function SaleDetailsModal({ sale, isOpen, onClose }: SaleDetailsM
                             </button>
                         }
                     >
-                        <Button
-                            onClick={() => handleWhatsApp()}
-                            variant="outline"
-                            className="flex-1 min-h-11 rounded-2xl text-[10px]"
-                        >
-                            <FaWhatsapp className="text-lg text-emerald-500" /> Send Details
-                        </Button>
+                        <div className="flex gap-2 flex-1">
+                            <Button
+                                onClick={() => handleWhatsApp()}
+                                variant="outline"
+                                className="flex-1 min-h-11 rounded-2xl text-[10px]"
+                            >
+                                <FaWhatsapp className="text-lg text-emerald-500" /> Send Details
+                            </Button>
+                            <Button
+                                onClick={() => handleWhatsAppInvoice()}
+                                variant="secondary"
+                                className="flex-1 min-h-11 rounded-2xl text-[10px]"
+                            >
+                                <FaWhatsapp className="text-lg text-indigo-500" /> Send Invoice
+                            </Button>
+                        </div>
                     </PlanFeatureGuard>
 
                     <PlanFeatureGuard

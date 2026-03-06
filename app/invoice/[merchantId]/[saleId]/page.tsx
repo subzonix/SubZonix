@@ -17,7 +17,7 @@ import {
     FaPrint
 } from "react-icons/fa6";
 import { motion } from "framer-motion";
-import { toHumanDate } from "@/lib/utils";
+import { toHumanDate, cleanPhone } from "@/lib/utils";
 import { handleDownloadPDF } from "@/lib/pdfUtils";
 import { MorphingSquare } from "@/components/ui/morphing-square";
 
@@ -113,7 +113,7 @@ export default function PublicInvoicePage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-600 font-sans pb-20">
+        <div className="min-h-screen bg-slate-50 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))] text-slate-900 selection:bg-indigo-100 selection:text-indigo-600 font-sans pb-20">
             {/* Action Bar (Sticky) */}
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -133,15 +133,15 @@ export default function PublicInvoicePage() {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => window.print()}
-                        className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition"
+                        className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition"
                     >
                         <FaPrint /> Print
                     </button>
                     <button
                         onClick={handleDownload}
-                        className="flex items-center gap-2 px-6 py-2 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 active:scale-95 transition"
+                        className="flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 active:scale-95 transition"
                     >
-                        <FaFilePdf /> Download PDF
+                        <FaFilePdf /> <span className="hidden xs:inline">Download</span> PDF
                     </button>
                 </div>
             </div>
@@ -153,13 +153,13 @@ export default function PublicInvoicePage() {
                     className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100"
                 >
                     {/* Invoice Header Section */}
-                    <div className="bg-indigo-600 p-10 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-400/20 rounded-full blur-3xl -ml-32 -mb-32" />
+                    <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-700 p-10 md:p-12 text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-fuchsia-400/20 rounded-full blur-3xl -ml-32 -mb-32" />
 
-                        <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                        <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6 md:gap-8">
                             <div>
-                                <h1 className="text-5xl font-black uppercase tracking-tighter leading-none mb-2">Invoice</h1>
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-3">Invoice</h1>
                                 <div className="flex items-center gap-3">
                                     <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest">#{saleId.slice(-6).toUpperCase()}</span>
                                     <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest opacity-80">
@@ -180,7 +180,7 @@ export default function PublicInvoicePage() {
                     </div>
 
                     {/* Content Section */}
-                    <div className="p-10 space-y-10">
+                    <div className="p-6 sm:p-10 space-y-8 sm:space-y-10">
                         {/* Customer & Merchant Info */}
                         <div className="grid md:grid-cols-2 gap-10 border-b border-slate-100 pb-10">
                             <div>
@@ -212,7 +212,7 @@ export default function PublicInvoicePage() {
                             </h2>
                             <div className="space-y-4">
                                 {sale.items.map((item, idx) => (
-                                    <div key={idx} className="group p-6 rounded-3xl bg-slate-50 hover:bg-white border border-slate-100 hover:border-indigo-100 transition-all duration-300">
+                                    <div key={idx} className="group p-6 rounded-3xl bg-slate-50 hover:bg-white border border-slate-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-600/5 hover:-translate-y-1 transition-all duration-300">
                                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
@@ -330,21 +330,21 @@ export default function PublicInvoicePage() {
                     </div>
 
                     {/* Footer Branding */}
-                    <div className="bg-slate-900 p-10 text-center relative overflow-hidden">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
-                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-4">Powered by</div>
-                        <h4 className="text-white text-xl font-black italic tracking-tighter">SubZonix</h4>
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-950 p-8 sm:p-10 text-center relative overflow-hidden">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+                        <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] mb-4">Powered by</div>
+                        <h4 className="text-white text-lg sm:text-xl font-black tracking-tighter uppercase">{merchant.companyName}</h4>
                         <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
                             <a
-                                href={`https://wa.me/${merchant.companyPhone}`}
+                                href={`https://wa.me/${cleanPhone(merchant.companyPhone)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 text-white/60 hover:text-white transition text-xs font-bold"
+                                className="flex items-center gap-2 text-white/60 hover:text-white transition text-[10px] sm:text-xs font-bold"
                             >
                                 <FaWhatsapp className="text-emerald-500" /> WhatsApp Support
                             </a>
                             <div className="w-1.5 h-1.5 rounded-full bg-slate-800 hidden sm:block" />
-                            <div className="text-white/40 text-[10px] font-bold uppercase tracking-[0.1em]">© {new Date().getFullYear()} {merchant.companyName}</div>
+                            <div className="text-white/40 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.1em]">© {new Date().getFullYear()} SubZonix.cloud</div>
                         </div>
                     </div>
                 </motion.div>
