@@ -5,7 +5,7 @@ import { FaArrowRight, FaRocket, FaStar, FaFire } from "react-icons/fa6";
 import Link from "next/link";
 
 interface CTASectionProps {
-    plansEnabled?: boolean;
+    plansEnabled?: boolean | null;
 }
 
 export default function CTASection({ plansEnabled = true }: CTASectionProps) {

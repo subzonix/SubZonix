@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { FaShieldHalved, FaUsers, FaChartLine } from "react-icons/fa6";
 
 interface HeroSectionProps {
-    plansEnabled?: boolean;
+    plansEnabled?: boolean | null;
 }
 
 export default function HeroSection({ plansEnabled = true }: HeroSectionProps) {
