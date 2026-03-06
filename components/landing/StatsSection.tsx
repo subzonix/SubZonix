@@ -134,9 +134,10 @@ export default function StatsSection() {
                     <div className="flex items-center gap-2">
                         {[
                             { flag: "🇵🇰", country: "Pakistan" },
-                            { flag: "🇸🇦", country: "Saudi Arabia" },
-                            { flag: "🇦🇪", country: "UAE" },
-                            { flag: "��", country: "UK" },
+                            { flag: "🇮🇳", country: "India" },
+                            { flag: "🇧🇩", country: "Bangladesh" },
+                            { flag: "⻄", country: "Vietnam" },
+                            { flag: "🇰🇷", country: "Korea" },
                         ].map((c, i) => (
                             <span
                                 key={i}

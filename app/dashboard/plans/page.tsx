@@ -19,7 +19,7 @@ const FEATURE_ORDER = [
     { key: 'export', label: 'Export Data' },
     { key: 'pdf', label: 'PDF Invoices' },
     { key: 'whatsappAlerts', label: 'WhatsApp Alerts' },
-    { key: 'editReminders', label: 'Custom Reminders' },
+    { key: 'editReminders', label: 'Custom Templates' },
     { key: 'support', label: 'Priority Support' },
     { key: 'inventory', label: 'Inventory Module' },
     { key: 'analytics', label: 'Advanced Analytics' },

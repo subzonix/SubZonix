@@ -503,7 +503,7 @@ export default function RemindersPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between bg-card p-4 rounded-2xl border border-border shadow-sm  z-40 backdrop-blur-md">
                     <h1 className="text-sm font-black text-foreground uppercase tracking-widest flex items-center gap-2">
-                        <FaBell className="text-indigo-500" /> Templates & Instructions
+                        <FaBell className="text-indigo-500" /> Message & Instruction Templates
                     </h1>
                     <div className="flex items-center gap-2">
                         <div className="flex p-1.5 rounded-xl  border border-slate-200 dark:border-slate-700/50 self-end sm:self-auto">
@@ -543,7 +543,7 @@ export default function RemindersPage() {
                     <div className="grid lg:grid-cols-2 gap-6">
                         {/* Left: Message Reminders */}
                         <div className="space-y-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-2">Message Reminders</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-2">Message Templates</h4>
 
                             <EditableTemplate
                                 title="Renewal Reminder"
@@ -658,7 +658,7 @@ export default function RemindersPage() {
                         <div className="md:hidden space-y-3 p-4">
                             {/* Message Reminders Mobile */}
                             <div className="space-y-2">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Message Reminders</h4>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Message Templates</h4>
                                 {[
                                     { title: "Renewal Reminder", value: settings.reminderTemplate, variables: ["[Client]", "[Tool Name]", "[Date]", "[LoginLink]"] },
                                     { title: "Payment Pending", value: settings.pendingTemplate, variables: ["[Client]", "[ActivationDate]", "[Tool Name]", "[Email]", "[PendingAmount]", "[ExpiryDate]", "[Bank Name]", "[Holder Name]", "[Account No]", "[Company Name]", "[LoginLink]"] },
@@ -732,7 +732,7 @@ export default function RemindersPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
-                                    {/* Message Reminders */}
+                                    {/* Message Templates */}
                                     <tr
                                         onClick={() => setEditingItem({
                                             title: "Renewal Reminder",

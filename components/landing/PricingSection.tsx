@@ -82,7 +82,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
         { key: 'export', label: 'Export Data' },
         { key: 'pdf', label: 'PDF Invoices' },
         { key: 'whatsappAlerts', label: 'WhatsApp Alerts' },
-        { key: 'editReminders', label: 'Custom Reminders' },
+        { key: 'editReminders', label: 'Custom Templates' },
         { key: 'support', label: 'Priority Support' },
         { key: 'inventory', label: 'Inventory Module' },
         { key: 'analytics', label: 'Advanced Analytics' },
@@ -106,7 +106,7 @@ export default function PricingSection({ appConfig }: { appConfig: any }) {
         if (idx === 0) {
             return "For new resellers — Core dashboard, limited monthly sales, email support.";
         }
-        return "Unlimited sales, inventory management, WhatsApp reminders, and analytics.";
+        return "Unlimited sales, inventory management, WhatsApp templates, and analytics.";
     };
 
     const shouldShowPrice = (plan: Plan) => typeof plan.price === "number" && plan.price > 0;

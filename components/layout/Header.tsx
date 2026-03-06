@@ -51,6 +51,7 @@ export default function Header({ onMenuClick, onSidebarToggle, sidebarCollapsed,
         if (pathname.includes("analytics")) return "Advanced Analytics";
         if (pathname.includes("settings")) return "Settings";
         if (pathname.startsWith("/owner")) return "Owner Dashboard";
+        if (pathname.includes("reminders")) return "Templates";
         return "Dashboard Overview";
     };
 

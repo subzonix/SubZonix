@@ -36,9 +36,9 @@ const items = [
         icon: <FaUsers className="h-4 w-4 text-violet-500" />,
     },
     {
-        title: "Expiry Reminders",
-        description: "Automated alerts to ensure you never miss a renewal.",
-        header: <FeatureImage src="/screenshots/sale1.png" alt="Expiry Reminders" />,
+        title: "Message Templates",
+        description: "Create and save custom templates for renewals, payments, and receipts.",
+        header: <FeatureImage src="/screenshots/sale1.png" alt="Message Templates" />,
         icon: <FaBell className="h-4 w-4 text-amber-500" />,
     },
     {

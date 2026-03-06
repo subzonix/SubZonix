@@ -59,7 +59,7 @@ export default function SettingsPage() {
     const { theme, setTheme, resolvedTheme } = useTheme();
     const { showToast, confirm } = useToast();
     const [expandedSections, setExpandedSections] = useState({
-        branding: true,
+        branding: typeof window !== 'undefined' ? window.innerWidth > 768 : true,
         plan: false,
         security: false,
         export: false,
@@ -67,6 +67,17 @@ export default function SettingsPage() {
         interface: false,
         quick: false
     });
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth <= 768) {
+                setExpandedSections(prev => ({ ...prev, branding: false }));
+            }
+        };
+        handleResize(); // Initial check
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     const [settings, setSettings] = useState({
         companyName: "",
         slogan: "",
@@ -443,57 +454,6 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     </SettingsAccordionCard>
-
-                    <SettingsAccordionCard
-                        title="Quick Access"
-                        icon={FaLink}
-                        iconClassName="text-amber-500"
-                        open={expandedSections.quick}
-                        onToggle={() => setExpandedSections(prev => ({ ...prev, quick: !prev.quick }))}
-                    >
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <Link
-                                href="/dashboard/reminders"
-                                className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all group"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <FaMessage className="text-sm" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-foreground">Reminders</div>
-                                    <div className="text-[10px] text-slate-500">View your active alerts</div>
-                                </div>
-                            </Link>
-
-                            {plansEnabled && (
-                                <Link
-                                    href="/dashboard/plans"
-                                    className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 hover:border-amber-400 transition-all group"
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <FaGem className="text-sm" />
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-foreground">Subscriptions</div>
-                                        <div className="text-[10px] text-slate-500">Manage your plan</div>
-                                    </div>
-                                </Link>
-                            )}
-
-                            <Link
-                                href="/dashboard/support"
-                                className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-900/30 hover:border-emerald-400 transition-all group col-span-1 sm:col-span-2"
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <FaHeadset className="text-sm" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold text-foreground">Support Center</div>
-                                    <div className="text-[10px] text-slate-500">Submit queries and get help</div>
-                                </div>
-                            </Link>
-                        </div>
-                    </SettingsAccordionCard>
                 </div>
 
                 <div className="space-y-6">
@@ -630,7 +590,7 @@ export default function SettingsPage() {
                                                 { key: 'export', label: 'Export Data' },
                                                 { key: 'pdf', label: 'PDF Invoices' },
                                                 { key: 'whatsappAlerts', label: 'WhatsApp Alerts' },
-                                                { key: 'editReminders', label: 'Custom Reminders' },
+                                                { key: 'editReminders', label: 'Custom Templates' },
                                                 { key: 'support', label: 'Priority Support' },
                                                 { key: 'exportPreference', label: 'Custom Export' },
                                                 { key: 'importData', label: 'Import CSV' },
@@ -653,6 +613,57 @@ export default function SettingsPage() {
                             </div>
                         </Card>
                     )}
+
+                    <SettingsAccordionCard
+                        title="Quick Access"
+                        icon={FaLink}
+                        iconClassName="text-amber-500"
+                        open={expandedSections.quick}
+                        onToggle={() => setExpandedSections(prev => ({ ...prev, quick: !prev.quick }))}
+                    >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <Link
+                                href="/dashboard/reminders"
+                                className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all group"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <FaMessage className="text-sm" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-foreground">Templates</div>
+                                    <div className="text-[10px] text-slate-500">Manage your message templates</div>
+                                </div>
+                            </Link>
+
+                            {plansEnabled && (
+                                <Link
+                                    href="/dashboard/plans"
+                                    className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 hover:border-amber-400 transition-all group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <FaGem className="text-sm" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs font-bold text-foreground">Subscriptions</div>
+                                        <div className="text-[10px] text-slate-500">Manage your plan</div>
+                                    </div>
+                                </Link>
+                            )}
+
+                            <Link
+                                href="/dashboard/support"
+                                className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-900/30 hover:border-emerald-400 transition-all group col-span-1 sm:col-span-2"
+                            >
+                                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <FaHeadset className="text-sm" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-foreground">Support Center</div>
+                                    <div className="text-[10px] text-slate-500">Submit queries and get help</div>
+                                </div>
+                            </Link>
+                        </div>
+                    </SettingsAccordionCard>
 
                     <SettingsAccordionCard
                         title="Administrative Security"

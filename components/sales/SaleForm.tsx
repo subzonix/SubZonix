@@ -807,7 +807,7 @@ export default function SaleForm() {
                             <option key={k} value={k}>{k}</option>
                         ))
                     ) : (
-                        <option value="" disabled>No templates found (Add in Reminders)</option>
+                        <option value="" disabled>No templates found (Add in Templates)</option>
                     )}
                 </Select>
                 <div className="flex justify-between mt-1">

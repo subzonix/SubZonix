@@ -27,7 +27,7 @@ const steps = [
     {
         no: "03",
         title: "Automate Alerts",
-        desc: "Stay ahead of expirations. Automatic renewal reminders keep your customers happy and your revenue consistent.",
+        desc: "Stay ahead of expirations. Automatic renewal messages keep your customers happy and your revenue consistent.",
         color: "from-amber-500 to-orange-600",
         shadow: "shadow-amber-500/25",
         lightBg: "bg-amber-50 dark:bg-amber-500/10",

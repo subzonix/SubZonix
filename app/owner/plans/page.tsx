@@ -381,7 +381,7 @@ export default function PlansManagementPage() {
                                 { key: 'export' as keyof PlanFeatures, label: 'Export Data' },
                                 { key: 'pdf' as keyof PlanFeatures, label: 'PDF Generation' },
                                 { key: 'whatsappAlerts' as keyof PlanFeatures, label: 'WhatsApp Alerts' },
-                                { key: 'editReminders' as keyof PlanFeatures, label: 'Edit Reminders' },
+                                { key: 'editReminders' as keyof PlanFeatures, label: 'Edit Templates' },
                                 { key: 'support' as keyof PlanFeatures, label: 'Support Access' },
                                 { key: 'exportPreference' as keyof PlanFeatures, label: 'Export Preferences' },
                                 { key: 'importData' as keyof PlanFeatures, label: 'Import Data' },

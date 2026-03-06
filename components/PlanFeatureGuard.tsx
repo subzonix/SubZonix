@@ -83,7 +83,7 @@ function getFeatureName(feature: keyof PlanFeatures): string {
         export: "Export Data",
         pdf: "PDF Generation",
         whatsappAlerts: "WhatsApp Alerts",
-        editReminders: "Edit Reminders",
+        editReminders: "Edit Templates",
         support: "Support Access",
         exportPreference: "Export Preferences",
         importData: "Import Data",
