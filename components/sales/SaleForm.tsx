@@ -2,13 +2,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { addMonths, addDays, addYears, format, parseISO } from "date-fns";
 import Link from "next/link";
+import clsx from "clsx";
 import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, limit, orderBy, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ToolItem, Sale, InventoryItem, Client } from "@/types";
 import { Button, Input, Select, Card } from "@/components/ui/Shared";
 import Autocomplete from "@/components/ui/Autocomplete";
 import ToolInput from "./ToolInput";
-import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen, FaCalendar, FaFaceSmile } from "react-icons/fa6";
+import { FaFloppyDisk, FaWhatsapp, FaFilePdf, FaCalculator, FaUserClock, FaMagnifyingGlass, FaCircleExclamation, FaPlus, FaClockRotateLeft, FaPen, FaCalendar, FaFaceSmile, FaFileInvoiceDollar } from "react-icons/fa6";
 import EmojiPicker from "@/components/ui/EmojiPicker";
 import { cleanPhone, generateInvoicePDF, sanitizeForWhatsApp, getLocalIsoDate } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -979,12 +980,12 @@ export default function SaleForm() {
                     transition-colors
                 "
             >
-                <div className="max-w-7xl mx-auto px-4 py-3">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="max-w-7xl mx-auto px-4 py-1.5 md:py-3">
+                    <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
 
-                        {/* Summary Stats */}
-                        <div className="flex flex-wrap gap-3 text-sm">
-                            <div className="px-3 py-1.5 rounded-lg  border border-slate-200  dark:border-slate-700">
+                        {/* Summary Stats - DESKTOP */}
+                        <div className="hidden md:flex gap-3 text-sm">
+                            <div className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                                 <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                                     Total Sell
                                 </div>
@@ -995,7 +996,7 @@ export default function SaleForm() {
 
                             {!isStaff && (
                                 <>
-                                    <div className="px-3 py-1.5 rounded-lg  border border-slate-200   dark:border-slate-700">
+                                    <div className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                                         <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                                             Total Cost
                                         </div>
@@ -1008,7 +1009,7 @@ export default function SaleForm() {
                                         <div className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase font-black tracking-widest">
                                             Total Profit
                                         </div>
-                                        <div className="font-bold text-lg text-emerald-700 dark:text-emerald-400">
+                                        <div className="font-bold text-xl text-emerald-700 dark:text-emerald-400">
                                             Rs. {totalProfit}
                                         </div>
                                     </div>
@@ -1016,75 +1017,166 @@ export default function SaleForm() {
                             )}
                         </div>
 
+                        {/* Summary Stats - MOBILE (Single Line) */}
+                        <div className="flex md:hidden items-center gap-2 text-[11px] font-bold">
+                            <div className="flex flex-col leading-none">
+                                <span className="text-[9px] text-muted-foreground uppercase opacity-70">Sell</span>
+                                <span>{totalSell}</span>
+                            </div>
+                            {!isStaff && (
+                                <>
+                                    <div className="w-px h-5 bg-border mx-0.5" />
+                                    <div className="flex flex-col leading-none">
+                                        <span className="text-[9px] text-muted-foreground uppercase opacity-70">Cost</span>
+                                        <span>{totalCost}</span>
+                                    </div>
+                                    <div className="w-px h-5 bg-border mx-0.5" />
+                                    <div className="flex flex-col leading-none text-emerald-600 dark:text-emerald-400">
+                                        <span className="text-[9px] uppercase opacity-70">Profit</span>
+                                        <span>{totalProfit}</span>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
                         {/* Actions */}
-                        <div className="flex gap-2 w-full sm:w-auto">
-                            <Button
-                                onClick={() => handleSave("save")}
-                                variant="secondary"
-                                disabled={loading}
-                                className="btn-save"
-                            >
-                                <FaFloppyDisk /> Save
-                            </Button>
+                        <div className="flex gap-1.5 md:gap-2">
+                            {/* Desktop Actions */}
+                            <div className="hidden md:flex gap-2">
+                                <Button
+                                    onClick={() => handleSave("save")}
+                                    variant="secondary"
+                                    disabled={loading}
+                                    className="h-9 px-4 flex items-center justify-center"
+                                    title="Save"
+                                >
+                                    <FaFloppyDisk className="text-base" />
+                                    <span className="ml-2">Save</span>
+                                </Button>
 
-
-                            <PlanFeatureGuard
-                                feature="whatsappAlerts"
-                                fallback={
-                                    <span title="Upgrade plan for WhatsApp alerts" className="cursor-not-allowed">
+                                <PlanFeatureGuard
+                                    feature="whatsappAlerts"
+                                    fallback={
                                         <Button
                                             disabled
                                             variant="secondary"
-                                            className="btn-whatsapp opacity-50"
+                                            className="opacity-50 h-9 px-4 flex items-center justify-center"
                                         >
-                                            <FaWhatsapp /> Send (Locked)
+                                            <FaWhatsapp className="text-base" />
+                                            <span className="ml-2">Send</span>
                                         </Button>
-                                    </span>
-                                }
-                            >
-                                <div className="flex gap-2 w-full sm:w-auto">
+                                    }
+                                >
                                     <Button
                                         onClick={() => handleSave("whatsapp")}
                                         variant="secondary"
                                         disabled={loading}
-                                        className="btn-whatsapp flex-1"
+                                        className="h-9 px-4 flex items-center justify-center"
                                     >
-                                        <FaWhatsapp /> Send Details
+                                        <FaWhatsapp className="text-base" />
+                                        <span className="ml-2">Details</span>
                                     </Button>
                                     <Button
                                         onClick={() => handleSave("whatsappInvoice")}
                                         variant="outline"
                                         disabled={loading}
-                                        className="btn-whatsapp flex-1"
+                                        className="h-9 px-4 flex items-center justify-center"
                                     >
-                                        <FaWhatsapp /> Send Invoice
+                                        <FaWhatsapp className="text-base" />
+                                        <span className="ml-2">Invoice</span>
                                     </Button>
-                                </div>
-                            </PlanFeatureGuard>
+                                </PlanFeatureGuard>
 
-                            <PlanFeatureGuard
-                                feature="pdf"
-                                fallback={
-                                    <span title="Upgrade plan for PDF generation" className="cursor-not-allowed">
+                                <PlanFeatureGuard
+                                    feature="pdf"
+                                    fallback={
                                         <Button
                                             disabled
                                             variant="secondary"
-                                            className="btn-pdf opacity-50"
+                                            className="opacity-50 h-9 px-4 flex items-center justify-center"
                                         >
-                                            <FaFilePdf /> PDF (Locked)
+                                            <FaFilePdf className="text-base" />
+                                            <span className="ml-2">PDF</span>
                                         </Button>
-                                    </span>
-                                }
-                            >
-                                <Button
-                                    onClick={() => handleSave("pdf")}
-                                    variant="success"
-                                    disabled={loading}
-                                    className="btn-pdf"
+                                    }
                                 >
-                                    <FaFilePdf /> PDF
-                                </Button>
-                            </PlanFeatureGuard>
+                                    <Button
+                                        onClick={() => handleSave("pdf")}
+                                        variant="success"
+                                        disabled={loading}
+                                        className="h-9 px-4 flex items-center justify-center"
+                                    >
+                                        <FaFilePdf className="text-base" />
+                                        <span className="ml-2">PDF</span>
+                                    </Button>
+                                </PlanFeatureGuard>
+                            </div>
+
+                            {/* Mobile Actions */}
+                            <div className="flex md:hidden gap-1.5">
+                                <div
+                                    onClick={() => !loading && handleSave("save")}
+                                    className={clsx(
+                                        "icon-view w-11 h-11 flex items-center justify-center cursor-pointer active:scale-95 transition-all shadow-sm",
+                                        loading && "opacity-50 cursor-not-allowed"
+                                    )}
+                                    title="Save"
+                                >
+                                    <FaFloppyDisk className="text-[20px] text-indigo-600 dark:text-indigo-400" />
+                                </div>
+
+                                <PlanFeatureGuard
+                                    feature="whatsappAlerts"
+                                    fallback={
+                                        <div className="flex gap-1.5 opacity-50 cursor-not-allowed">
+                                            <div className="icon-whatsapp w-11 h-11 flex items-center justify-center"><FaWhatsapp className="text-[20px]" /></div>
+                                        </div>
+                                    }
+                                >
+                                    <div className="flex gap-1.5">
+                                        <div
+                                            onClick={() => !loading && handleSave("whatsapp")}
+                                            className={clsx(
+                                                "icon-whatsapp w-11 h-11 flex items-center justify-center cursor-pointer active:scale-95 transition-all shadow-sm",
+                                                loading && "opacity-50 cursor-not-allowed"
+                                            )}
+                                            title="Send Details"
+                                        >
+                                            <FaWhatsapp className="text-[20px]" />
+                                        </div>
+                                        <div
+                                            onClick={() => !loading && handleSave("whatsappInvoice")}
+                                            className={clsx(
+                                                "icon-whatsapp w-11 h-11 flex items-center justify-center cursor-pointer active:scale-95 transition-all shadow-sm",
+                                                loading && "opacity-50 cursor-not-allowed"
+                                            )}
+                                            title="Send Invoice"
+                                        >
+                                            <FaFileInvoiceDollar className="text-[20px]" />
+                                        </div>
+                                    </div>
+                                </PlanFeatureGuard>
+
+                                <PlanFeatureGuard
+                                    feature="pdf"
+                                    fallback={
+                                        <div className="opacity-50 cursor-not-allowed">
+                                            <div className="icon-pdf w-11 h-11 flex items-center justify-center"><FaFilePdf className="text-[26px]" /></div>
+                                        </div>
+                                    }
+                                >
+                                    <div
+                                        onClick={() => !loading && handleSave("pdf")}
+                                        className={clsx(
+                                            "icon-pdf w-11 h-11 flex items-center justify-center cursor-pointer active:scale-95 transition-all shadow-sm",
+                                            loading && "opacity-50 cursor-not-allowed"
+                                        )}
+                                        title="Generate PDF"
+                                    >
+                                        <FaFilePdf className="text-[20px]" />
+                                    </div>
+                                </PlanFeatureGuard>
+                            </div>
                         </div>
 
                     </div>
